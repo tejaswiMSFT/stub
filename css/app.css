@@ -267,6 +267,34 @@ p { margin: 0; }
   .bar { background: var(--surface-solid); }
 }
 
+/*
+ * The app's own bar, where the name sits left with its mark beside it.
+ *
+ * Sheets keep the centred title with a Back button — that is a modal convention. A
+ * home screen is not modal, and an app names itself in the corner.
+ */
+.app-bar { grid-template-columns: auto 1fr; }
+
+.bar-brand {
+  grid-column: 1;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.bar-mark {
+  display: flex;
+  width: 27px;
+  height: 27px;
+}
+
+.bar-mark svg { width: 100%; height: 100%; border-radius: 7px; }
+
+.app-bar .bar-actions { grid-column: 2; }
+
 .bar-title {
   grid-column: 2;
   font-size: 17px;
@@ -408,7 +436,110 @@ p { margin: 0; }
   padding: 20px 20px 6px;
 }
 
-.sources-body h2 { font-size: 17px; margin-bottom: 12px; }
+.sources-body h2 { font-size: 17px; margin-bottom: 4px; }
+.sources-note { font-size: 13px; color: var(--label-2); margin-bottom: 14px; }
+
+/*
+ * Press feedback.
+ *
+ * A card that gives under a thumb and springs back is most of what separates an app from
+ * a web page. The curve matters: easing out faster than in is what reads as physical
+ * rather than as an animation.
+ *
+ * `.pressing` is set from JavaScript because iOS Safari does not reliably apply `:active`
+ * to arbitrary elements — the one platform this most needs to work on.
+ */
+.card,
+.action,
+.row,
+.option,
+.primary,
+.show-code,
+.icon-button,
+.text-button,
+.chip,
+.dot {
+  transition:
+    transform 0.34s cubic-bezier(0.2, 0.9, 0.3, 1),
+    box-shadow 0.34s cubic-bezier(0.2, 0.9, 0.3, 1),
+    filter 0.2s ease,
+    background-color 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.card.pressing {
+  transform: scale(0.968);
+  filter: brightness(0.97);
+}
+
+.action.pressing,
+.row.pressing,
+.option.pressing {
+  background: var(--fill);
+  transform: scale(0.995);
+}
+
+.primary.pressing,
+.show-code.pressing {
+  transform: scale(0.972);
+  filter: brightness(0.94);
+}
+
+.icon-button.pressing,
+.text-button.pressing,
+.chip.pressing {
+  transform: scale(0.9);
+  opacity: 0.65;
+}
+
+.dot.pressing { transform: scale(1.5); }
+
+/*
+ * Cards lift rather than sit flat.
+ *
+ * A pass is a physical object in the user's mind, and a shadow that deepens toward the
+ * bottom is what makes a rectangle read as one lying on a surface.
+ */
+.card {
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.06),
+    0 6px 16px -6px rgba(0, 0, 0, 0.18);
+}
+
+.card.large {
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.07),
+    0 14px 30px -10px rgba(0, 0, 0, 0.24);
+}
+
+.card.pressing {
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.08),
+    0 3px 8px -4px rgba(0, 0, 0, 0.2);
+}
+
+/* A card sliding in as the list is built, each a little after the last. */
+@keyframes card-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.99); }
+  to { opacity: 1; transform: none; }
+}
+
+.card { animation: card-in 0.42s cubic-bezier(0.2, 0.9, 0.3, 1) both; }
+.card:nth-child(2) { animation-delay: 0.045s; }
+.card:nth-child(3) { animation-delay: 0.09s; }
+.card:nth-child(4) { animation-delay: 0.13s; }
+.card:nth-child(n+5) { animation-delay: 0.16s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .card { animation: none; }
+  .card.pressing,
+  .primary.pressing,
+  .show-code.pressing,
+  .icon-button.pressing,
+  .text-button.pressing,
+  .chip.pressing,
+  .dot.pressing { transform: none; }
+}
 
 .landing-footer {
   margin-top: 38px;
@@ -776,6 +907,9 @@ p { margin: 0; }
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  /* Zoomed past the screen edge, the code must be reachable. */
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .scan-close {
@@ -817,31 +951,28 @@ p { margin: 0; }
    *
    * A web page cannot raise screen brightness the way a native wallet can, so physical
    * size is the only thing that helps a scanner — and a barcode too small to read makes
-   * this screen pointless. The cap was 560px, which on a modern phone left most of the
-   * display empty.
+   * this screen pointless.
    *
-   * Height is capped too, or a tall PDF417 runs off the bottom.
+   * A wide code is rotated on its own canvas rather than with a transform here, so its
+   * layout box is the size it actually occupies and nothing overlaps it.
    */
   max-width: min(96vw, 900px);
-  max-height: 78vh;
+  max-height: 74vh;
   width: auto;
   height: auto;
   /* Nearest-neighbour: any smoothing softens the module edges a scanner looks for. */
   image-rendering: pixelated;
   image-rendering: crisp-edges;
+  transition: transform 0.22s var(--ease);
+  transform-origin: center;
 }
 
-/*
- * A wide 1D barcode turned upright, filling a portrait screen.
- *
- * Scanners read a barcode in any orientation, and rotating a stripe that is four times
- * wider than it is tall roughly triples how large it can be shown on a phone held
- * normally.
- */
-#scan-canvas.upright {
-  transform: rotate(90deg);
-  max-width: 78vh;
-  max-height: 96vw;
+/* Tapped to fill the screen, for a scanner that is struggling. */
+#scan-canvas.zoomed {
+  max-width: none;
+  max-height: none;
+  width: 128vw;
+  height: auto;
 }
 
 .scan-reference {

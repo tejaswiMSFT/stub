@@ -28,6 +28,7 @@ import * as prefs from './settings.js';
 import * as wakelock from './wakelock.js';
 import * as resume from './resume.js';
 import * as updates from './update.js';
+import * as haptics from './haptics.js';
 import { helpPages } from './help.js';
 import { markSvg, wordmarkSvg, svgUrl, brand } from './brand-identity.js';
 import { BUILD } from './build.js';
@@ -136,6 +137,7 @@ async function start() {
   registerServiceWorker();
   initTheme();
   wire();
+  haptics.pressable(document);
 
   state.tickets = await store.all().catch(() => []);
   await applyRetention();
@@ -491,6 +493,10 @@ function renderHome() {
   const body = $('home-body');
   const { upcoming, past } = store.partition(state.tickets);
 
+  // The mark beside the name. Drawn once and left alone.
+  const mark = $('home-mark');
+  if (mark && !mark.childElementCount) mark.innerHTML = markSvg({ size: 27 });
+
   if (!state.tickets.length) {
     // No button here. A "+" already sits in the bar above, and offering two controls for
     // one action makes the user choose between identical things. The empty state says
@@ -638,10 +644,9 @@ function openPassMenu() {
     <div class="action-backdrop" data-close="1"></div>
     <div class="action-panel" role="dialog" aria-label="Ticket options">
       <button class="action" data-act="edit" type="button">Edit details</button>
-      <button class="action" data-act="sources" type="button">Where these came from</button>
+      <button class="action" data-act="sources" type="button">Metadata</button>
       <button class="action" data-act="export" type="button">Export this ticket</button>
       <button class="action danger" data-act="delete" type="button">Delete ticket</button>
-      <button class="action cancel" data-close="1" type="button">Cancel</button>
     </div>`;
 
   document.body.appendChild(sheet);
@@ -676,6 +681,7 @@ function openPassMenu() {
       // Destructive, and the only irreversible thing here, so it still asks — but now as
       // the deliberate end of a choice rather than the whole of it.
       if (!confirm('Delete this ticket? This cannot be undone.')) return;
+      haptics.tap('warn');
       await store.remove(ticket.id);
       state.tickets = await store.all();
       state.viewing = null;
@@ -724,9 +730,10 @@ function showSources(ticket) {
   sheet.className = 'action-sheet';
   sheet.innerHTML = `
     <div class="action-backdrop" data-close="1"></div>
-    <div class="action-panel sources" role="dialog" aria-label="Where these came from">
+    <div class="action-panel sources" role="dialog" aria-label="Metadata">
       <div class="sources-body">
-        <h2>Where these came from</h2>
+        <h2>Metadata</h2>
+        <p class="sources-note">Where each detail came from.</p>
         <dl class="detail-list subtle">${rows || '<div><dt>Nothing recorded</dt><dd></dd></div>'}</dl>
       </div>
       <button class="action cancel" data-close="1" type="button">Done</button>
@@ -950,8 +957,11 @@ async function openScan(ticket) {
   const reference = $('scan-reference');
   const note = $('scan-note');
 
-  reference.textContent = ticket.fields?.pnr || '';
-  note.textContent = '';
+  reference.textContent = ticket.fields?.pnr || ticket.fields?.reference || '';
+  note.textContent = 'Tap the code to enlarge it';
+
+  // Never opens zoomed, whatever was left from last time.
+  canvas.classList.remove('zoomed');
 
   // Controls start hidden: the user has just tapped to get here, so they know how they
   // arrived and do not need a way out presented to them immediately.
@@ -961,27 +971,58 @@ async function openScan(ticket) {
   if (prefs.settings().keepAwake) wakelock.acquire();
 
   try {
-    // A barcode we decoded is redrawn from its own bytes. One we could not decode is
-    // shown as the picture we kept — the original pixels, which scan just as well.
-    if (!ticket.barcode && ticket.barcodeImage?.image) {
+    // A decoded barcode is redrawn from its own bytes, which is sharpest. If we cannot
+    // draw that symbology, the picture we kept is used instead — the original pixels,
+    // which scan just as well and are more faithful than any re-encoding.
+    if (ticket.barcode) {
+      try {
+        await code.render(canvas, ticket.barcode, {
+          targetWidth: Math.min(window.innerWidth - 24, 900),
+        });
+
+        if (canvas.width / canvas.height > 2.5 && window.innerHeight > window.innerWidth) {
+          rotateCanvasUpright(canvas);
+        }
+        return;
+      } catch (error) {
+        if (!ticket.barcodeImage?.image) throw error;
+        // Fall through to the kept picture.
+      }
+    }
+
+    if (ticket.barcodeImage?.image) {
       await drawKeptBarcode(canvas, ticket.barcodeImage);
       return;
     }
 
-    // As large as the screen allows. A web page cannot raise brightness the way a native
-    // wallet can, so size is the only thing that helps a scanner — and a barcode too
-    // small to read is the one failure this screen exists to prevent.
-    await code.render(canvas, ticket.barcode, {
-      targetWidth: Math.min(window.innerWidth - 24, 900),
-    });
-
-    // A wide code is turned upright, which lets it be shown far larger on a phone held
-    // in portrait. Scanners read a barcode at any angle.
-    const wide = canvas.width / canvas.height > 2.5;
-    canvas.classList.toggle('upright', wide && window.innerHeight > window.innerWidth);
+    throw new Error('This ticket has no code to show.');
   } catch (error) {
     note.textContent = error.message;
   }
+}
+
+/**
+ * Turns a canvas a quarter turn, in place.
+ *
+ * Its width and height swap, so the element occupies the space it actually needs and
+ * nothing has to be nudged around it.
+ */
+function rotateCanvasUpright(canvas) {
+  const source = document.createElement('canvas');
+  source.width = canvas.width;
+  source.height = canvas.height;
+  source.getContext('2d').drawImage(canvas, 0, 0);
+
+  canvas.width = source.height;
+  canvas.height = source.width;
+
+  const context = canvas.getContext('2d');
+  context.imageSmoothingEnabled = false;
+  context.save();
+  context.translate(canvas.width, 0);
+  context.rotate(Math.PI / 2);
+  context.drawImage(source, 0, 0);
+  context.restore();
 }
 
 /**
@@ -1067,18 +1108,23 @@ async function handleSource(loader, description) {
     const draft = await extract({ lines, barcode: barcodes.primary, ingested });
     step('identify', 'done');
 
-    // A barcode we can see but could not read is still worth keeping. The original
-    // pixels scan perfectly well at a gate — a scanner reads the image, not our
-    // understanding of it — and showing them is more faithful than showing nothing.
-    if (!barcodes.primary) {
-      const kept = await keepBarcodeImage(ingested).catch(() => null);
-      if (kept) {
-        draft.barcodeImage = kept;
-        draft.warnings.push(
-          'We could not read the code on this ticket, so it is kept exactly as it was '
-          + 'printed. It should still scan — hold the screen up as you would the original.'
-        );
-      }
+    // Always keep a picture of the barcode, even when it decoded.
+    //
+    // Decoding tells us what a barcode says; it does not guarantee we can draw it again.
+    // An Air India ticket decoded well enough for every field to be marked as coming
+    // from the barcode, then failed at the one moment it mattered, because its symbology
+    // is not one we can redraw — leaving a pass that claimed a barcode and showed none.
+    //
+    // The kept image costs little and removes that whole class of failure: whatever
+    // happens, there is something to hold up, and it is the original pixels.
+    const kept = await keepBarcodeImage(ingested).catch(() => null);
+    if (kept) draft.barcodeImage = kept;
+
+    if (!barcodes.primary && kept) {
+      draft.warnings.push(
+        'We could not read the code on this ticket, so it is kept exactly as it was '
+        + 'printed. It should still scan — hold the screen up as you would the original.'
+      );
     }
 
     if (!lines.length) {
@@ -1350,6 +1396,7 @@ function wireReview() {
   }
   for (const button of document.querySelectorAll('[data-confirm]')) {
     button.addEventListener('click', () => {
+      haptics.tap('select');
       state.draft.get(button.dataset.confirm)?.confirm();
       renderReview();
     });
@@ -1415,6 +1462,7 @@ async function saveDraft() {
     if (state.seedColor) record.colours = { seed: state.seedColor };
 
     await store.save(record);
+    haptics.tap('success');
     state.tickets = await store.all();
 
     const wasEditing = Boolean(state.editingId);
@@ -1939,6 +1987,14 @@ function wire() {
   // gestures so that a stray touch while the phone is held up cannot dismiss the code.
   $('screen-scan').addEventListener('click', (event) => {
     if (event.target.closest('.scan-close')) { closeScan(); return; }
+
+    // Tapping the code itself enlarges it past the screen edge, for a scanner that is
+    // struggling. Tapping anywhere else reveals the way out, as before.
+    if (event.target.id === 'scan-canvas') {
+      event.target.classList.toggle('zoomed');
+      return;
+    }
+
     revealScanControls();
   });
 

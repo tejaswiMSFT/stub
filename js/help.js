@@ -19,6 +19,13 @@
  */
 const CONTACT_URL = 'https://tejaswimsft.github.io/?subject=Stub%20—%20feedback#contact';
 
+/**
+ * Help pages.
+ *
+ * Titles are labels, not sentences. They sit in a bar at the top of a sheet and are read
+ * at a glance, so "Guide" beats "How to use the app" — and none of them say "tickets",
+ * because the app also holds hotel bookings and coupons.
+ */
 export function helpPages(platform) {
   const pages = [];
 
@@ -32,11 +39,11 @@ export function helpPages(platform) {
   }
 
   pages.push(
-    { title: 'How to use the app', body: howToUse(platform) },
+    { title: 'Guide', body: howToUse(platform) },
     { title: 'How it works', body: howItWorks() },
-    { title: 'Managing tickets', body: managing() },
-    { title: 'Removing the app', body: removing() },
-    { title: 'Data privacy', body: privacy() },
+    { title: 'Managing', body: managing() },
+    { title: 'Removing', body: removing() },
+    { title: 'Privacy', body: privacy() },
     { title: 'About', body: about() },
   );
 
@@ -228,21 +235,22 @@ function androidInstall(platform) {
 
 function managing() {
   return `
-    <p class="help-lead">Tickets are yours to remove, and yours to take with you.</p>
+    <p class="help-lead">Everything here is yours to remove, and yours to take with you.</p>
 
-    <h3>Removing one ticket</h3>
-    <p>Open it and use the menu in the corner. That ticket goes; everything else stays.
-    Your original file is never touched.</p>
+    <h3>Removing one</h3>
+    <p>Open it and use the menu in the corner — <strong>Edit</strong> to correct a detail,
+    <strong>Delete</strong> to remove it. That one goes; everything else stays, and your
+    original file is never touched.</p>
 
     <h3>Past journeys</h3>
-    <p>A ticket moves to <strong>Past</strong> six hours after it departs, rather than
-    disappearing. Delays happen, and the booking reference is often needed weeks later for
-    a refund or an expense claim.</p>
+    <p>A pass moves to <strong>Past</strong> six hours after it departs, rather than
+    disappearing. Delays happen, and a booking reference is often needed weeks later for a
+    refund or an expense claim.</p>
 
     <h3>Backing up</h3>
     <p>In <strong>Settings</strong>, tap <strong>Export a backup</strong>. You get a single
-    file holding every ticket, which you can keep wherever you like. <strong>Restore from a
-    backup</strong> brings them all back.</p>
+    file holding everything you have saved, to keep wherever you like. <strong>Restore from a
+    backup</strong> brings it all back.</p>
 
     <div class="help-note">
       The backup is ordinary readable text. Nothing is locked to this app, and you can

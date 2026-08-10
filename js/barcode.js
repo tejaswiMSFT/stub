@@ -169,6 +169,29 @@ function toBarcode(result, payload, attempt) {
 }
 
 /**
+ * Symbologies worth decoding, which is a wider set than the ones we can redraw.
+ *
+ * Restricting detection to the four Wallet formats meant a ticket using anything else —
+ * Data Matrix, Code 39, an EAN — was reported as having no barcode at all. Now that a
+ * barcode we cannot redraw is kept as a picture instead, there is no reason not to look
+ * for it: knowing it is there and showing the original pixels beats denying it exists.
+ */
+const READABLE_FORMATS = [
+  ...WALLET_FORMATS,
+  'DataMatrix',
+  'Code39',
+  'Code93',
+  'ITF',
+  'EAN-13',
+  'EAN-8',
+  'UPC-A',
+  'UPC-E',
+  'Codabar',
+  'MaxiCode',
+  'MicroQRCode',
+];
+
+/**
  * Attempts decoding with escalating effort. Most tickets resolve on the first pass;
  * the later passes exist for photographs and low-quality screenshots and are skipped
  * entirely when they are not needed.
@@ -178,7 +201,7 @@ async function runAttempts(reader, imageData, { onProgress } = {}) {
     tryHarder: true,
     tryRotate: true,
     tryInvert: true,
-    formats: WALLET_FORMATS,
+    formats: READABLE_FORMATS,
     maxNumberOfSymbols: 8,
   };
 

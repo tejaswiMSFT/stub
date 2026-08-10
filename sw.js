@@ -50,6 +50,7 @@ const ASSETS = [
   './js/canvas.js',
   './js/model.js',
   './js/errors.js',
+  './js/haptics.js',
   './js/brand.js',
   './js/brand-identity.js',
   './js/build.js',
