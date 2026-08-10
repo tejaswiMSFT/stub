@@ -363,18 +363,22 @@ function renderLanding() {
           <button class="ghost-button" id="copy-link" type="button">Copy the link</button>
         </div>
         <p class="install-body small">
-          Then in Safari: ${shareGlyph()} <strong>Share</strong> → <strong>Add to Home Screen</strong>.
+          Then in Safari: ${shareGlyph()} <strong>Share</strong> — or <strong>⌄</strong> at
+          the end of the address bar — then <strong>Add to Home Screen</strong>.
         </p>
       </div>`;
 
     $('copy-link')?.addEventListener('click', copyLink);
     $('share-link')?.addEventListener('click', shareLink);
   } else if (platform.iOS) {
+    // iOS 18 moved Share off the toolbar and into a menu behind a chevron at the end of
+    // the address bar. Naming only the toolbar sends most people hunting for a button
+    // that is not there, so both are described — newer layout first.
     card.innerHTML = `
       <div class="install-steps">
         <p class="install-lead">Add it to your Home Screen</p>
         <ol>
-          <li>Tap ${shareGlyph()} <strong>Share</strong> in Safari's toolbar</li>
+          <li>Tap <strong>⌄</strong> at the end of the address bar, or ${shareGlyph()} <strong>Share</strong> in the toolbar</li>
           <li>Scroll and tap <strong>Add to Home Screen</strong></li>
           <li>Tap <strong>Add</strong></li>
         </ol>
@@ -971,7 +975,7 @@ function fail(error) {
     toast(error.message, { detail: error.hint || '', tone: 'bad' });
   } else {
     toast('Something went wrong reading that file.', {
-      detail: 'This is a bug, not something you did. Tap to copy the details.',
+      detail: 'This is a bug, not something you did. Tap to copy the details for the developer.',
       tone: 'bad',
       onTap: () => copyDiagnostics(error),
     });
@@ -991,6 +995,7 @@ async function copyDiagnostics(error) {
   const report = [
     `Stub — error report`,
     `when: ${new Date().toISOString()}`,
+    `build: ${BUILD.version}`,
     `browser: ${navigator.userAgent}`,
     `error: ${error?.name || 'Error'}: ${error?.message || String(error)}`,
     error?.stack ? `stack:\n${error.stack}` : '',
@@ -998,10 +1003,13 @@ async function copyDiagnostics(error) {
 
   try {
     await navigator.clipboard.writeText(report);
-    toast('Details copied.', { detail: 'Paste them into an issue on GitHub.', tone: 'good' });
+    toast('Details copied.', {
+      detail: 'Send them to the developer — they say exactly what went wrong.',
+      tone: 'good',
+    });
   } catch {
     // Clipboard access can be refused; showing the text is the fallback that always works.
-    window.prompt('Copy these details:', report);
+    window.prompt('Copy these details and send them to the developer:', report);
   }
 }
 

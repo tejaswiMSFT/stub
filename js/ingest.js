@@ -82,6 +82,52 @@ function createCanvas(width, height) {
 }
 
 /**
+ * Reads a page's text, without relying on async iteration over a stream.
+ *
+ * pdf.js implements `getTextContent()` as `for await (const chunk of stream)`. Async
+ * iteration over a `ReadableStream` is not implemented in Safari — it is a Chrome and
+ * Firefox extension that never shipped in WebKit — so on an iPhone that line throws
+ * "undefined is not a function" and every PDF fails at the first page. Nothing about the
+ * PDF is at fault, and no amount of retrying helps.
+ *
+ * The underlying `streamTextContent()` returns an ordinary reader, which works
+ * everywhere. Pulling the chunks by hand and assembling them exactly as pdf.js would
+ * gives an identical result on every browser.
+ *
+ * Falls back to the built-in method where the manual route is unavailable, so a future
+ * pdf.js that changes this API degrades rather than breaks.
+ */
+async function readTextContent(page) {
+  if (typeof page.streamTextContent !== 'function') {
+    return page.getTextContent();
+  }
+
+  const stream = page.streamTextContent({ disableNormalization: true });
+  const reader = stream?.getReader?.();
+
+  if (!reader) return page.getTextContent();
+
+  const content = { items: [], styles: Object.create(null), lang: null };
+
+  try {
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      if (!value) continue;
+
+      content.lang ??= value.lang;
+      Object.assign(content.styles, value.styles);
+      // push(...items) can overflow the stack on a page with very many runs.
+      for (const item of value.items) content.items.push(item);
+    }
+  } finally {
+    reader.releaseLock?.();
+  }
+
+  return content;
+}
+
+/**
  * pdf.js reports text as many small runs with their own transform matrices. We keep
  * each run's bounding box because the review UI highlights the exact region a field
  * came from — that visual link is what makes verification quick rather than tedious.
@@ -184,7 +230,7 @@ async function ingestPdf(file, { onProgress } = {}) {
     onProgress?.({ phase: 'pdf-page', page: index, of: pagesToRead });
     const page = await doc.getPage(index);
     const viewport = page.getViewport({ scale: 1 });
-    const textContent = await page.getTextContent();
+    const textContent = await readTextContent(page);
     const items = normaliseTextItems(textContent, viewport);
     const assessment = assessTextLayer(items, viewport);
 
