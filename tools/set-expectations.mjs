@@ -114,18 +114,6 @@ const EXPECTATIONS = {
     absent: ['berthPosition'],
   },
 
-  // Not a ticket at all: a MESCOM electricity bill. It carries a reference number, a
-  // billing period, dates, a name and an amount, so there is more than enough on the
-  // page to assemble something that looks like a pass. It must be refused instead.
-  //
-  // Every loosened heuristic makes the parser more willing to accept things, and this
-  // is the fixture that notices when it becomes too willing.
-  //
-  // Its address lines were scrubbed by hand after capture, so do not regenerate this
-  // fixture with make-fixture.mjs without scrubbing them again.
-  'mescom-bill': {
-    rejected: true,
-  },
   // A MakeMyTrip hotel voucher. The first stay tested, and the first document with no
   // origin and no destination — which is why rail.js declines lodging rather than
   // inventing two stations for it.

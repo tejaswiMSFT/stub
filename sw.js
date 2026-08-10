@@ -16,7 +16,7 @@
 
 // Bumping this invalidates every cached file. It must change whenever any asset does,
 // or returning users will keep the old app indefinitely.
-const VERSION = 'v1';
+const VERSION = 'v2';
 const CACHE = `ticket-${VERSION}`;
 
 /**
@@ -25,6 +25,12 @@ const CACHE = `ticket-${VERSION}`;
  * The wasm and worker files are large but non-negotiable: barcode decoding and PDF
  * parsing are the app's core, and downloading them on first use would mean adding a
  * ticket fails offline.
+ *
+ * **This list is checked by tools/probe-offline.mjs, and must stay in step with the
+ * files the app actually loads.** It drifted once already: five modules and two adapters
+ * were added over time and never listed here, so the app opened offline to a blank
+ * screen — which is worse than failing outright, because it looks like it works right up
+ * until the moment it is needed. Run `node tools/probe-offline.mjs` after adding a file.
  */
 const ASSETS = [
   './',
@@ -39,21 +45,30 @@ const ASSETS = [
   './js/text.js',
   './js/email.js',
   './js/barcode.js',
+  './js/barcode-render.js',
   './js/bcbp.js',
   './js/model.js',
   './js/errors.js',
   './js/brand.js',
+  './js/brand-identity.js',
   './js/artwork.js',
+  './js/help.js',
+  './js/resume.js',
+  './js/settings.js',
+  './js/wakelock.js',
   './js/adapters/index.js',
   './js/adapters/registry.js',
   './js/adapters/flight.js',
   './js/adapters/rail.js',
   './js/adapters/event.js',
+  './js/adapters/lodging.js',
+  './js/adapters/generic.js',
   './js/data/airports.js',
 
   './vendor/pdf.min.mjs',
   './vendor/pdf.worker.min.mjs',
   './vendor/bwip-js.mjs',
+  './vendor/bwipp.mjs',
   './vendor/zxing/reader/index.js',
   './vendor/zxing/reader/zxing_reader.wasm',
 
