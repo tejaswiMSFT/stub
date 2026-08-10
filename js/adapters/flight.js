@@ -112,8 +112,20 @@ function buildRouteFields(draft, leg, lines) {
 }
 
 function buildTimeFields(draft, leg, lines, airports) {
-  const printedDate = findLabelled(lines, [
-    /\b(?:date\s*of\s*(?:travel|journey)|travel\s*date|flight\s*date|date)\b/i,
+  // The travel date, and nothing else that happens to be called a date.
+  //
+  // A bare "date" pattern matched "*Date of booking 08 Aug 2026" on an IndiGo itinerary,
+  // which then disagreed with the barcode — and the app offered the booking date as the
+  // correction, inviting the user to move their flight a month earlier.
+  //
+  // Lines announcing a booking, issue or print are removed before the search rather than
+  // excluded by lookbehind, which older Safari does not support.
+  const travelLines = lines.filter((line) =>
+    !/\b(?:book(?:ing|ed)|issued?|printed?|purchased?|generated)\b/i.test(line.text));
+
+  const printedDate = findLabelled(travelLines, [
+    /\b(?:date\s*of\s*(?:travel|journey|departure)|travel\s*date|flight\s*date|departure\s*date)\b/i,
+    /\bdate\b/i,
   ]);
 
   const dateField = draft.set('date', new Field({
@@ -365,25 +377,35 @@ async function build(context) {
   //
   // Taken from the document's own prominent text, but section headings are rejected:
   // "Passenger Information" is set large and near the top of an IndiGo itinerary, and
-  // would otherwise be reported as the airline. The carrier code from the barcode is the
-  // fallback — "6E" is at least true, and correctable.
+  // would otherwise be reported as the airline.
+  //
+  // A bare carrier code found in the text is expanded rather than used as-is. IndiGo
+  // prints "6E" as its most prominent text, so the search finds a true value that nobody
+  // would recognise as an airline name.
   const provider = findProvider(lines);
   const operated = operatingCarrier(lines);
   const looksLikeHeading = provider?.value
     && (/\b(information|details|summary|itinerary|booking|reference)\b/i.test(provider.value)
       || looksLikeSalutation(provider.value));
 
-  const providerValue = operated?.value || (looksLikeHeading ? '' : provider?.value);
+  const fromText = looksLikeHeading ? '' : expandCarrierCode(provider?.value);
 
-  draft.set('provider', new Field({
+  const providerValue = operated?.value || fromText || airlineName(leg.carrier);
+
+  const providerField = draft.set('provider', new Field({
     key: 'provider',
     label: 'Airline',
     value: providerValue || leg.carrier,
     source: providerValue ? Source.PDF_TEXT : Source.BARCODE,
     confidence: operated ? Confidence.MEDIUM
-      : (providerValue ? provider.confidence : Confidence.MEDIUM),
+      : (providerValue ? provider?.confidence || Confidence.MEDIUM : Confidence.MEDIUM),
     region: operated?.region || (looksLikeHeading ? null : (provider?.region || null)),
   }));
+
+  // The code is what appears on departure boards, so it is kept alongside the name.
+  if (leg.carrier && providerField.value && providerField.value !== leg.carrier) {
+    providerField.note = leg.carrier.toUpperCase();
+  }
 
   // ── Times printed on the ticket ──
   //
@@ -475,6 +497,154 @@ function findPassengerNames(lines) {
   }
 
   return found;
+}
+
+/**
+ * The dates printed on a line, as YYYY-MM-DD.
+ *
+ * Used to tell a journey's own times from a booking or print stamp. Deliberately more
+ * permissive than `parseDate`: that refuses an ambiguous all-numeric date because
+ * guessing wrong would put someone at the airport on the wrong day. Here the question is
+ * only *"does this line belong to the journey?"*, so both readings of an ambiguous date
+ * are returned and a match on either is enough — a wrong guess about day-versus-month
+ * cannot mislead anyone.
+ */
+function datesOnLine(text) {
+  const found = [];
+
+  // 16 Sep 2026 / 16-SEP-26 — unambiguous, because the month is named.
+  const named = text.match(/\b(\d{1,2})[\s-]*([A-Za-z]{3,9})[\s-]*(\d{2,4})\b/);
+  if (named) {
+    const month = MONTH_INDEX[named[2].slice(0, 3).toLowerCase()];
+    if (month !== undefined) {
+      const year = named[3].length === 2 ? 2000 + Number(named[3]) : Number(named[3]);
+      found.push(iso(year, month + 1, Number(named[1])));
+    }
+  }
+
+  // 08/08/2026 — could be day-first or month-first, so both are kept.
+  const numeric = text.match(/\b(\d{1,2})[/.-](\d{1,2})[/.-](\d{4})\b/);
+  if (numeric) {
+    const [, a, b, year] = numeric;
+    found.push(iso(Number(year), Number(b), Number(a)));
+    found.push(iso(Number(year), Number(a), Number(b)));
+  }
+
+  const isoForm = text.match(/\b(\d{4})-(\d{2})-(\d{2})\b/);
+  if (isoForm) found.push(`${isoForm[1]}-${isoForm[2]}-${isoForm[3]}`);
+
+  return found.filter(Boolean);
+}
+
+const MONTH_INDEX = {
+  jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5,
+  jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11,
+};
+
+function iso(year, month, day) {
+  if (!year || !month || !day || month > 12 || day > 31) return null;
+  return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+}
+
+/**
+ * Airline names for the carrier codes people actually meet.
+ *
+ * Deliberately short. A complete directory of every IATA code would be perpetually out
+ * of date and is not worth carrying in an app that must work offline; this covers the
+ * carriers a traveller is likely to hold a ticket for, and anything unknown falls back
+ * to the code itself — "6E" is at least true, where a wrong airline name is not.
+ *
+ * The code stays visible as a note, since that is what appears on the departure boards.
+ */
+const AIRLINE_NAMES = {
+  // India
+  '6E': 'IndiGo',
+  AI: 'Air India',
+  IX: 'Air India Express',
+  UK: 'Vistara',
+  SG: 'SpiceJet',
+  QP: 'Akasa Air',
+  G8: 'Go First',
+  I5: 'AIX Connect',
+  // Gulf and wider Asia
+  EK: 'Emirates',
+  EY: 'Etihad',
+  QR: 'Qatar Airways',
+  SQ: 'Singapore Airlines',
+  MH: 'Malaysia Airlines',
+  TG: 'Thai Airways',
+  CX: 'Cathay Pacific',
+  NH: 'ANA',
+  JL: 'Japan Airlines',
+  KE: 'Korean Air',
+  AK: 'AirAsia',
+  FD: 'Thai AirAsia',
+  UL: 'SriLankan Airlines',
+  BG: 'Biman Bangladesh',
+  PK: 'Pakistan International',
+  // Europe
+  BA: 'British Airways',
+  LH: 'Lufthansa',
+  AF: 'Air France',
+  KL: 'KLM',
+  IB: 'Iberia',
+  AZ: 'ITA Airways',
+  LX: 'SWISS',
+  OS: 'Austrian Airlines',
+  SK: 'SAS',
+  AY: 'Finnair',
+  TK: 'Turkish Airlines',
+  FR: 'Ryanair',
+  U2: 'easyJet',
+  W6: 'Wizz Air',
+  VS: 'Virgin Atlantic',
+  // Americas and Oceania
+  AA: 'American Airlines',
+  DL: 'Delta',
+  UA: 'United',
+  WN: 'Southwest',
+  AC: 'Air Canada',
+  B6: 'JetBlue',
+  AS: 'Alaska Airlines',
+  QF: 'Qantas',
+  NZ: 'Air New Zealand',
+  // Africa
+  ET: 'Ethiopian Airlines',
+  MS: 'EgyptAir',
+  SA: 'South African Airways',
+  KQ: 'Kenya Airways',
+};
+
+/** The airline's name for a carrier code, or the code itself when unknown. */
+function airlineName(code) {
+  if (!code) return '';
+  return AIRLINE_NAMES[code.toUpperCase()] || code.toUpperCase();
+}
+
+/**
+ * Expands a value that is only a carrier code, or a flight number.
+ *
+ * IndiGo sets "6E 5306" as the most prominent text on its itinerary, so the provider
+ * search returns something true but useless — nobody calls their airline "6E 5306".
+ * Anything else is left exactly as printed: the airline's own wording for its name is
+ * always better than ours.
+ */
+function expandCarrierCode(value) {
+  const text = String(value || '').trim();
+
+  // A bare code: "6E".
+  if (/^[A-Z0-9]{2}$/i.test(text)) return airlineName(text);
+
+  // A flight number: "6E 5306", "AI-2814".
+  const flight = text.match(/^([A-Z0-9]{2})[\s-]?\d{1,4}[A-Z]?$/i);
+  if (flight) {
+    const named = airlineName(flight[1]);
+    // Only when the code is one we recognise — otherwise "XY 123" would become "XY",
+    // which is less informative than what was printed.
+    return named !== flight[1].toUpperCase() ? named : text;
+  }
+
+  return text;
 }
 
 /**
@@ -586,14 +756,47 @@ function fillPrintedTimes(draft, lines) {
   const arrival = draft.get('arrivalTime');
   if (departure?.value && arrival?.value) return;
 
-  const times = [];
+  // Times printed without a caption, ranked by the date they sit beside.
+  //
+  // This used to be a blocklist of words — booking, issued, printed — which fails the
+  // moment an airline phrases it differently. One IndiGo itinerary stamps "*Date of
+  // booking 08 Aug 2026 07:14" and was correctly skipped; a newer download of the same
+  // ticket prints a bare "08/08/2026 14:04", matched no keyword, and became the first
+  // time on the page. Departure was then reported as 14:04 and arrival as 14:35 — the
+  // real departure — with every time shifted by one. Someone would have arrived half an
+  // hour late for a flight the app told them, with an air of authority, they had time
+  // for.
+  //
+  // The reliable signal is the date beside the time. A ticket knows when the journey is;
+  // a time printed against any other date belongs to something else — when it was
+  // booked, issued, or printed. That holds however the label is worded, and in whatever
+  // language.
+  const journeyDate = draft.value('date');
+
+  const onJourneyDate = [];
+  const undated = [];
+
   for (const line of lines) {
-    if (/\bbook(?:ing|ed)\b|\bissued\b|\bcloses?\b|\bprinted\b|\bbag\s*drop\b/i.test(line.text)) continue;
+    // Kept as a second line of defence, for pages that print a stamp with no date at all.
+    if (/\bbook(?:ing|ed)\b|\bissued\b|\bgenerated\b|\bcloses?\b|\bprinted\b|\bbag\s*drop\b/i.test(line.text)) continue;
+
+    const lineDates = datesOnLine(line.text);
+
+    // A date that is not the journey's: everything on this line is about some other
+    // moment entirely.
+    if (lineDates.length && journeyDate && !lineDates.includes(journeyDate)) continue;
+
+    const bucket = journeyDate && lineDates.includes(journeyDate) ? onJourneyDate : undated;
+
     for (const match of line.text.matchAll(/\b(\d{1,2}):(\d{2})\s*(?:hrs?\b)?/gi)) {
       const hour = Number(match[1]);
-      if (hour <= 23) times.push(`${match[1].padStart(2, '0')}:${match[2]}`);
+      if (hour <= 23) bucket.push(`${match[1].padStart(2, '0')}:${match[2]}`);
     }
   }
+
+  // Times printed against the travel date are the journey's own; anything else is a
+  // guess, used only when the ticket gives us nothing better.
+  const times = onJourneyDate.length ? onJourneyDate : undated;
 
   if (!times.length) return;
 
@@ -767,31 +970,9 @@ function buildFromTextOnly(draft, lines) {
   }
 
   // Itineraries commonly print times as "14:35 hrs, 16 Sep 2026" without a caption.
-  //
-  // Lines mentioning booking are skipped: "Date of booking 08 Aug 2026 07:14" is often
-  // the first time on the page, and reporting it as the departure would put someone at
-  // the airport seven hours early — or, worse, reassure them they had time.
-  const departure = draft.get('departureTime');
-  if (!departure.value) {
-    const times = [];
-    for (const line of lines) {
-      if (/\bbook(?:ing|ed)\b|\bissued\b|\bcloses?\b|\bprinted\b/i.test(line.text)) continue;
-      for (const match of line.text.matchAll(/\b(\d{1,2}):(\d{2})\s*(?:hrs?\b)?/gi)) {
-        const hour = Number(match[1]);
-        if (hour <= 23) times.push(`${match[1].padStart(2, '0')}:${match[2]}`);
-      }
-    }
-
-    if (times.length) {
-      departure.value = times[0];
-      departure.warn('Taken from a time printed on the page — please check it.', 'guessed-time');
-      const arrival = draft.get('arrivalTime');
-      if (!arrival.value && times.length > 1) {
-        arrival.value = times[1];
-        arrival.warn('Taken from a time printed on the page — please check it.', 'guessed-time');
-      }
-    }
-  }
+  // Shared with the barcode path so a ticket does not read differently depending on
+  // whether its barcode happened to be legible.
+  fillPrintedTimes(draft, lines);
 
   // ── Passenger ──
   //
@@ -833,10 +1014,10 @@ function buildFromTextOnly(draft, lines) {
 
   // ── Provider ──
   //
-  // Taken from the carrier code in the flight number where the document's own prominent
-  // text is unhelpful. A full airline directory would be perpetually out of date, so
-  // only the code is used — "6E" is at least true and correctable, where "Passenger
-  // Information" is neither.
+  // The carrier code from the flight number is the most reliable signal, since the
+  // document's own prominent text is often a section heading. A short lookup turns "6E"
+  // into "IndiGo" — the code is true but nobody calls their airline that, and a pass
+  // showing two letters looks unfinished.
   const provider = findProvider(lines);
   const carrier = draft.value('flight').match(/^([A-Z0-9]{2})\b/i)?.[1];
   const operated = operatingCarrier(lines);
@@ -844,14 +1025,21 @@ function buildFromTextOnly(draft, lines) {
     && (/\b(information|details|summary|itinerary)\b/i.test(provider.value)
       || looksLikeSalutation(provider.value));
 
-  draft.set('provider', new Field({
+  const named = airlineName(carrier);
+  const value = operated?.value || (looksLikeHeading ? '' : provider?.value) || named || '';
+
+  const providerField = draft.set('provider', new Field({
     key: 'provider',
     label: 'Airline',
-    value: operated?.value || (looksLikeHeading ? '' : provider?.value) || carrier || '',
+    value,
     source: Source.PDF_TEXT,
-    confidence: operated ? Confidence.MEDIUM : Confidence.LOW,
+    // A name from the lookup is as certain as the flight number it came from.
+    confidence: (operated || (named && named !== carrier)) ? Confidence.MEDIUM : Confidence.LOW,
     region: operated?.region || (looksLikeHeading ? null : (provider?.region || null)),
   }));
+
+  // The code is what appears on departure boards, so it is kept alongside the name.
+  if (carrier && value && value !== carrier) providerField.note = carrier.toUpperCase();
 
   draft.warnings.push(
     'This ticket carries no barcode we could read, so every detail was taken from the '

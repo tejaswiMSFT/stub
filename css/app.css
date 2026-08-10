@@ -201,6 +201,36 @@ p { margin: 0; }
   to { opacity: 1; transform: none; }
 }
 
+/*
+ * A sheet — help and settings — is a column: a fixed bar, a scrolling body, and a pager
+ * pinned to the bottom.
+ *
+ * Without an explicit height the body has nothing to scroll within, so a short page
+ * collapsed and a long one ran past the bottom of the window with the pager over the
+ * text. Using dvh rather than vh matters on iOS, where the address bar changes the
+ * viewport as you scroll and vh does not follow it.
+ */
+.screen.sheet {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+}
+
+.screen.sheet .bar { flex: 0 0 auto; }
+
+.screen.sheet .help-body,
+.screen.sheet .settings-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+.screen.sheet .pager { flex: 0 0 auto; }
+
 /* ───────────────────────── bar ───────────────────────── */
 
 .bar {
@@ -277,6 +307,35 @@ p { margin: 0; }
  * Set quiet deliberately: it is a signature, not a claim on the page. Spaced well clear
  * of the last control so it reads as a footer rather than another thing to tap.
  */
+/*
+ * A beating heart.
+ *
+ * Animated rather than a GIF: it stays sharp at any size, costs nothing to download,
+ * inherits the surrounding text colour, and adds no file to cache offline. Two beats
+ * then a rest, which is what a heartbeat actually does — a steady pulse reads as a
+ * loading spinner.
+ */
+.heartbeat {
+  display: inline-block;
+  animation: heartbeat 1.6s ease-in-out infinite;
+  transform-origin: center;
+  will-change: transform;
+}
+
+@keyframes heartbeat {
+  0%   { transform: scale(1); }
+  10%  { transform: scale(1.22); }
+  20%  { transform: scale(1); }
+  30%  { transform: scale(1.16); }
+  42%  { transform: scale(1); }
+  100% { transform: scale(1); }
+}
+
+/* Motion can be unwelcome, and a decorative pulse is never worth overriding that. */
+@media (prefers-reduced-motion: reduce) {
+  .heartbeat { animation: none; }
+}
+
 .landing-footer {
   margin-top: 38px;
   padding-top: 20px;
@@ -917,7 +976,8 @@ kbd {
 
 /* ───────────────────────── sheets: help and settings ───────────────────────── */
 
-.help-body, .settings-body { padding: 22px 20px calc(90px + var(--bottom)); }
+/* The pager is now in the flow, so the body no longer reserves space beneath it. */
+.help-body, .settings-body { padding: 22px 20px 28px; }
 
 .help-lead { font-size: 17px; margin-bottom: 18px; }
 .help-body h3 { font-size: 15.5px; margin: 22px 0 7px; }
@@ -951,8 +1011,9 @@ kbd {
 .help-warning strong { display: block; color: var(--label); margin-bottom: 5px; }
 
 .pager {
-  position: fixed;
-  bottom: 0; left: 0; right: 0;
+  /* Part of the sheet's column rather than floating over it. Fixed positioning left it
+     detached from the content, which is how it ended up sitting on top of the text. */
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1111,9 +1172,22 @@ kbd {
 .row-note { color: var(--label-2); font-size: 14px; }
 .row.danger { color: var(--red); }
 
-.colophon { text-align: center; padding: 10px; color: var(--label-3); }
+.colophon { text-align: center; padding: 10px 10px 24px; color: var(--label-3); }
 .colophon svg { opacity: 0.5; margin-bottom: 10px; }
-.colophon p { font-size: 12.5px; line-height: 1.5; }
+
+/* Separated, or the two lines read as one run-on sentence. */
+.colophon p { font-size: 12.5px; line-height: 1.5; margin: 0; }
+.colophon p + p { margin-top: 12px; }
+
+.colophon .credit {
+  padding-top: 12px;
+  border-top: 1px solid var(--separator);
+  display: inline-block;
+}
+
+/* A row of information is not a control; keep it clear of the button below it. */
+.group .info-card + .row,
+.group .info-card + button { margin-top: 12px; }
 
 .wordmark-slot { display: flex; justify-content: center; color: var(--label); }
 
@@ -1159,6 +1233,71 @@ kbd {
 }
 
 .toast.bad { background: rgba(200, 40, 32, 0.96); }
+/*
+ * The menu behind "⋯" on a ticket.
+ *
+ * Sits above everything, respects the home indicator, and puts the destructive option
+ * last and clearly marked. It replaced a bare confirm() that deleted immediately.
+ */
+.action-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.action-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  animation: fade-in 0.18s ease;
+}
+
+.action-panel {
+  position: relative;
+  width: min(100% - 20px, 460px);
+  margin-bottom: calc(10px + var(--bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  border-radius: 15px;
+  overflow: hidden;
+  background: var(--separator);
+  animation: sheet-up 0.22s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.action {
+  border: 0;
+  padding: 16px;
+  background: var(--surface-solid);
+  color: var(--blue);
+  font: inherit;
+  font-size: 17px;
+  cursor: pointer;
+}
+
+.action:active { background: var(--fill); }
+.action.danger { color: var(--red); }
+
+/* Set apart, so "Cancel" is never mistaken for one of the actions. */
+.action.cancel {
+  margin-top: 8px;
+  border-radius: 15px;
+  font-weight: 600;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes sheet-up {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 .toast span { font-size: 13px; opacity: 0.82; }
 
 /*

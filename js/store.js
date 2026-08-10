@@ -17,6 +17,8 @@
  * lives on the device and leaves it only when the user exports a backup deliberately.
  */
 
+import { TicketDraft, Field, Source, Confidence } from './model.js';
+
 const DB_NAME = 'ticket';
 const DB_VERSION = 1;
 const STORE = 'tickets';
@@ -186,6 +188,59 @@ function departureTimestamp(draftOrRecord) {
 }
 
 // ────────────────────────────── operations ──────────────────────────────
+
+/**
+ * Turns a saved ticket back into an editable draft.
+ *
+ * The inverse of `fromDraft`. Editing reuses the review screen rather than growing a
+ * second editor that would slowly drift from it, and this is what makes that possible.
+ *
+ * Everything comes back marked as already settled — confirmed, at the confidence it was
+ * saved with — because the user has seen these values before and agreed to them. Asking
+ * them to re-approve every field just to correct one would be a poor trade.
+ */
+export function toDraft(record) {
+  if (!record) return null;
+
+  const draft = new TicketDraft({
+    type: record.kind,
+    style: record.style || 'generic',
+    transitType: record.transitType || null,
+    adapter: record.kind,
+  });
+
+  for (const [key, value] of Object.entries(record.fields || {})) {
+    const provenance = record.provenance?.[key] || {};
+
+    const field = draft.set(key, new Field({
+      key,
+      label: provenance.label || key,
+      value,
+      source: provenance.source || Source.INFERRED,
+      confidence: provenance.confidence || Confidence.MEDIUM,
+      critical: Boolean(provenance.critical),
+      note: provenance.note || null,
+    }));
+
+    field.confirmed = true;
+    field.edited = Boolean(provenance.edited);
+  }
+
+  draft.barcode = record.barcode || null;
+  draft.colours = record.colours || null;
+  draft.logo = record.logo || null;
+  draft.originName = record.originName || null;
+  draft.destinationName = record.destinationName || null;
+  draft.passengers = record.passengers || null;
+  draft.additionalLegs = record.additionalLegs || null;
+  draft.allSeats = record.allSeats || null;
+
+  // Warnings describe how the ticket was read, which has not changed; carrying them into
+  // an edit would repeat advice the user has already acted on.
+  draft.warnings = [];
+
+  return draft;
+}
 
 export async function save(record) {
   const next = { ...record, updatedAt: Date.now() };

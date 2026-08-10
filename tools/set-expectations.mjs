@@ -30,6 +30,34 @@ const EXPECTATIONS = {
     absent: ['gate'],
   },
 
+  // The same IndiGo itinerary, downloaded later, with the booking stamp printed as a
+  // bare "08/08/2026 14:04" instead of "*Date of booking 08 Aug 2026 07:14".
+  //
+  // That one difference broke it on a real phone. The old code skipped lines by keyword,
+  // and a numeric stamp mentions no keyword, so it became the first time on the page:
+  // departure was reported as 14:04 and arrival as 14:35 — the actual departure — with
+  // everything shifted by one. The user would have arrived half an hour late for a
+  // flight the app assured them they had time for.
+  //
+  // Times are now ranked by the date beside them, which holds whatever the wording.
+  'indigo-flight-newer': {
+    adapter: 'flight',
+    type: 'flight',
+    fields: {
+      pnr: 'AB1CD2',
+      origin: 'BLR',
+      destination: 'IXE',
+      flight: '6E 5306',
+      date: '2026-09-16',
+      seat: '10F',
+      departureTime: '14:35',
+      arrivalTime: '15:35',
+      provider: 'IndiGo',
+    },
+    critical: ['pnr', 'flight', 'date'],
+    absent: ['gate'],
+  },
+
   'irctc-rail': {
     adapter: 'rail',
     type: 'rail',

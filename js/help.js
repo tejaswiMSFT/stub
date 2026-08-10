@@ -281,35 +281,27 @@ function removing() {
       return `
     <p class="help-lead">We hold nothing about you, because we hold nothing at all.</p>
 
-    <h3>What is collected</h3>
-    <p>Nothing. There is no account, no sign-in, no analytics, no advertising, no crash
-    reporting, and no third-party code loaded while you use the app. Nobody is counting how
-    many people opened it, including us.</p>
+    <h3>Collected: nothing</h3>
+    <p>No account, no sign-in, no analytics, no advertising, no crash reporting. Nobody is
+    counting how many people opened this, including us.</p>
 
-    <h3>What is stored, and where</h3>
-    <p>Your tickets are saved in your browser's own storage, on your device. That includes
-    the details we read, the barcode, and the artwork drawn for each pass.</p>
-    <p>Nobody else can see it. Not us, not your network, not the site this app was
-    downloaded from.</p>
+    <h3>Stored: on your device only</h3>
+    <p>Your tickets are saved in your browser's own storage — the details, the barcode, and
+    the artwork. Nobody else can see them. Not us, not your network, not the site this came
+    from.</p>
 
-    <h3>You can take it with you</h3>
+    <h3>Yours to take</h3>
     <p>Settings has an <strong>Export</strong> button that writes everything to a file you
-    keep. Import it on another device, or hold it as a backup. Your data is not locked
-    inside this app.</p>
+    keep. Deleting is real deletion: remove a ticket and it is gone, remove the app and
+    everything goes with it. There is no server copy to ask us about.</p>
 
-    <h3>Deleting is real deletion</h3>
-    <p>Remove a ticket and it is gone from your device. Remove the app from your home screen
-    and everything in it goes too — see <em>Removing the app</em>. There is no copy on a
-    server to ask us to delete, because there was never a server.</p>
-
-    <h3>Your choice about what is kept</h3>
-    <p>Settings lets you decide what happens after you travel: keep tickets for your records,
-    or have them cleared automatically. It is your call, and you can change it whenever you
-    like.</p>
+    <h3>Your choice on what is kept</h3>
+    <p>Settings decides what happens after you travel — keep tickets for your records, or
+    have them cleared automatically. Change it whenever you like.</p>
 
     <div class="help-note">
     This app is not issued by any airline, railway or operator. It reads tickets you already
-    have. Keep your original with you.
+    have.
     </div>`;
     }
 
@@ -336,7 +328,16 @@ function removing() {
     trap: your tickets export to a file you keep, and the app can be removed completely at
     any time.</p>
 
-    <h3>Open</h3>
+    <h3>Updates arrive on their own</h3>
+<p>There is no App Store here, so improvements reach you the moment they are ready. The
+app checks quietly when you open it, downloads anything new in the background, and
+switches over when you are not in the middle of something.</p>
+<p>It will never block you to force an update. This app exists to show a ticket at a
+gate, and an update needs a signal — which is exactly what you do not have on a plane or
+in a tunnel. <strong>Your saved tickets are never touched by an update.</strong></p>
+<p>Settings shows which version you are on, and can check on demand.</p>
+
+<h3>Open</h3>
     <p>The code is public. Anyone can read exactly what it does with a ticket — which is the
     only way a claim like "nothing leaves your device" can be worth anything.</p>
     <p><a href="https://github.com/tejaswiMSFT/stub" target="_blank" rel="noopener">github.com/tejaswiMSFT/stub</a></p>

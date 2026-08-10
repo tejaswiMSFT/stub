@@ -614,6 +614,89 @@ function paletteFor(ticket) {
 
 // ────────────────────────────── the ticket ──────────────────────────────
 
+/**
+ * The menu behind "⋯" on a ticket.
+ *
+ * It used to go straight to a delete confirmation, which is a trap: a menu affordance
+ * must open a menu. The only thing between a stray tap and losing a boarding pass was a
+ * dialog people dismiss by reflex.
+ *
+ * Editing is here because there was previously no way to correct a saved ticket at all.
+ * Someone who spotted a wrong departure time had to delete the ticket and start again —
+ * which is precisely the moment they are least inclined to trust the app.
+ */
+function openPassMenu() {
+  const ticket = state.viewing;
+  if (!ticket) return;
+
+  const sheet = document.createElement('div');
+  sheet.className = 'action-sheet';
+  sheet.innerHTML = `
+    <div class="action-backdrop" data-close="1"></div>
+    <div class="action-panel" role="dialog" aria-label="Ticket options">
+      <button class="action" data-act="edit" type="button">Edit details</button>
+      <button class="action" data-act="export" type="button">Export this ticket</button>
+      <button class="action danger" data-act="delete" type="button">Delete ticket</button>
+      <button class="action cancel" data-close="1" type="button">Cancel</button>
+    </div>`;
+
+  document.body.appendChild(sheet);
+
+  const close = () => sheet.remove();
+
+  sheet.addEventListener('click', async (event) => {
+    const target = event.target.closest('[data-close], [data-act]');
+    if (!target) return;
+
+    if (target.dataset.close) { close(); return; }
+
+    const action = target.dataset.act;
+    close();
+
+    if (action === 'edit') {
+      editTicket(ticket);
+      return;
+    }
+
+    if (action === 'export') {
+      await exportBackup([ticket]);
+      return;
+    }
+
+    if (action === 'delete') {
+      // Destructive, and the only irreversible thing here, so it still asks — but now as
+      // the deliberate end of a choice rather than the whole of it.
+      if (!confirm('Delete this ticket? This cannot be undone.')) return;
+      await store.remove(ticket.id);
+      state.tickets = await store.all();
+      state.viewing = null;
+      renderHome();
+      show('home', { remember: false });
+      toast('Ticket deleted.');
+    }
+  });
+}
+
+/**
+ * Reopens a saved ticket in the review screen.
+ *
+ * The review screen already knows how to present and correct every field, so editing is
+ * the same screen rather than a second implementation that would drift from it. Saving
+ * updates the existing record instead of creating another.
+ */
+function editTicket(ticket) {
+  const draft = store.toDraft(ticket);
+  if (!draft) {
+    toast('This ticket cannot be edited.', { tone: 'bad' });
+    return;
+  }
+
+  state.draft = draft;
+  state.editingId = ticket.id;
+  renderReview();
+  show('review');
+}
+
 function openPass(id) {
   const ticket = state.tickets.find((record) => record.id === id);
   if (!ticket) return;
@@ -630,6 +713,21 @@ function openPass(id) {
  * heading. Nothing extracted is ever discarded — if it does not belong on the front, it
  * goes further down, never nowhere.
  */
+/**
+ * Whether a field should still be marked uncertain on the face of the pass.
+ *
+ * A value the user confirmed or typed is settled, whatever our own confidence was when
+ * we read it. Marking it anyway — a "?" beside a date the user had explicitly told us
+ * was right — makes the review step look ignored, and teaches people that answering the
+ * app changes nothing.
+ */
+function isUnsure(ticket, key) {
+  const provenance = ticket.provenance?.[key];
+  if (!provenance) return false;
+  if (provenance.confirmed || provenance.edited) return false;
+  return provenance.confidence === Confidence.LOW;
+}
+
 function renderPass(ticket) {
   const palette = paletteFor(ticket);
   const colours = walletColors(palette);
@@ -705,7 +803,7 @@ function renderPass(ticket) {
       ${primary}
       <div class="pass-grid">
         ${golden.map(([key, label, value]) => `
-          <div class="pass-field ${ticket.provenance?.[key]?.confidence === Confidence.LOW ? 'unsure' : ''}">
+          <div class="pass-field ${isUnsure(ticket, key) ? 'unsure' : ''}">
             <span class="k">${escapeHtml(label)}</span>
             <span class="v">${escapeHtml(value)}</span>
           </div>`).join('')}
@@ -1206,14 +1304,35 @@ function wireReview() {
 
 async function saveDraft() {
   try {
-    const record = store.fromDraft(state.draft, { source: describeSource(state.draft.ingested || {})?.label });
+    // Editing reuses this path, so an existing ticket keeps its id and is replaced
+    // rather than duplicated.
+    const record = store.fromDraft(state.draft, {
+      source: describeSource(state.draft.ingested || {})?.label,
+      id: state.editingId || null,
+    });
     if (state.seedColor) record.colours = { seed: state.seedColor };
 
     await store.save(record);
     state.tickets = await store.all();
+
+    const wasEditing = Boolean(state.editingId);
     state.draft = null;
+    state.editingId = null;
 
     renderHome();
+
+    if (wasEditing) {
+      // Back to the ticket, so the correction can be seen to have worked.
+      state.viewing = state.tickets.find((entry) => entry.id === record.id) || null;
+      if (state.viewing) {
+        renderPass(state.viewing);
+        state.history = ['home'];
+        show('pass', { remember: false });
+        toast('Ticket updated.');
+        return;
+      }
+    }
+
     show('home', { remember: false });
     state.history = [];
     toast('Ticket saved.');
@@ -1246,6 +1365,54 @@ function renderHelp() {
   for (const dot of $('help-dots').querySelectorAll('[data-page]')) {
     dot.addEventListener('click', () => { state.helpPage = Number(dot.dataset.page); renderHelp(); });
   }
+
+  // Scrolled back to the top: a new page that begins halfway down reads as broken.
+  $('help-body').scrollTop = 0;
+}
+
+/**
+ * Swipe left and right between help pages.
+ *
+ * Dots and arrows imply a swipe on a phone, and their absence makes the screen feel
+ * inert — the user tries the obvious gesture, nothing happens, and they conclude the app
+ * is unfinished. Attached once, to the body, since the pages themselves are re-rendered.
+ *
+ * Vertical movement is left alone: the help text scrolls, and stealing that gesture
+ * would be far worse than not offering a swipe at all.
+ */
+function wireHelpSwipe() {
+  const body = $('help-body');
+  if (!body) return;
+
+  let startX = 0;
+  let startY = 0;
+  let tracking = false;
+
+  body.addEventListener('touchstart', (event) => {
+    if (event.touches.length !== 1) return;
+    startX = event.touches[0].clientX;
+    startY = event.touches[0].clientY;
+    tracking = true;
+  }, { passive: true });
+
+  body.addEventListener('touchend', (event) => {
+    if (!tracking) return;
+    tracking = false;
+
+    const touch = event.changedTouches[0];
+    const dx = touch.clientX - startX;
+    const dy = touch.clientY - startY;
+
+    // Clearly horizontal, and far enough to be deliberate rather than a stray thumb.
+    if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.6) return;
+
+    const pages = helpPages(platform);
+    const next = dx < 0 ? state.helpPage + 1 : state.helpPage - 1;
+    if (next < 0 || next >= pages.length) return;
+
+    state.helpPage = next;
+    renderHelp();
+  }, { passive: true });
 }
 
 // ────────────────────────────── settings ──────────────────────────────
@@ -1256,7 +1423,14 @@ async function openSettings() {
   const { past } = store.partition(state.tickets);
   const persisted = await navigator.storage?.persisted?.().catch(() => false);
 
-  $('settings-body').innerHTML = `
+  // Changing a setting re-renders the whole sheet, which otherwise throws the user back
+  // to the top — away from the control they just used, so the change appears to have
+  // done something unrelated. Keeping the scroll position makes it feel like the row
+  // changed rather than the page.
+  const body = $('settings-body');
+  const scrollTop = body.scrollTop || body.parentElement?.scrollTop || 0;
+
+  body.innerHTML = `
     <section class="group">
       <h2>After you travel</h2>
       <div class="options-list">
@@ -1357,9 +1531,15 @@ async function openSettings() {
     <div class="colophon">
       ${wordmarkSvg({ height: 26, colour: 'currentColor' })}
       <p>Everything happens on your device. No server, no account, nothing uploaded.</p>
-      <p class="credit">Vibe coded by Tejaswi · Built with 💓 and Microsoft Scout.</p>
+      <p class="credit">Vibe coded by Tejaswi · Built with <span class="heartbeat" aria-label="love">💓</span> and Microsoft Scout.</p>
     </div>
   `;
+
+  // Put the user back where they were, before the browser paints.
+  if (scrollTop) {
+    body.scrollTop = scrollTop;
+    if (body.parentElement) body.parentElement.scrollTop = scrollTop;
+  }
 
   for (const button of $('settings-body').querySelectorAll('[data-retention]')) {
     button.addEventListener('click', () => {
@@ -1417,18 +1597,39 @@ async function openSettings() {
   show('settings');
 }
 
-async function exportBackup() {
+/**
+ * Writes tickets to a file the user keeps.
+ *
+ * With no argument this exports everything, which is the backup case. Given a list it
+ * exports just those, so a single ticket can be sent to someone or kept aside.
+ */
+async function exportBackup(only = null) {
   const payload = await store.exportAll();
+
+  // Guard against being wired straight to a click handler, where the argument would be
+  // an Event rather than a list of tickets.
+  const tickets = Array.isArray(only) ? only : null;
+
+  if (tickets?.length) {
+    const wanted = new Set(tickets.map((ticket) => ticket.id));
+    payload.tickets = (payload.tickets || []).filter((ticket) => wanted.has(ticket.id));
+  }
+
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
 
+  const single = tickets?.length === 1 ? tickets[0] : null;
+  const name = single
+    ? `ticket-${(single.fields?.pnr || single.fields?.reference || single.id).toString().slice(0, 12)}.json`
+    : `tickets-${new Date().toISOString().slice(0, 10)}.json`;
+
   const link = document.createElement('a');
   link.href = url;
-  link.download = `tickets-${new Date().toISOString().slice(0, 10)}.json`;
+  link.download = name;
   link.click();
 
   setTimeout(() => URL.revokeObjectURL(url), 1000);
-  toast('Backup saved.');
+  toast(tickets?.length ? 'Ticket exported.' : 'Backup saved.');
 }
 
 function importBackup() {
@@ -1499,15 +1700,29 @@ function initTheme() {
 
 // ────────────────────────────── helpers ──────────────────────────────
 
+/**
+ * The mark between origin and destination.
+ *
+ * The aircraft is drawn nose-up and rotated to point along the route, because it sits
+ * between two airport codes and is read as an arrow: nose-up says "a flight", nose-right
+ * says "this flight, in this direction". Trains and buses are not directional symbols in
+ * the same way and are left upright.
+ */
 function transitGlyph(transitType) {
   const paths = {
     PKTransitTypeAir: 'M12 1.6c.95 0 1.7.85 1.7 1.9v4.9l7.9 4.55v2.2l-7.9-2.35v4.35l2.4 1.75v1.75l-4.1-1.15-4.1 1.15V19.3l2.4-1.75v-4.35L2.4 15.55v-2.2l7.9-4.55V3.5c0-1.05.75-1.9 1.7-1.9z',
     PKTransitTypeTrain: 'M8 2.6h8a3.4 3.4 0 0 1 3.4 3.4v8.6a2.6 2.6 0 0 1-2.6 2.6H7.2a2.6 2.6 0 0 1-2.6-2.6V6A3.4 3.4 0 0 1 8 2.6zM9.4 17.2 7 21.4M14.6 17.2 17 21.4',
     PKTransitTypeBus: 'M2.6 5.4h14.2a4.6 4.6 0 0 1 3.5 1.6l1.2 1.5a2 2 0 0 1 .5 1.3v5.4a1.4 1.4 0 0 1-1.4 1.4H2.6a1.4 1.4 0 0 1-1.4-1.4V6.8a1.4 1.4 0 0 1 1.4-1.4z',
   };
+
   const path = paths[transitType];
   if (!path) return '<span class="plain-arrow">→</span>';
-  return `<svg viewBox="0 0 24 24" width="19" height="19" fill="currentColor" aria-hidden="true"><path d="${path}"/></svg>`;
+
+  const rotate = transitType === 'PKTransitTypeAir'
+    ? ' transform="rotate(90 12 12)"'
+    : '';
+
+  return `<svg viewBox="0 0 24 24" width="19" height="19" fill="currentColor" aria-hidden="true"><path d="${path}"${rotate}/></svg>`;
 }
 
 function formatDate(iso) {
@@ -1585,25 +1800,30 @@ function wire() {
     revealScanControls();
   });
 
-  $('review-cancel').addEventListener('click', () => { state.draft = null; show('home', { remember: false }); });
+  $('review-cancel').addEventListener('click', () => {
+    const wasEditing = state.editingId;
+    state.draft = null;
+    state.editingId = null;
+
+    // Cancelling an edit returns to the ticket, not to the list — the user did not
+    // arrive from there and being dropped elsewhere feels like something went wrong.
+    if (wasEditing && state.viewing) {
+      renderPass(state.viewing);
+      show('pass', { remember: false });
+      return;
+    }
+    show('home', { remember: false });
+  });
   $('review-save').addEventListener('click', saveDraft);
   $('open-help').addEventListener('click', () => openHelp(0));
+  wireHelpSwipe();
   $('help-close').addEventListener('click', back);
   $('help-prev').addEventListener('click', () => { state.helpPage--; renderHelp(); });
   $('help-next').addEventListener('click', () => { state.helpPage++; renderHelp(); });
   $('open-settings').addEventListener('click', openSettings);
   $('settings-close').addEventListener('click', back);
 
-  $('pass-menu').addEventListener('click', async () => {
-    if (!state.viewing) return;
-    if (!confirm('Remove this ticket? Your original file is untouched.')) return;
-    await store.remove(state.viewing.id);
-    state.tickets = await store.all();
-    state.viewing = null;
-    renderHome();
-    show('home', { remember: false });
-    toast('Ticket removed.');
-  });
+  $('pass-menu').addEventListener('click', () => openPassMenu());
 
   const dropzone = $('dropzone');
   const file = $('file');
