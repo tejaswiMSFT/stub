@@ -1,0 +1,507 @@
+{
+ "name": "mmt-invoice",
+ "source": "pdf",
+ "redacted": true,
+ "capturedAt": "2026-08-10",
+ "pages": [
+  {
+   "width": 595,
+   "height": 842,
+   "items": [
+    {
+     "text": "TAX INVOICE",
+     "x": 43.5,
+     "y": 70.7,
+     "width": 97.8,
+     "height": 15.3
+    },
+    {
+     "text": "MAKEMYTRIP (INDIA) PRIVATE LIMITED",
+     "x": 389.1,
+     "y": 50.8,
+     "width": 145.4,
+     "height": 7.7
+    },
+    {
+     "text": "19th Floor, Epitome Building No.5,",
+     "x": 389.1,
+     "y": 61,
+     "width": 141.5,
+     "height": 8.7
+    },
+    {
+     "text": "DLF Cybercity, DLF Phase III,",
+     "x": 389.1,
+     "y": 71.4,
+     "width": 120.3,
+     "height": 8.7
+    },
+    {
+     "text": "Gurgaon, Haryana, 122001",
+     "x": 389.1,
+     "y": 81.8,
+     "width": 108.8,
+     "height": 8.7
+    },
+    {
+     "text": "Booking ID",
+     "x": 43.5,
+     "y": 98.7,
+     "width": 37.4,
+     "height": 7.7
+    },
+    {
+     "text": "NH99999999999999",
+     "x": 43.5,
+     "y": 108.9,
+     "width": 79.9,
+     "height": 8.7
+    },
+    {
+     "text": "Invoice No.",
+     "x": 43.5,
+     "y": 125.7,
+     "width": 38.3,
+     "height": 7.7
+    },
+    {
+     "text": "M06HL25I02813893",
+     "x": 43.5,
+     "y": 136,
+     "width": 79,
+     "height": 8.7
+    },
+    {
+     "text": "Date",
+     "x": 43.5,
+     "y": 152.8,
+     "width": 16.2,
+     "height": 7.7
+    },
+    {
+     "text": "15 Jun 2024",
+     "x": 43.5,
+     "y": 163,
+     "width": 49.1,
+     "height": 8.7
+    },
+    {
+     "text": "Place of Supply",
+     "x": 43.5,
+     "y": 179.9,
+     "width": 53.2,
+     "height": 7.7
+    },
+    {
+     "text": "Karnataka",
+     "x": 43.5,
+     "y": 190.1,
+     "width": 41.9,
+     "height": 8.7
+    },
+    {
+     "text": "Transactional Type/Category",
+     "x": 43.5,
+     "y": 207,
+     "width": 98.2,
+     "height": 7.7
+    },
+    {
+     "text": "REG/B2C",
+     "x": 43.5,
+     "y": 217.2,
+     "width": 38.5,
+     "height": 8.7
+    },
+    {
+     "text": "Transactional Details",
+     "x": 43.5,
+     "y": 234,
+     "width": 71.4,
+     "height": 7.7
+    },
+    {
+     "text": "RG",
+     "x": 43.5,
+     "y": 244.3,
+     "width": 13,
+     "height": 8.7
+    },
+    {
+     "text": "PAN",
+     "x": 236.4,
+     "y": 98.7,
+     "width": 15.7,
+     "height": 7.7
+    },
+    {
+     "text": "XXXXX0000X",
+     "x": 236.4,
+     "y": 108.9,
+     "width": 57.8,
+     "height": 8.7
+    },
+    {
+     "text": "HSN/SAC",
+     "x": 236.4,
+     "y": 125.7,
+     "width": 34,
+     "height": 7.7
+    },
+    {
+     "text": "998552",
+     "x": 236.4,
+     "y": 136,
+     "width": 28.9,
+     "height": 8.7
+    },
+    {
+     "text": "GSTIN",
+     "x": 236.4,
+     "y": 152.8,
+     "width": 23.4,
+     "height": 7.7
+    },
+    {
+     "text": "00XXXXX0000X0XX",
+     "x": 236.4,
+     "y": 163,
+     "width": 82.8,
+     "height": 8.7
+    },
+    {
+     "text": "CIN",
+     "x": 236.4,
+     "y": 179.9,
+     "width": 13.2,
+     "height": 7.7
+    },
+    {
+     "text": "U63040HR2000PTC090846",
+     "x": 236.4,
+     "y": 190.1,
+     "width": 108.3,
+     "height": 8.7
+    },
+    {
+     "text": "Service Description",
+     "x": 236.4,
+     "y": 207,
+     "width": 65.9,
+     "height": 7.7
+    },
+    {
+     "text": "Reservation service for accommodation",
+     "x": 236.4,
+     "y": 217.2,
+     "width": 164.6,
+     "height": 8.7
+    },
+    {
+     "text": "Tax Payable under RCM",
+     "x": 236.4,
+     "y": 234,
+     "width": 83.8,
+     "height": 7.7
+    },
+    {
+     "text": "No",
+     "x": 236.4,
+     "y": 244.3,
+     "width": 11.5,
+     "height": 8.7
+    },
+    {
+     "text": "Company Legal Name",
+     "x": 43.5,
+     "y": 276.9,
+     "width": 76.1,
+     "height": 7.7
+    },
+    {
+     "text": "SAMPLE",
+     "x": 43.5,
+     "y": 287.1,
+     "width": 31.3,
+     "height": 8.7
+    },
+    {
+     "text": "Company Trade Name",
+     "x": 215.5,
+     "y": 276.9,
+     "width": 77.4,
+     "height": 7.7
+    },
+    {
+     "text": "SAMPLE",
+     "x": 215.5,
+     "y": 287.1,
+     "width": 31.3,
+     "height": 8.7
+    },
+    {
+     "text": "Customer Name",
+     "x": 395.4,
+     "y": 276.9,
+     "width": 55.7,
+     "height": 7.7
+    },
+    {
+     "text": "SAMPLE",
+     "x": 395.4,
+     "y": 287.1,
+     "width": 40,
+     "height": 8.7
+    },
+    {
+     "text": "Hotel Name",
+     "x": 43.5,
+     "y": 319.7,
+     "width": 40.4,
+     "height": 7.7
+    },
+    {
+     "text": "Sample Residency",
+     "x": 43.5,
+     "y": 329.9,
+     "width": 70.8,
+     "height": 8.7
+    },
+    {
+     "text": "Hotel City",
+     "x": 170.6,
+     "y": 319.7,
+     "width": 33.2,
+     "height": 7.7
+    },
+    {
+     "text": "SAMPLECITY",
+     "x": 170.6,
+     "y": 329.9,
+     "width": 55.8,
+     "height": 8.7
+    },
+    {
+     "text": "Check-in",
+     "x": 297.7,
+     "y": 319.7,
+     "width": 30.2,
+     "height": 7.7
+    },
+    {
+     "text": "Sat, 15 Jun 2024, 02:00 PM",
+     "x": 297.7,
+     "y": 329.9,
+     "width": 109.8,
+     "height": 8.7
+    },
+    {
+     "text": "Check-Out",
+     "x": 424.7,
+     "y": 319.7,
+     "width": 36.6,
+     "height": 7.7
+    },
+    {
+     "text": "Sun, 16 Jun 2024, 12:00 AM",
+     "x": 424.7,
+     "y": 329.9,
+     "width": 113.1,
+     "height": 8.7
+    },
+    {
+     "text": "*Accomodation Charges",
+     "x": 51.8,
+     "y": 377.1,
+     "width": 100.6,
+     "height": 8.7
+    },
+    {
+     "text": "(Inclusive of applicable taxes collected on behalf of hotel)",
+     "x": 51.8,
+     "y": 386.4,
+     "width": 193.5,
+     "height": 7.7
+    },
+    {
+     "text": "₹816.48",
+     "x": 515.5,
+     "y": 379,
+     "width": 28,
+     "height": 8.7
+    },
+    {
+     "text": "Service Fees",
+     "x": 51.8,
+     "y": 399.6,
+     "width": 53,
+     "height": 8.7
+    },
+    {
+     "text": "₹58.32",
+     "x": 519.8,
+     "y": 401.6,
+     "width": 23.7,
+     "height": 8.7
+    },
+    {
+     "text": "Assurance Fee",
+     "x": 51.8,
+     "y": 419.8,
+     "width": 61.6,
+     "height": 8.7
+    },
+    {
+     "text": "₹24.58",
+     "x": 519.8,
+     "y": 419.5,
+     "width": 23.7,
+     "height": 8.7
+    },
+    {
+     "text": "Reversal of MakeMyTrip Service Fee",
+     "x": 51.8,
+     "y": 435.4,
+     "width": 149.7,
+     "height": 8.7
+    },
+    {
+     "text": "₹‑82.9",
+     "x": 521.4,
+     "y": 437.4,
+     "width": 22.1,
+     "height": 8.7
+    },
+    {
+     "text": "Effective discount",
+     "x": 51.8,
+     "y": 453.3,
+     "width": 74.6,
+     "height": 8.7
+    },
+    {
+     "text": "₹‑33.74",
+     "x": 517.1,
+     "y": 455.3,
+     "width": 26.4,
+     "height": 8.7
+    },
+    {
+     "text": "Grand Total",
+     "x": 51.8,
+     "y": 481.7,
+     "width": 48.6,
+     "height": 8.7
+    },
+    {
+     "text": "₹782.74",
+     "x": 515.5,
+     "y": 481.4,
+     "width": 28,
+     "height": 8.7
+    },
+    {
+     "text": "Input tax credit of GST charged by the original service provider is available only against the invoice issued by the",
+     "x": 43.5,
+     "y": 507.8,
+     "width": 467,
+     "height": 8.7
+    },
+    {
+     "text": "respective service provider. MakeMyTrip acts only as a facilitator for these services.",
+     "x": 43.5,
+     "y": 518.2,
+     "width": 346.2,
+     "height": 8.7
+    },
+    {
+     "text": "This is not a valid travel document",
+     "x": 43.5,
+     "y": 530.1,
+     "width": 142,
+     "height": 8.7
+    },
+    {
+     "text": "1.",
+     "x": 43.5,
+     "y": 562.7,
+     "width": 6.4,
+     "height": 7.7
+    },
+    {
+     "text": "Any dispute with respect to the invoice is to be reported back to MMT/GOIBIBO within 48 hours of receipt of invoice.",
+     "x": 58.5,
+     "y": 562.7,
+     "width": 392,
+     "height": 7.7
+    },
+    {
+     "text": "2.",
+     "x": 43.5,
+     "y": 571.9,
+     "width": 6.4,
+     "height": 7.7
+    },
+    {
+     "text": "QR code for B2B and SEZ category invoices can only be scanned using app downloaded from the link",
+     "x": 58.5,
+     "y": 571.9,
+     "width": 345.7,
+     "height": 7.7
+    },
+    {
+     "text": "https://einvoice1.gst.gov.in/Others/QRCodeVerifyApp",
+     "x": 58.5,
+     "y": 581.1,
+     "width": 180.3,
+     "height": 7.7
+    },
+    {
+     "text": "Registered Office",
+     "x": 43.5,
+     "y": 770.8,
+     "width": 59.1,
+     "height": 7.7
+    },
+    {
+     "text": "19th Floor, Epitome Building No.5, DLF Cybercity, DLF Phase III, Gurgaon, Haryana, 122001",
+     "x": 43.5,
+     "y": 781.1,
+     "width": 375.5,
+     "height": 8.7
+    },
+    {
+     "text": "M06HL25I02813893",
+     "x": 482.4,
+     "y": 770.8,
+     "width": 69.3,
+     "height": 7.7
+    },
+    {
+     "text": "Page 1 of 1",
+     "x": 506,
+     "y": 781.1,
+     "width": 45.7,
+     "height": 8.7
+    },
+    {
+     "text": "PAYMENT BREAKUP",
+     "x": 274.6,
+     "y": 354.8,
+     "width": 82.7,
+     "height": 8.2
+    },
+    {
+     "text": "TERMS & CONDITIONS",
+     "x": 274.6,
+     "y": 547.5,
+     "width": 90.4,
+     "height": 8.2
+    }
+   ]
+  }
+ ],
+ "expect": {
+  "rejected": true
+ }
+}

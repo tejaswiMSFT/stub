@@ -1,0 +1,37 @@
+# Dependencies
+node_modules/
+
+# ── Personal documents. Nothing here is ever committed. ──
+#
+# This project is built by feeding it real tickets, so real tickets are always lying
+# around while working on it. Everything a ticket could arrive as is excluded, and the
+# few project images are re-included explicitly below.
+#
+# What *is* committed is tests/fixtures/*.json: redacted captures of a document's text
+# *layout*, produced by tools/make-fixture.mjs. Names, references, addresses, telephone
+# numbers and property names are replaced with same-shaped substitutes. Always read a
+# new fixture before committing it — the tool cannot know every shape a name can take,
+# and it has missed several: a salutation, a username, a hotel's name, a street address.
+*.pdf
+*.jpg
+*.jpeg
+*.heic
+*.webp
+*.eml
+*.msg
+*.png
+samples/
+tickets/
+
+# Probe output. tools/probe-ui.mjs writes a screenshot per run, showing a real ticket.
+probe-*.png
+
+# The app's own artwork, which must be committed.
+!icons/*.png
+!icons/*.svg
+
+# Editor and OS noise
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

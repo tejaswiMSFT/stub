@@ -1,0 +1,1926 @@
+{
+ "name": "indigo-flight",
+ "source": "pdf",
+ "redacted": true,
+ "capturedAt": "2026-08-10",
+ "pages": [
+  {
+   "width": 595,
+   "height": 842,
+   "items": [
+    {
+     "text": "PNR/Booking Reference",
+     "x": 7.5,
+     "y": 72,
+     "width": 93.6,
+     "height": 9
+    },
+    {
+     "text": "AB1CD2",
+     "x": 122.1,
+     "y": 72,
+     "width": 37,
+     "height": 9
+    },
+    {
+     "text": "Confirmed",
+     "x": 174.1,
+     "y": 71.2,
+     "width": 39.9,
+     "height": 7.5
+    },
+    {
+     "text": "Payment Status",
+     "x": 466.5,
+     "y": 72,
+     "width": 60.2,
+     "height": 9
+    },
+    {
+     "text": "Complete",
+     "x": 544.7,
+     "y": 71.2,
+     "width": 37.3,
+     "height": 7.5
+    },
+    {
+     "text": "Passenger Information",
+     "x": 7.5,
+     "y": 109.5,
+     "width": 146,
+     "height": 15
+    },
+    {
+     "text": "Mr",
+     "x": 23.2,
+     "y": 140.2,
+     "width": 15.6,
+     "height": 12
+    },
+    {
+     "text": "SAMPLE",
+     "x": 41.8,
+     "y": 140.2,
+     "width": 51.7,
+     "height": 12
+    },
+    {
+     "text": "C",
+     "x": 96.3,
+     "y": 140.2,
+     "width": 9.2,
+     "height": 12
+    },
+    {
+     "text": "Adult",
+     "x": 110,
+     "y": 140.2,
+     "width": 20.4,
+     "height": 7.5
+    },
+    {
+     "text": "| Male |",
+     "x": 134.9,
+     "y": 140.2,
+     "width": 26.7,
+     "height": 7.5
+    },
+    {
+     "text": "Sector",
+     "x": 23.2,
+     "y": 159.7,
+     "width": 24.5,
+     "height": 9
+    },
+    {
+     "text": "Seat",
+     "x": 206.2,
+     "y": 159.7,
+     "width": 16.5,
+     "height": 9
+    },
+    {
+     "text": "6E Add-ons",
+     "x": 389.2,
+     "y": 159.7,
+     "width": 44.8,
+     "height": 9
+    },
+    {
+     "text": "BLR",
+     "x": 23.2,
+     "y": 178.5,
+     "width": 18.5,
+     "height": 9
+    },
+    {
+     "text": "-",
+     "x": 41.8,
+     "y": 178.5,
+     "width": 3,
+     "height": 9
+    },
+    {
+     "text": "IXE",
+     "x": 44.8,
+     "y": 178.5,
+     "width": 16,
+     "height": 9
+    },
+    {
+     "text": "10F(Window)",
+     "x": 206.2,
+     "y": 178.5,
+     "width": 50.6,
+     "height": 9
+    },
+    {
+     "text": "Lite",
+     "x": 389.2,
+     "y": 178.5,
+     "width": 14.5,
+     "height": 9
+    },
+    {
+     "text": "Bengaluru",
+     "x": 23.2,
+     "y": 306,
+     "width": 67.5,
+     "height": 15
+    },
+    {
+     "text": "BLR - Kempegowda International Airport (Terminal",
+     "x": 23.2,
+     "y": 323.2,
+     "width": 220.6,
+     "height": 10.5
+    },
+    {
+     "text": "1)",
+     "x": 23.2,
+     "y": 335.2,
+     "width": 8.7,
+     "height": 10.5
+    },
+    {
+     "text": "14:35",
+     "x": 23.2,
+     "y": 371.2,
+     "width": 31.5,
+     "height": 13.5
+    },
+    {
+     "text": "hrs,",
+     "x": 58.1,
+     "y": 371.2,
+     "width": 22.1,
+     "height": 13.5
+    },
+    {
+     "text": "16 Sep 2026",
+     "x": 83.6,
+     "y": 371.2,
+     "width": 68.3,
+     "height": 13.5
+    },
+    {
+     "text": "Mangaluru",
+     "x": 499.7,
+     "y": 306,
+     "width": 72.5,
+     "height": 15
+    },
+    {
+     "text": "IXE - Mangalore International Airport",
+     "x": 411.3,
+     "y": 323.2,
+     "width": 160.9,
+     "height": 10.5
+    },
+    {
+     "text": "15:35",
+     "x": 443.6,
+     "y": 371.2,
+     "width": 31.5,
+     "height": 13.5
+    },
+    {
+     "text": "hrs,",
+     "x": 478.5,
+     "y": 371.2,
+     "width": 22.1,
+     "height": 13.5
+    },
+    {
+     "text": "16 Sep 2026",
+     "x": 504,
+     "y": 371.2,
+     "width": 68.3,
+     "height": 13.5
+    },
+    {
+     "text": "*Booking date reflects in UTC (Coordinated Universal Time), all other timings mentioned are as per local TIME",
+     "x": 7.5,
+     "y": 413.2,
+     "width": 406,
+     "height": 9
+    },
+    {
+     "text": "*Date of booking 08 Aug 2026 07:14",
+     "x": 408.5,
+     "y": 24.7,
+     "width": 186.3,
+     "height": 10.5
+    },
+    {
+     "text": "Lite | Economy",
+     "x": 387.4,
+     "y": 221.2,
+     "width": 55.3,
+     "height": 9
+    },
+    {
+     "text": "6E 5306",
+     "x": 51,
+     "y": 219,
+     "width": 35.9,
+     "height": 10.5
+    },
+    {
+     "text": "(A320)",
+     "x": 89.5,
+     "y": 219,
+     "width": 30.3,
+     "height": 10.5
+    },
+    {
+     "text": "16 Sep 2026",
+     "x": 134.5,
+     "y": 219,
+     "width": 53.1,
+     "height": 10.5
+    },
+    {
+     "text": "Check-in/Bag Drop Closes",
+     "x": 199.6,
+     "y": 219,
+     "width": 118.2,
+     "height": 10.5
+    },
+    {
+     "text": ":",
+     "x": 317.8,
+     "y": 219,
+     "width": 3.5,
+     "height": 10.5
+    },
+    {
+     "text": "13:35",
+     "x": 323.9,
+     "y": 219,
+     "width": 24.5,
+     "height": 10.5
+    },
+    {
+     "text": "hrs",
+     "x": 351.1,
+     "y": 219,
+     "width": 14.6,
+     "height": 10.5
+    },
+    {
+     "text": "Travel Time",
+     "x": 253.8,
+     "y": 303,
+     "width": 51.3,
+     "height": 10.5
+    },
+    {
+     "text": "1h 0m",
+     "x": 308.1,
+     "y": 303,
+     "width": 26.5,
+     "height": 10.5
+    }
+   ]
+  },
+  {
+   "width": 595,
+   "height": 842,
+   "items": [
+    {
+     "text": "Note",
+     "x": 7.5,
+     "y": 653.2,
+     "width": 25,
+     "height": 10.5
+    },
+    {
+     "text": "1.",
+     "x": 7.5,
+     "y": 675,
+     "width": 4.8,
+     "height": 9
+    },
+    {
+     "text": "Foreigners intending to visit protected/restricted areas in the states of Arunachal Pradesh, Himachal Pradesh, Jammu &",
+     "x": 14.7,
+     "y": 675,
+     "width": 537.3,
+     "height": 9
+    },
+    {
+     "text": "Kashmir, Meghalaya, Mizoram, Nagaland, Rajasthan, Sikkim, Uttarakhand and Andaman & Nicobar Islands must be in possession",
+     "x": 7.5,
+     "y": 688.5,
+     "width": 577,
+     "height": 9
+    },
+    {
+     "text": "Protected Area Permit (PAP)/Restricted Area Permit (RAP)",
+     "x": 7.5,
+     "y": 702,
+     "width": 256.9,
+     "height": 9
+    },
+    {
+     "text": "To apply please visit",
+     "x": 7.5,
+     "y": 715.5,
+     "width": 91.1,
+     "height": 9
+    },
+    {
+     "text": "e-FRRO Home",
+     "x": 101,
+     "y": 715.5,
+     "width": 62.3,
+     "height": 9
+    },
+    {
+     "text": "2.",
+     "x": 7.5,
+     "y": 729,
+     "width": 7.1,
+     "height": 9
+    },
+    {
+     "text": "Goods and Services Tax (GST) shall be levied at applicable rates on all air transportation services provided by IndiGo, except in",
+     "x": 17,
+     "y": 729,
+     "width": 568.4,
+     "height": 9
+    },
+    {
+     "text": "cases specifically exempted under law.",
+     "x": 7.5,
+     "y": 742.5,
+     "width": 176.3,
+     "height": 9
+    },
+    {
+     "text": "3.",
+     "x": 7.5,
+     "y": 756,
+     "width": 7.2,
+     "height": 9
+    },
+    {
+     "text": "This is not a GST invoice. For GST details, please refer the GST invoice which shall be sent to the email address in the name of",
+     "x": 17.1,
+     "y": 756,
+     "width": 556.2,
+     "height": 9
+    },
+    {
+     "text": "the First passenger, mentioned in this itinerary. In case of a booking made by a GSTIN holder, the GST invoice shall be sent in the",
+     "x": 7.5,
+     "y": 769.5,
+     "width": 571.8,
+     "height": 9
+    },
+    {
+     "text": "name of the GSTIN holder to the email address mentioned while providing the GSTIN information at the time of reservation.",
+     "x": 7.5,
+     "y": 783,
+     "width": 549.1,
+     "height": 9
+    },
+    {
+     "text": "4.",
+     "x": 7.5,
+     "y": 796.5,
+     "width": 7.6,
+     "height": 9
+    },
+    {
+     "text": "Additionally, passengers may download the GST invoice using their PNR number on the IndiGo website",
+     "x": 17.5,
+     "y": 796.5,
+     "width": 457.9,
+     "height": 9
+    },
+    {
+     "text": "www.goindigo.in",
+     "x": 477.8,
+     "y": 796.5,
+     "width": 73.9,
+     "height": 9
+    },
+    {
+     "text": ".",
+     "x": 551.7,
+     "y": 796.5,
+     "width": 1.9,
+     "height": 9
+    },
+    {
+     "text": "5.",
+     "x": 7.5,
+     "y": 810,
+     "width": 7.5,
+     "height": 9
+    },
+    {
+     "text": "GST shall also be applicable on any special services requested by the passenger at applicable rates.",
+     "x": 17.4,
+     "y": 810,
+     "width": 452.1,
+     "height": 9
+    },
+    {
+     "text": "6.",
+     "x": 7.5,
+     "y": 823.5,
+     "width": 7.6,
+     "height": 9
+    },
+    {
+     "text": "Tax Invoices shall be only in INR, even in cases where the payment is made in a currency other than INR.",
+     "x": 17.5,
+     "y": 823.5,
+     "width": 463.4,
+     "height": 9
+    },
+    {
+     "text": "7.",
+     "x": 7.5,
+     "y": 837,
+     "width": 6.8,
+     "height": 9
+    },
+    {
+     "text": "Airfare Charges include Base Fare and CUTE Charge.",
+     "x": 16.7,
+     "y": 837,
+     "width": 235.6,
+     "height": 9
+    },
+    {
+     "text": "*Date of booking 08 Aug 2026 07:14",
+     "x": 408.5,
+     "y": 24.7,
+     "width": 186.3,
+     "height": 10.5
+    },
+    {
+     "text": "Baggage",
+     "x": 23.2,
+     "y": 71.2,
+     "width": 69.2,
+     "height": 15
+    },
+    {
+     "text": "Information",
+     "x": 96.4,
+     "y": 71.2,
+     "width": 87.4,
+     "height": 15
+    },
+    {
+     "text": "S.No",
+     "x": 24.7,
+     "y": 99.7,
+     "width": 25.7,
+     "height": 12
+    },
+    {
+     "text": "Sector",
+     "x": 89.4,
+     "y": 99.7,
+     "width": 38.3,
+     "height": 12
+    },
+    {
+     "text": "Adult",
+     "x": 204.6,
+     "y": 99.7,
+     "width": 31.2,
+     "height": 12
+    },
+    {
+     "text": "1",
+     "x": 24.7,
+     "y": 120,
+     "width": 3.8,
+     "height": 12
+    },
+    {
+     "text": "BLR",
+     "x": 89.4,
+     "y": 120,
+     "width": 19.8,
+     "height": 12
+    },
+    {
+     "text": "-",
+     "x": 112.4,
+     "y": 120,
+     "width": 6.6,
+     "height": 12
+    },
+    {
+     "text": "IXE",
+     "x": 122.2,
+     "y": 120,
+     "width": 16.6,
+     "height": 12
+    },
+    {
+     "text": "Check-in: 0KG, Cabin: Up to 7KG",
+     "x": 204.6,
+     "y": 120,
+     "width": 190.1,
+     "height": 12
+    },
+    {
+     "text": "Check-in",
+     "x": 24.7,
+     "y": 144,
+     "width": 41.3,
+     "height": 9
+    },
+    {
+     "text": "Cabin:",
+     "x": 68.5,
+     "y": 144,
+     "width": 29,
+     "height": 9
+    },
+    {
+     "text": "One",
+     "x": 99.9,
+     "y": 144,
+     "width": 18.4,
+     "height": 9
+    },
+    {
+     "text": "hand",
+     "x": 120.7,
+     "y": 144,
+     "width": 23.7,
+     "height": 9
+    },
+    {
+     "text": "bag",
+     "x": 146.8,
+     "y": 144,
+     "width": 18.3,
+     "height": 9
+    },
+    {
+     "text": "up",
+     "x": 167.4,
+     "y": 144,
+     "width": 11.8,
+     "height": 9
+    },
+    {
+     "text": "to",
+     "x": 181.7,
+     "y": 144,
+     "width": 9,
+     "height": 9
+    },
+    {
+     "text": "7",
+     "x": 193.1,
+     "y": 144,
+     "width": 4.9,
+     "height": 9
+    },
+    {
+     "text": "KG",
+     "x": 200.4,
+     "y": 144,
+     "width": 12.4,
+     "height": 9
+    },
+    {
+     "text": "and",
+     "x": 215.2,
+     "y": 144,
+     "width": 17.9,
+     "height": 9
+    },
+    {
+     "text": "115",
+     "x": 235.6,
+     "y": 144,
+     "width": 11.4,
+     "height": 9
+    },
+    {
+     "text": "CM",
+     "x": 249.4,
+     "y": 144,
+     "width": 14.7,
+     "height": 9
+    },
+    {
+     "text": "(L+W+H),",
+     "x": 266.5,
+     "y": 144,
+     "width": 41.1,
+     "height": 9
+    },
+    {
+     "text": "shall",
+     "x": 310,
+     "y": 144,
+     "width": 21,
+     "height": 9
+    },
+    {
+     "text": "be",
+     "x": 333.4,
+     "y": 144,
+     "width": 11.7,
+     "height": 9
+    },
+    {
+     "text": "allowed",
+     "x": 347.5,
+     "y": 144,
+     "width": 35.3,
+     "height": 9
+    },
+    {
+     "text": "per",
+     "x": 385.2,
+     "y": 144,
+     "width": 15,
+     "height": 9
+    },
+    {
+     "text": "customer.",
+     "x": 402.6,
+     "y": 144,
+     "width": 45.1,
+     "height": 9
+    },
+    {
+     "text": "For",
+     "x": 450.1,
+     "y": 144,
+     "width": 13.7,
+     "height": 9
+    },
+    {
+     "text": "contactless",
+     "x": 466.1,
+     "y": 144,
+     "width": 52.3,
+     "height": 9
+    },
+    {
+     "text": "travel",
+     "x": 520.8,
+     "y": 144,
+     "width": 25.6,
+     "height": 9
+    },
+    {
+     "text": "we",
+     "x": 548.8,
+     "y": 144,
+     "width": 13,
+     "height": 9
+    },
+    {
+     "text": "recommend",
+     "x": 24.7,
+     "y": 157.5,
+     "width": 56.1,
+     "height": 9
+    },
+    {
+     "text": "to",
+     "x": 83.3,
+     "y": 157.5,
+     "width": 9,
+     "height": 9
+    },
+    {
+     "text": "place",
+     "x": 94.7,
+     "y": 157.5,
+     "width": 25.4,
+     "height": 9
+    },
+    {
+     "text": "it",
+     "x": 122.5,
+     "y": 157.5,
+     "width": 5.5,
+     "height": 9
+    },
+    {
+     "text": "under",
+     "x": 130.4,
+     "y": 157.5,
+     "width": 26.5,
+     "height": 9
+    },
+    {
+     "text": "the",
+     "x": 159.4,
+     "y": 157.5,
+     "width": 14.6,
+     "height": 9
+    },
+    {
+     "text": "seat",
+     "x": 176.4,
+     "y": 157.5,
+     "width": 19.6,
+     "height": 9
+    },
+    {
+     "text": "in",
+     "x": 198.4,
+     "y": 157.5,
+     "width": 8,
+     "height": 9
+    },
+    {
+     "text": "front,",
+     "x": 208.8,
+     "y": 157.5,
+     "width": 22.9,
+     "height": 9
+    },
+    {
+     "text": "on",
+     "x": 234.1,
+     "y": 157.5,
+     "width": 11.5,
+     "height": 9
+    },
+    {
+     "text": "board.",
+     "x": 248,
+     "y": 157.5,
+     "width": 29.3,
+     "height": 9
+    },
+    {
+     "text": "Disclaimer",
+     "x": 39.7,
+     "y": 174.7,
+     "width": 47.5,
+     "height": 9
+    },
+    {
+     "text": "(for",
+     "x": 89.6,
+     "y": 174.7,
+     "width": 16.2,
+     "height": 9
+    },
+    {
+     "text": "Lite",
+     "x": 108.2,
+     "y": 174.7,
+     "width": 15,
+     "height": 9
+    },
+    {
+     "text": "Fare)",
+     "x": 125.5,
+     "y": 174.7,
+     "width": 23.6,
+     "height": 9
+    },
+    {
+     "text": ":",
+     "x": 149.2,
+     "y": 174.7,
+     "width": 1.9,
+     "height": 9
+    },
+    {
+     "text": "Lite",
+     "x": 153.5,
+     "y": 174.7,
+     "width": 15,
+     "height": 9
+    },
+    {
+     "text": "Fare",
+     "x": 170.9,
+     "y": 174.7,
+     "width": 19.6,
+     "height": 9
+    },
+    {
+     "text": "includes",
+     "x": 192.8,
+     "y": 174.7,
+     "width": 37.8,
+     "height": 9
+    },
+    {
+     "text": "7",
+     "x": 233,
+     "y": 174.7,
+     "width": 4.9,
+     "height": 9
+    },
+    {
+     "text": "kg",
+     "x": 240.3,
+     "y": 174.7,
+     "width": 10.7,
+     "height": 9
+    },
+    {
+     "text": "cabin",
+     "x": 253.5,
+     "y": 174.7,
+     "width": 25.6,
+     "height": 9
+    },
+    {
+     "text": "baggage",
+     "x": 281.5,
+     "y": 174.7,
+     "width": 42.1,
+     "height": 9
+    },
+    {
+     "text": "only",
+     "x": 325.9,
+     "y": 174.7,
+     "width": 18.8,
+     "height": 9
+    },
+    {
+     "text": "(to",
+     "x": 347.2,
+     "y": 174.7,
+     "width": 13.1,
+     "height": 9
+    },
+    {
+     "text": "be",
+     "x": 362.7,
+     "y": 174.7,
+     "width": 11.7,
+     "height": 9
+    },
+    {
+     "text": "placed",
+     "x": 376.7,
+     "y": 174.7,
+     "width": 31.5,
+     "height": 9
+    },
+    {
+     "text": "preferably",
+     "x": 410.7,
+     "y": 174.7,
+     "width": 46.4,
+     "height": 9
+    },
+    {
+     "text": "under",
+     "x": 459.4,
+     "y": 174.7,
+     "width": 26.5,
+     "height": 9
+    },
+    {
+     "text": "the",
+     "x": 488.4,
+     "y": 174.7,
+     "width": 14.6,
+     "height": 9
+    },
+    {
+     "text": "seat)",
+     "x": 505.4,
+     "y": 174.7,
+     "width": 23.7,
+     "height": 9
+    },
+    {
+     "text": "with",
+     "x": 531.5,
+     "y": 174.7,
+     "width": 18.6,
+     "height": 9
+    },
+    {
+     "text": "no",
+     "x": 552.5,
+     "y": 174.7,
+     "width": 11.5,
+     "height": 9
+    },
+    {
+     "text": "check-in",
+     "x": 39.7,
+     "y": 188.2,
+     "width": 39.8,
+     "height": 9
+    },
+    {
+     "text": "bag",
+     "x": 82,
+     "y": 188.2,
+     "width": 18.3,
+     "height": 9
+    },
+    {
+     "text": "allowed.",
+     "x": 102.6,
+     "y": 188.2,
+     "width": 37.2,
+     "height": 9
+    },
+    {
+     "text": "If",
+     "x": 142.3,
+     "y": 188.2,
+     "width": 5.2,
+     "height": 9
+    },
+    {
+     "text": "your",
+     "x": 149.8,
+     "y": 188.2,
+     "width": 19.9,
+     "height": 9
+    },
+    {
+     "text": "cabin",
+     "x": 172.2,
+     "y": 188.2,
+     "width": 25.6,
+     "height": 9
+    },
+    {
+     "text": "bag",
+     "x": 200.2,
+     "y": 188.2,
+     "width": 18.3,
+     "height": 9
+    },
+    {
+     "text": "does",
+     "x": 220.8,
+     "y": 188.2,
+     "width": 22.1,
+     "height": 9
+    },
+    {
+     "text": "not",
+     "x": 245.4,
+     "y": 188.2,
+     "width": 14.8,
+     "height": 9
+    },
+    {
+     "text": "fit",
+     "x": 262.6,
+     "y": 188.2,
+     "width": 8.5,
+     "height": 9
+    },
+    {
+     "text": "within",
+     "x": 273.4,
+     "y": 188.2,
+     "width": 26.6,
+     "height": 9
+    },
+    {
+     "text": "the",
+     "x": 302.4,
+     "y": 188.2,
+     "width": 14.6,
+     "height": 9
+    },
+    {
+     "text": "permitted",
+     "x": 319.4,
+     "y": 188.2,
+     "width": 44.7,
+     "height": 9
+    },
+    {
+     "text": "size",
+     "x": 366.6,
+     "y": 188.2,
+     "width": 16.6,
+     "height": 9
+    },
+    {
+     "text": "or",
+     "x": 385.6,
+     "y": 188.2,
+     "width": 9.1,
+     "height": 9
+    },
+    {
+     "text": "exceeds",
+     "x": 397.1,
+     "y": 188.2,
+     "width": 37.3,
+     "height": 9
+    },
+    {
+     "text": "the",
+     "x": 436.8,
+     "y": 188.2,
+     "width": 14.6,
+     "height": 9
+    },
+    {
+     "text": "weight",
+     "x": 453.8,
+     "y": 188.2,
+     "width": 30.3,
+     "height": 9
+    },
+    {
+     "text": "limit,",
+     "x": 486.5,
+     "y": 188.2,
+     "width": 21,
+     "height": 9
+    },
+    {
+     "text": "it",
+     "x": 509.9,
+     "y": 188.2,
+     "width": 5.5,
+     "height": 9
+    },
+    {
+     "text": "will",
+     "x": 517.8,
+     "y": 188.2,
+     "width": 14,
+     "height": 9
+    },
+    {
+     "text": "be",
+     "x": 534.2,
+     "y": 188.2,
+     "width": 11.7,
+     "height": 9
+    },
+    {
+     "text": "refused",
+     "x": 39.7,
+     "y": 201.7,
+     "width": 34,
+     "height": 9
+    },
+    {
+     "text": "at",
+     "x": 76.2,
+     "y": 201.7,
+     "width": 9.4,
+     "height": 9
+    },
+    {
+     "text": "the",
+     "x": 87.9,
+     "y": 201.7,
+     "width": 14.6,
+     "height": 9
+    },
+    {
+     "text": "boarding",
+     "x": 105,
+     "y": 201.7,
+     "width": 41.4,
+     "height": 9
+    },
+    {
+     "text": "gate",
+     "x": 148.8,
+     "y": 201.7,
+     "width": 21,
+     "height": 9
+    },
+    {
+     "text": "or",
+     "x": 172.2,
+     "y": 201.7,
+     "width": 9.1,
+     "height": 9
+    },
+    {
+     "text": "placed",
+     "x": 183.7,
+     "y": 201.7,
+     "width": 31.5,
+     "height": 9
+    },
+    {
+     "text": "in",
+     "x": 217.6,
+     "y": 201.7,
+     "width": 8,
+     "height": 9
+    },
+    {
+     "text": "the",
+     "x": 228,
+     "y": 201.7,
+     "width": 14.6,
+     "height": 9
+    },
+    {
+     "text": "aircraft",
+     "x": 245,
+     "y": 201.7,
+     "width": 32.8,
+     "height": 9
+    },
+    {
+     "text": "hold",
+     "x": 280.2,
+     "y": 201.7,
+     "width": 19.8,
+     "height": 9
+    },
+    {
+     "text": "subject",
+     "x": 302.5,
+     "y": 201.7,
+     "width": 33.1,
+     "height": 9
+    },
+    {
+     "text": "to",
+     "x": 338,
+     "y": 201.7,
+     "width": 9,
+     "height": 9
+    },
+    {
+     "text": "a",
+     "x": 349.4,
+     "y": 201.7,
+     "width": 6.1,
+     "height": 9
+    },
+    {
+     "text": "fee.",
+     "x": 357.9,
+     "y": 201.7,
+     "width": 16,
+     "height": 9
+    },
+    {
+     "text": "Check-in",
+     "x": 39.7,
+     "y": 219,
+     "width": 41.3,
+     "height": 9
+    },
+    {
+     "text": "Baggage:",
+     "x": 83.5,
+     "y": 219,
+     "width": 43.4,
+     "height": 9
+    },
+    {
+     "text": "Lite",
+     "x": 129.3,
+     "y": 219,
+     "width": 15,
+     "height": 9
+    },
+    {
+     "text": "Fare",
+     "x": 146.7,
+     "y": 219,
+     "width": 19.6,
+     "height": 9
+    },
+    {
+     "text": "does",
+     "x": 168.6,
+     "y": 219,
+     "width": 22.1,
+     "height": 9
+    },
+    {
+     "text": "not",
+     "x": 193.2,
+     "y": 219,
+     "width": 14.8,
+     "height": 9
+    },
+    {
+     "text": "include",
+     "x": 210.4,
+     "y": 219,
+     "width": 33.1,
+     "height": 9
+    },
+    {
+     "text": "a",
+     "x": 245.8,
+     "y": 219,
+     "width": 6.1,
+     "height": 9
+    },
+    {
+     "text": "check-in",
+     "x": 254.3,
+     "y": 219,
+     "width": 39.8,
+     "height": 9
+    },
+    {
+     "text": "bag.",
+     "x": 296.6,
+     "y": 219,
+     "width": 20.1,
+     "height": 9
+    },
+    {
+     "text": "Any",
+     "x": 319.1,
+     "y": 219,
+     "width": 16.9,
+     "height": 9
+    },
+    {
+     "text": "check-in",
+     "x": 338.4,
+     "y": 219,
+     "width": 39.8,
+     "height": 9
+    },
+    {
+     "text": "bag",
+     "x": 380.6,
+     "y": 219,
+     "width": 18.3,
+     "height": 9
+    },
+    {
+     "text": "presented",
+     "x": 401.3,
+     "y": 219,
+     "width": 46,
+     "height": 9
+    },
+    {
+     "text": "at",
+     "x": 449.7,
+     "y": 219,
+     "width": 9.4,
+     "height": 9
+    },
+    {
+     "text": "the",
+     "x": 461.5,
+     "y": 219,
+     "width": 14.6,
+     "height": 9
+    },
+    {
+     "text": "airport/boarding",
+     "x": 478.5,
+     "y": 219,
+     "width": 75.8,
+     "height": 9
+    },
+    {
+     "text": "gate",
+     "x": 39.7,
+     "y": 232.5,
+     "width": 21,
+     "height": 9
+    },
+    {
+     "text": "will",
+     "x": 63.2,
+     "y": 232.5,
+     "width": 14,
+     "height": 9
+    },
+    {
+     "text": "be",
+     "x": 79.6,
+     "y": 232.5,
+     "width": 11.7,
+     "height": 9
+    },
+    {
+     "text": "subject",
+     "x": 93.7,
+     "y": 232.5,
+     "width": 33.1,
+     "height": 9
+    },
+    {
+     "text": "to",
+     "x": 129.2,
+     "y": 232.5,
+     "width": 9,
+     "height": 9
+    },
+    {
+     "text": "charges",
+     "x": 140.6,
+     "y": 232.5,
+     "width": 37,
+     "height": 9
+    },
+    {
+     "text": "as",
+     "x": 180,
+     "y": 232.5,
+     "width": 10.8,
+     "height": 9
+    },
+    {
+     "text": "per",
+     "x": 193.2,
+     "y": 232.5,
+     "width": 15,
+     "height": 9
+    },
+    {
+     "text": "the",
+     "x": 210.6,
+     "y": 232.5,
+     "width": 14.6,
+     "height": 9
+    },
+    {
+     "text": "applicable",
+     "x": 227.7,
+     "y": 232.5,
+     "width": 48.1,
+     "height": 9
+    },
+    {
+     "text": "Lite",
+     "x": 278.2,
+     "y": 232.5,
+     "width": 15,
+     "height": 9
+    },
+    {
+     "text": "Fare",
+     "x": 295.5,
+     "y": 232.5,
+     "width": 19.6,
+     "height": 9
+    },
+    {
+     "text": "baggage",
+     "x": 317.5,
+     "y": 232.5,
+     "width": 42.1,
+     "height": 9
+    },
+    {
+     "text": "policy.",
+     "x": 362,
+     "y": 232.5,
+     "width": 28.7,
+     "height": 9
+    },
+    {
+     "text": "Passengers",
+     "x": 393.1,
+     "y": 232.5,
+     "width": 51.7,
+     "height": 9
+    },
+    {
+     "text": "may",
+     "x": 447.2,
+     "y": 232.5,
+     "width": 20.4,
+     "height": 9
+    },
+    {
+     "text": "purchase",
+     "x": 470,
+     "y": 232.5,
+     "width": 42.8,
+     "height": 9
+    },
+    {
+     "text": "check-in",
+     "x": 515.2,
+     "y": 232.5,
+     "width": 39.8,
+     "height": 9
+    },
+    {
+     "text": "baggage",
+     "x": 39.7,
+     "y": 246,
+     "width": 42.1,
+     "height": 9
+    },
+    {
+     "text": "separately",
+     "x": 84.2,
+     "y": 246,
+     "width": 48,
+     "height": 9
+    },
+    {
+     "text": "after",
+     "x": 134.7,
+     "y": 246,
+     "width": 21.3,
+     "height": 9
+    },
+    {
+     "text": "booking,",
+     "x": 158.3,
+     "y": 246,
+     "width": 38.1,
+     "height": 9
+    },
+    {
+     "text": "via",
+     "x": 198.8,
+     "y": 246,
+     "width": 13.3,
+     "height": 9
+    },
+    {
+     "text": "Manage",
+     "x": 214.6,
+     "y": 246,
+     "width": 37.3,
+     "height": 9
+    },
+    {
+     "text": "Booking,",
+     "x": 254.3,
+     "y": 246,
+     "width": 37.5,
+     "height": 9
+    },
+    {
+     "text": "web",
+     "x": 294.2,
+     "y": 246,
+     "width": 19,
+     "height": 9
+    },
+    {
+     "text": "check-in,",
+     "x": 315.7,
+     "y": 246,
+     "width": 41.6,
+     "height": 9
+    },
+    {
+     "text": "or",
+     "x": 359.7,
+     "y": 246,
+     "width": 9.1,
+     "height": 9
+    },
+    {
+     "text": "at",
+     "x": 371.2,
+     "y": 246,
+     "width": 9.4,
+     "height": 9
+    },
+    {
+     "text": "the",
+     "x": 383,
+     "y": 246,
+     "width": 14.6,
+     "height": 9
+    },
+    {
+     "text": "airport",
+     "x": 400,
+     "y": 246,
+     "width": 30.1,
+     "height": 9
+    },
+    {
+     "text": "at",
+     "x": 432.5,
+     "y": 246,
+     "width": 9.4,
+     "height": 9
+    },
+    {
+     "text": "applicable",
+     "x": 444.3,
+     "y": 246,
+     "width": 48.1,
+     "height": 9
+    },
+    {
+     "text": "rates.",
+     "x": 494.8,
+     "y": 246,
+     "width": 24.9,
+     "height": 9
+    },
+    {
+     "text": "Cabin",
+     "x": 39.7,
+     "y": 263.2,
+     "width": 27.1,
+     "height": 9
+    },
+    {
+     "text": "Baggage:",
+     "x": 69.2,
+     "y": 263.2,
+     "width": 43.4,
+     "height": 9
+    },
+    {
+     "text": "Only",
+     "x": 115.1,
+     "y": 263.2,
+     "width": 20.1,
+     "height": 9
+    },
+    {
+     "text": "one",
+     "x": 137.6,
+     "y": 263.2,
+     "width": 17.1,
+     "height": 9
+    },
+    {
+     "text": "cabin",
+     "x": 157.1,
+     "y": 263.2,
+     "width": 25.6,
+     "height": 9
+    },
+    {
+     "text": "bag",
+     "x": 185.1,
+     "y": 263.2,
+     "width": 18.3,
+     "height": 9
+    },
+    {
+     "text": "up",
+     "x": 205.8,
+     "y": 263.2,
+     "width": 11.8,
+     "height": 9
+    },
+    {
+     "text": "to",
+     "x": 220,
+     "y": 263.2,
+     "width": 9,
+     "height": 9
+    },
+    {
+     "text": "7",
+     "x": 231.5,
+     "y": 263.2,
+     "width": 4.9,
+     "height": 9
+    },
+    {
+     "text": "kg",
+     "x": 238.8,
+     "y": 263.2,
+     "width": 10.7,
+     "height": 9
+    },
+    {
+     "text": "is",
+     "x": 251.9,
+     "y": 263.2,
+     "width": 6.9,
+     "height": 9
+    },
+    {
+     "text": "permitted",
+     "x": 261.2,
+     "y": 263.2,
+     "width": 44.7,
+     "height": 9
+    },
+    {
+     "text": "per",
+     "x": 308.3,
+     "y": 263.2,
+     "width": 15,
+     "height": 9
+    },
+    {
+     "text": "customer,",
+     "x": 325.8,
+     "y": 263.2,
+     "width": 44.9,
+     "height": 9
+    },
+    {
+     "text": "subject",
+     "x": 373.1,
+     "y": 263.2,
+     "width": 33.1,
+     "height": 9
+    },
+    {
+     "text": "to",
+     "x": 408.6,
+     "y": 263.2,
+     "width": 9,
+     "height": 9
+    },
+    {
+     "text": "regulatory",
+     "x": 420,
+     "y": 263.2,
+     "width": 46.5,
+     "height": 9
+    },
+    {
+     "text": "size",
+     "x": 469,
+     "y": 263.2,
+     "width": 16.6,
+     "height": 9
+    },
+    {
+     "text": "and",
+     "x": 488,
+     "y": 263.2,
+     "width": 17.9,
+     "height": 9
+    },
+    {
+     "text": "weight",
+     "x": 508.3,
+     "y": 263.2,
+     "width": 30.3,
+     "height": 9
+    },
+    {
+     "text": "limits.",
+     "x": 541,
+     "y": 263.2,
+     "width": 25.8,
+     "height": 9
+    },
+    {
+     "text": "Flight summary",
+     "x": 23.2,
+     "y": 327.7,
+     "width": 102.9,
+     "height": 15
+    },
+    {
+     "text": "₹2,663",
+     "x": 249,
+     "y": 357.7,
+     "width": 33,
+     "height": 12
+    },
+    {
+     "text": "₹325",
+     "x": 258,
+     "y": 378.7,
+     "width": 24,
+     "height": 12
+    },
+    {
+     "text": "₹445",
+     "x": 258,
+     "y": 399.7,
+     "width": 24,
+     "height": 12
+    },
+    {
+     "text": "₹275",
+     "x": 258,
+     "y": 420.7,
+     "width": 24,
+     "height": 12
+    },
+    {
+     "text": "₹236",
+     "x": 258,
+     "y": 441.7,
+     "width": 24,
+     "height": 12
+    },
+    {
+     "text": "₹649",
+     "x": 258,
+     "y": 462.7,
+     "width": 24,
+     "height": 12
+    },
+    {
+     "text": "₹372",
+     "x": 258,
+     "y": 483.7,
+     "width": 24,
+     "height": 12
+    },
+    {
+     "text": "₹147",
+     "x": 258,
+     "y": 504.7,
+     "width": 24,
+     "height": 12
+    },
+    {
+     "text": "₹5,112",
+     "x": 252.4,
+     "y": 533.2,
+     "width": 32.6,
+     "height": 12
+    },
+    {
+     "text": "Total fare",
+     "x": 23.2,
+     "y": 564.7,
+     "width": 57.7,
+     "height": 15
+    },
+    {
+     "text": "₹5,112",
+     "x": 249.7,
+     "y": 563.2,
+     "width": 32.3,
+     "height": 12
+    },
+    {
+     "text": "AirFare Charge",
+     "x": 23.2,
+     "y": 357.7,
+     "width": 74.8,
+     "height": 12
+    },
+    {
+     "text": "* Convenience fee may apply",
+     "x": 23.2,
+     "y": 378.7,
+     "width": 142.6,
+     "height": 12
+    },
+    {
+     "text": "Seat fee",
+     "x": 23.2,
+     "y": 399.7,
+     "width": 38.3,
+     "height": 12
+    },
+    {
+     "text": "Fuel Charge",
+     "x": 23.2,
+     "y": 420.7,
+     "width": 58.8,
+     "height": 12
+    },
+    {
+     "text": "Aviation Security Fee",
+     "x": 23.2,
+     "y": 441.7,
+     "width": 104.4,
+     "height": 12
+    },
+    {
+     "text": "User Development fee",
+     "x": 23.2,
+     "y": 462.7,
+     "width": 108,
+     "height": 12
+    },
+    {
+     "text": "Arrival User Development Fee",
+     "x": 23.2,
+     "y": 483.7,
+     "width": 148.3,
+     "height": 12
+    },
+    {
+     "text": "GST for Karnataka",
+     "x": 23.2,
+     "y": 504.7,
+     "width": 91.7,
+     "height": 12
+    },
+    {
+     "text": "Contact Details",
+     "x": 328.5,
+     "y": 326.2,
+     "width": 98.7,
+     "height": 15
+    },
+    {
+     "text": "Number:",
+     "x": 328.5,
+     "y": 361.5,
+     "width": 42.7,
+     "height": 12
+    },
+    {
+     "text": "+",
+     "x": 377.2,
+     "y": 361.5,
+     "width": 6.8,
+     "height": 12
+    },
+    {
+     "text": "91",
+     "x": 383.9,
+     "y": 361.5,
+     "width": 12,
+     "height": 12
+    },
+    {
+     "text": "-",
+     "x": 395.9,
+     "y": 361.5,
+     "width": 4,
+     "height": 12
+    },
+    {
+     "text": "90000-00000",
+     "x": 399.9,
+     "y": 361.5,
+     "width": 58.7,
+     "height": 12
+    },
+    {
+     "text": "E - mail:",
+     "x": 328.5,
+     "y": 381,
+     "width": 42,
+     "height": 12
+    },
+    {
+     "text": "traveller@example.com",
+     "x": 376.5,
+     "y": 381,
+     "width": 128.7,
+     "height": 12
+    }
+   ]
+  }
+ ],
+ "expect": {
+  "adapter": "flight",
+  "type": "flight",
+  "fields": {
+   "pnr": "AB1CD2",
+   "origin": "BLR",
+   "destination": "IXE",
+   "flight": "6E 5306",
+   "date": "2026-09-16",
+   "seat": "10F",
+   "departureTime": "14:35",
+   "arrivalTime": "15:35",
+   "terminal": "1"
+  },
+  "critical": [
+   "pnr",
+   "flight",
+   "date"
+  ],
+  "absent": [
+   "gate"
+  ]
+ }
+}

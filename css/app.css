@@ -1,0 +1,1133 @@
+/*
+ * Visual language.
+ *
+ * Apple's, deliberately: the system font stack, iOS system colours, iOS spacing and
+ * radii, and Apple's own easing curve. The app is Apple-styled on both platforms — but
+ * it is built to work identically on Android, so the font stack falls through to Roboto
+ * rather than dropping to something unpleasant, and nothing here relies on a WebKit-only
+ * feature.
+ *
+ * Dark mode is not decoration. Someone checking a 5am departure is doing it in a dark
+ * room, and a white screen at that moment is genuinely unpleasant.
+ */
+
+:root {
+  --blue: #007aff;
+  --green: #34c759;
+  --orange: #ff9500;
+  --red: #ff3b30;
+
+  --bg: #f2f2f7;
+  --bg-deep: #e9e9ef;
+  --surface: rgba(255, 255, 255, 0.86);
+  --surface-solid: #ffffff;
+  --separator: rgba(60, 60, 67, 0.13);
+  --label: #1c1c1e;
+  --label-2: rgba(60, 60, 67, 0.62);
+  --label-3: rgba(60, 60, 67, 0.32);
+  --fill: rgba(120, 120, 128, 0.12);
+
+  --engrave-ink: rgba(60, 60, 67, 0.07);
+  --aurora: 0.75;
+
+  --radius: 14px;
+  --radius-lg: 20px;
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 10px 30px rgba(0, 0, 0, 0.08);
+  --blur: saturate(180%) blur(20px);
+
+  --font: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display',
+          'Segoe UI Variable Text', Roboto, 'Helvetica Neue', system-ui, sans-serif;
+  --ease: cubic-bezier(0.32, 0.72, 0, 1);
+
+  --top: env(safe-area-inset-top, 0px);
+  --bottom: env(safe-area-inset-bottom, 0px);
+
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  --bg: #000000;
+  --bg-deep: #0a0a0c;
+  --surface: rgba(28, 28, 30, 0.78);
+  --surface-solid: #1c1c1e;
+  --separator: rgba(84, 84, 88, 0.5);
+  --label: #ffffff;
+  --label-2: rgba(235, 235, 245, 0.62);
+  --label-3: rgba(235, 235, 245, 0.32);
+  --fill: rgba(120, 120, 128, 0.24);
+
+  --blue: #0a84ff;
+  --green: #30d158;
+  --orange: #ff9f0a;
+  --red: #ff453a;
+
+  --engrave-ink: rgba(235, 235, 245, 0.07);
+  --aurora: 0.6;
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.5), 0 10px 32px rgba(0, 0, 0, 0.6);
+
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-theme='auto'] {
+    --bg: #000000;
+    --bg-deep: #0a0a0c;
+    --surface: rgba(28, 28, 30, 0.78);
+    --surface-solid: #1c1c1e;
+    --separator: rgba(84, 84, 88, 0.5);
+    --label: #ffffff;
+    --label-2: rgba(235, 235, 245, 0.62);
+    --label-3: rgba(235, 235, 245, 0.32);
+    --fill: rgba(120, 120, 128, 0.24);
+
+    --blue: #0a84ff;
+    --green: #30d158;
+    --orange: #ff9f0a;
+    --red: #ff453a;
+
+    --engrave-ink: rgba(235, 235, 245, 0.07);
+    --aurora: 0.6;
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.5), 0 10px 32px rgba(0, 0, 0, 0.6);
+
+    color-scheme: dark;
+  }
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+/*
+ * The `hidden` attribute must win.
+ *
+ * Browsers implement it as `display: none` in the UA stylesheet, which any author rule
+ * setting `display` silently overrides — so a `hidden` element given `display: flex`
+ * stays fully visible. That is how a white full-screen overlay ended up painted over the
+ * landing page. Declared once, here, so no future layout rule can reintroduce it.
+ */
+[hidden] { display: none !important; }
+
+html { -webkit-text-size-adjust: 100%; height: 100%; }
+
+body {
+  margin: 0;
+  min-height: 100%;
+  font-family: var(--font);
+  font-size: 17px;
+  line-height: 1.45;
+  letter-spacing: -0.011em;
+  color: var(--label);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none;
+}
+
+h1, h2, h3 { margin: 0; letter-spacing: -0.021em; line-height: 1.16; font-weight: 700; }
+p { margin: 0; }
+.muted { color: var(--label-2); }
+
+/* ───────────────────────── backdrop ─────────────────────────
+ * A guilloché lattice of the sort printed on banknotes and old railway tickets — the
+ * heritage this app draws on. Built from gradients rather than an image, so it costs no
+ * bandwidth and stays sharp at any density. Kept faint: it sits behind a form where
+ * people check a booking reference, and must never compete with it. */
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  background: radial-gradient(120% 90% at 50% -10%, var(--bg) 0%, var(--bg-deep) 70%);
+}
+
+.engrave {
+  position: absolute;
+  inset: -20%;
+  background-image:
+    repeating-linear-gradient(58deg,  var(--engrave-ink) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(-58deg, var(--engrave-ink) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(0deg,   var(--engrave-ink) 0 1px, transparent 1px 26px);
+  mask-image: radial-gradient(90% 62% at 50% 18%, #000 0%, transparent 74%);
+  -webkit-mask-image: radial-gradient(90% 62% at 50% 18%, #000 0%, transparent 74%);
+}
+
+/* Blurred colour fields.
+ *
+ * Static, deliberately. An earlier version drifted them slowly, which looked handsome
+ * and kept the GPU compositing a large blurred layer forever — on a phone that means
+ * measurable battery drain and a warm device, for decoration nobody asked for. A
+ * ticket app that heats the phone in your pocket has failed at something more important
+ * than looking pretty. */
+.aurora {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(64px);
+  opacity: var(--aurora);
+}
+
+.aurora-1 {
+  width: 52vw; height: 52vw; min-width: 320px; min-height: 320px;
+  top: -16vw; left: -12vw;
+  background: radial-gradient(circle, color-mix(in srgb, var(--blue) 30%, transparent), transparent 68%);
+}
+
+.aurora-2 {
+  width: 44vw; height: 44vw; min-width: 280px; min-height: 280px;
+  top: -8vw; right: -14vw;
+  background: radial-gradient(circle, color-mix(in srgb, #5856d6 26%, transparent), transparent 68%);
+}
+
+/* Mobile GPUs pay disproportionately for a wide blur radius, and the visual difference
+   at this scale is negligible. */
+@media (max-width: 640px) { .aurora { filter: blur(44px); } }
+
+/* The barcode is the one screen where nothing may compete for the GPU, and the backdrop
+   is invisible behind it anyway. */
+.scan ~ .backdrop, body:has(.scan:not([hidden])) .backdrop { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+
+/* ───────────────────────── screens ───────────────────────── */
+
+.screen {
+  max-width: 620px;
+  margin: 0 auto;
+  animation: rise 0.34s var(--ease) both;
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ───────────────────────── bar ───────────────────────── */
+
+.bar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 8px;
+  padding: calc(var(--top) + 10px) 12px 10px;
+  background: var(--surface);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border-bottom: 1px solid var(--separator);
+}
+
+.bar-title {
+  grid-column: 2;
+  font-size: 17px;
+  font-weight: 600;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bar > .icon-button:first-child, .bar > .text-button:first-child { justify-self: start; }
+.bar-actions { grid-column: 3; justify-self: end; display: flex; gap: 2px; }
+.bar-spacer { display: inline-block; width: 34px; }
+
+.icon-button {
+  width: 38px; height: 38px;
+  display: grid; place-items: center;
+  border: 0; border-radius: 50%;
+  background: none;
+  color: var(--blue);
+  cursor: pointer;
+  transition: background 0.2s var(--ease), transform 0.12s var(--ease), opacity 0.2s;
+}
+
+.icon-button:hover { background: var(--fill); }
+.icon-button:active { transform: scale(0.9); }
+.icon-button:disabled { opacity: 0.3; }
+
+.text-button {
+  border: 0;
+  background: none;
+  color: var(--blue);
+  font: inherit;
+  font-size: 17px;
+  padding: 6px 4px;
+  cursor: pointer;
+}
+
+.text-button.strong { font-weight: 600; }
+.text-button:disabled { opacity: 0.35; }
+
+.text-link {
+  border: 0; background: none;
+  color: var(--blue);
+  font: inherit; font-size: 15px;
+  cursor: pointer;
+  padding: 10px;
+}
+
+/* ───────────────────────── landing ───────────────────────── */
+
+.landing-inner { padding: 40px 20px calc(40px + var(--bottom)); text-align: center; }
+
+.app-mark img { border-radius: 22%; box-shadow: 0 8px 26px rgba(0, 0, 0, 0.16); }
+
+.landing h1 { font-size: clamp(30px, 7vw, 42px); margin: 22px 0 12px; }
+.lede { font-size: 17px; color: var(--label-2); max-width: 26em; margin: 0 auto; }
+
+.install-card { margin: 30px 0 0; }
+
+.install-steps {
+  text-align: left;
+  background: var(--surface);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+}
+
+.install-lead { font-weight: 600; margin-bottom: 10px; }
+.install-body { font-size: 14.5px; color: var(--label-2); line-height: 1.5; margin-bottom: 12px; }
+.install-body.small { font-size: 13.5px; margin: 14px 0 0; }
+.install-actions { display: flex; flex-direction: column; gap: 9px; }
+.install-steps ol { margin: 0; padding-left: 20px; color: var(--label-2); font-size: 15.5px; }
+.install-steps li { margin: 7px 0; }
+.install-steps strong { color: var(--label); font-weight: 600; }
+
+.ghost-button {
+  border: 1px solid var(--separator);
+  border-radius: 12px;
+  background: none;
+  color: var(--blue);
+  font: inherit;
+  font-size: 16px;
+  padding: 12px;
+  cursor: pointer;
+  transition: background 0.2s var(--ease), transform 0.14s var(--ease);
+}
+
+.ghost-button:active { transform: scale(0.98); }
+
+.inline-glyph { vertical-align: -2px; color: var(--blue); }
+
+.qr-handoff { margin-top: 26px; }
+#qr-canvas { border-radius: 10px; background: #fff; padding: 8px; box-shadow: var(--shadow); }
+.qr-note { font-size: 13px; color: var(--label-2); margin-top: 10px; }
+
+.points {
+  list-style: none;
+  margin: 34px 0 18px;
+  padding: 0;
+  text-align: left;
+  display: grid;
+  gap: 1px;
+  background: var(--separator);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.points li {
+  background: var(--surface-solid);
+  padding: 14px 18px;
+  font-size: 14.5px;
+  color: var(--label-2);
+}
+
+.points strong { display: block; color: var(--label); font-weight: 600; margin-bottom: 2px; }
+
+/* ───────────────────────── home ───────────────────────── */
+
+.home-body { padding: 16px 16px calc(96px + var(--bottom)); }
+
+.section-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--label-2);
+  letter-spacing: 0.01em;
+  margin: 4px 4px 10px;
+}
+
+.list-block, .past-block { margin-top: 26px; }
+
+/* The ticket card. Its colour comes from the operator's own brand where we could find
+   one, which is what makes a wallet feel like it holds real tickets. */
+
+.card {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: 0;
+  border-radius: var(--radius-lg);
+  padding: 16px 18px;
+  margin-bottom: 12px;
+  background: var(--card-bg, #1d3557);
+  color: var(--card-fg, #fff);
+  box-shadow: var(--shadow);
+  font: inherit;
+  cursor: pointer;
+  transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease), opacity 0.2s;
+}
+
+.card:active { transform: scale(0.985); }
+.card.large { padding: 20px; }
+.card.dim { opacity: 0.55; }
+
+.card-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 14px; }
+
+.card-provider {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--card-label, rgba(255, 255, 255, 0.7));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-chip {
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 980px;
+  background: rgba(255, 255, 255, 0.16);
+  white-space: nowrap;
+}
+
+.card-route { display: flex; align-items: center; gap: 12px; }
+.card-route .place { font-size: 27px; font-weight: 600; letter-spacing: -0.02em; }
+.card.large .card-route .place { font-size: 34px; }
+.card-route .place.single { font-size: 21px; line-height: 1.2; }
+.card-route .arrow { opacity: 0.7; display: flex; }
+.plain-arrow { font-size: 18px; }
+
+.card-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.card-detail { font-size: 13.5px; color: var(--card-label, rgba(255, 255, 255, 0.72)); }
+.card-seat { font-size: 15px; font-weight: 600; white-space: nowrap; }
+
+.past-block summary {
+  list-style: none;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--label-2);
+  padding: 8px 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.past-block summary::-webkit-details-marker { display: none; }
+
+.count {
+  background: var(--fill);
+  border-radius: 980px;
+  padding: 1px 8px;
+  font-size: 12px;
+}
+
+.empty { text-align: center; padding: 70px 20px; }
+.empty-mark { color: var(--label-3); margin-bottom: 18px; }
+.empty h2 { font-size: 21px; margin-bottom: 6px; }
+.empty .muted { margin-bottom: 22px; font-size: 15px; }
+
+.caution {
+  margin-top: 22px;
+  padding: 13px 16px;
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--orange) 13%, var(--surface-solid));
+  border: 1px solid color-mix(in srgb, var(--orange) 30%, transparent);
+  font-size: 14px;
+}
+
+.fab {
+  position: fixed;
+  right: 20px;
+  bottom: calc(22px + var(--bottom));
+  width: 58px; height: 58px;
+  border: 0; border-radius: 50%;
+  background: var(--blue);
+  color: #fff;
+  display: grid; place-items: center;
+  box-shadow: 0 6px 22px color-mix(in srgb, var(--blue) 42%, transparent);
+  cursor: pointer;
+  z-index: 30;
+  transition: transform 0.16s var(--ease);
+}
+
+.fab:active { transform: scale(0.9); }
+
+/* ───────────────────────── the ticket ───────────────────────── */
+
+.pass-scroll { padding: 16px 16px calc(40px + var(--bottom)); }
+
+.pass-card {
+  border-radius: var(--radius-lg);
+  padding: 22px 20px;
+  background: var(--card-bg, #1d3557);
+  color: var(--card-fg, #fff);
+  box-shadow: var(--shadow);
+}
+
+.pass-route { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+.endpoint { min-width: 0; }
+.endpoint.right { text-align: right; }
+.endpoint .code { display: block; font-size: 38px; font-weight: 600; letter-spacing: -0.025em; }
+.endpoint .code.single { font-size: 24px; }
+
+.place-name {
+  display: block;
+  font-size: 12px;
+  color: var(--card-label, rgba(255, 255, 255, 0.7));
+  margin-top: 3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pass-glyph { flex: none; opacity: 0.72; }
+
+.pass-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(88px, 1fr));
+  gap: 16px 14px;
+  margin-top: 24px;
+}
+
+.pass-field .k {
+  display: block;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--card-label, rgba(255, 255, 255, 0.7));
+}
+
+.pass-field .v { display: block; font-size: 17px; font-weight: 600; margin-top: 2px; }
+.pass-field.unsure .v::after { content: ' ?'; opacity: 0.6; }
+
+.show-code {
+  width: 100%;
+  margin-top: 24px;
+  padding: 13px;
+  border: 0;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.16);
+  color: inherit;
+  font: inherit;
+  font-size: 15.5px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  cursor: pointer;
+  transition: background 0.2s var(--ease), transform 0.12s var(--ease);
+}
+
+.show-code:hover { background: rgba(255, 255, 255, 0.24); }
+.show-code:active { transform: scale(0.98); }
+
+.no-code {
+  margin-top: 20px;
+  font-size: 13.5px;
+  color: var(--card-label, rgba(255, 255, 255, 0.72));
+}
+
+.pass-section { margin-top: 26px; }
+.pass-section h2 { font-size: 13px; font-weight: 600; color: var(--label-2); margin-bottom: 10px; padding: 0 4px; }
+
+.section-body {
+  background: var(--surface-solid);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.section-body + .section-body { margin-top: 8px; }
+
+.caution-section .section-body {
+  background: color-mix(in srgb, var(--orange) 12%, var(--surface-solid));
+  border: 1px solid color-mix(in srgb, var(--orange) 28%, transparent);
+}
+
+.detail-list {
+  margin: 0;
+  background: var(--surface-solid);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.detail-list > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--separator);
+}
+
+.detail-list > div:first-child { border-top: 0; }
+.detail-list dt { font-size: 14px; color: var(--label-2); flex: none; }
+.detail-list dd { margin: 0; font-size: 14.5px; text-align: right; word-break: break-word; }
+.detail-list.subtle dd { color: var(--label-2); font-size: 13.5px; }
+
+.pass-disclaimer {
+  margin-top: 26px;
+  padding: 0 6px;
+  font-size: 12.5px;
+  color: var(--label-3);
+  line-height: 1.5;
+  text-align: center;
+}
+
+/* ───────────────────────── scan ─────────────────────────
+ * White regardless of theme. A web page cannot raise screen brightness the way a native
+ * wallet can, so the largest possible white field is the only compensation available.
+ * Nothing is styled here — the barcode must be exactly what a scanner expects.
+ *
+ * The close button is hidden until the screen is tapped. This is the one moment in the
+ * app that should carry no distraction, and a button permanently under the thumb is a
+ * button that gets pressed while the phone is being handed over. */
+
+.scan {
+  position: fixed;
+  inset: 0;
+  max-width: none;
+  background: #ffffff;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.scan-close {
+  position: absolute;
+  top: calc(var(--top) + 12px);
+  right: 14px;
+  width: 42px; height: 42px;
+  border: 0; border-radius: 50%;
+  background: rgba(0, 0, 0, 0.07);
+  color: #1c1c1e;
+  display: grid; place-items: center;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.9);
+  transition: opacity 0.28s var(--ease), transform 0.28s var(--ease);
+}
+
+.scan.controls .scan-close { opacity: 1; pointer-events: auto; transform: none; }
+
+.scan-hint {
+  position: absolute;
+  bottom: calc(var(--bottom) + 26px);
+  left: 0; right: 0;
+  text-align: center;
+  font-size: 12px;
+  color: #aeaeb2;
+  opacity: 1;
+  transition: opacity 0.4s var(--ease);
+}
+
+.scan.controls .scan-hint { opacity: 0; }
+
+.scan-inner { text-align: center; padding: 20px; width: 100%; }
+
+#scan-canvas {
+  max-width: min(88vw, 560px);
+  width: auto;
+  height: auto;
+  /* Nearest-neighbour: any smoothing softens the module edges a scanner looks for. */
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.scan-reference {
+  margin-top: 20px;
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: #1c1c1e;
+  font-variant-numeric: tabular-nums;
+}
+
+.scan-note { margin-top: 8px; font-size: 12.5px; color: #6e6e73; }
+
+/* ───────────────────────── add ───────────────────────── */
+
+.add-body { padding: 30px 20px calc(40px + var(--bottom)); }
+
+.dropzone {
+  border: 1.5px dashed var(--label-3);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  padding: 46px 22px;
+  text-align: center;
+  cursor: pointer;
+  color: var(--blue);
+  transition: border-color 0.22s var(--ease), background 0.22s var(--ease), transform 0.22s var(--ease);
+}
+
+.dropzone:hover { border-color: var(--blue); }
+.dropzone.over { border-color: var(--blue); border-style: solid; transform: scale(1.01); }
+.dz-title { font-size: 18px; font-weight: 600; color: var(--label); margin-top: 12px; }
+.dz-hint { font-size: 14px; color: var(--label-2); margin-top: 5px; }
+
+.paste-hint { text-align: center; font-size: 13.5px; color: var(--label-2); margin-top: 16px; }
+
+kbd {
+  font: inherit; font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 5px;
+  background: var(--fill);
+  border: 1px solid var(--separator);
+}
+
+/* ───────────────────────── working ───────────────────────── */
+
+.working-inner { text-align: center; padding: 90px 24px; }
+
+.spinner {
+  width: 28px; height: 28px;
+  margin: 0 auto 20px;
+  border: 2.5px solid var(--fill);
+  border-top-color: var(--blue);
+  border-radius: 50%;
+  animation: spin 0.85s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.steps {
+  list-style: none;
+  margin: 26px auto 0;
+  padding: 0;
+  max-width: 340px;
+  text-align: left;
+  display: grid;
+  gap: 1px;
+  background: var(--separator);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.steps li {
+  background: var(--surface-solid);
+  padding: 11px 16px;
+  font-size: 14.5px;
+  color: var(--label-3);
+  display: flex; align-items: center; gap: 10px;
+  transition: color 0.3s var(--ease);
+}
+
+.steps li::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex: none; }
+.steps li.active { color: var(--blue); }
+.steps li.done { color: var(--label-2); }
+.steps li.done::before { background: var(--green); box-shadow: 0 0 0 3px color-mix(in srgb, var(--green) 20%, transparent); }
+
+/* ───────────────────────── review ───────────────────────── */
+
+.review-scroll { padding: 16px 16px calc(40px + var(--bottom)); }
+
+.notice {
+  background: color-mix(in srgb, var(--orange) 13%, var(--surface-solid));
+  border: 1px solid color-mix(in srgb, var(--orange) 30%, transparent);
+  border-radius: var(--radius);
+  padding: 13px 16px;
+  font-size: 14.5px;
+  line-height: 1.45;
+  margin-bottom: 18px;
+}
+
+.notice p + p { margin-top: 7px; }
+
+.review-group { margin-bottom: 24px; }
+.review-group h2 { font-size: 13px; font-weight: 600; color: var(--label-2); padding: 0 4px; margin-bottom: 8px; }
+.group-note { font-size: 13px; color: var(--label-2); padding: 0 4px; margin-bottom: 12px; }
+
+.review-group.urgent {
+  background: color-mix(in srgb, var(--orange) 8%, var(--surface-solid));
+  border: 1px solid color-mix(in srgb, var(--orange) 26%, transparent);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+
+.all-clear {
+  display: flex; align-items: center; gap: 10px;
+  background: color-mix(in srgb, var(--green) 12%, var(--surface-solid));
+  border: 1px solid color-mix(in srgb, var(--green) 28%, transparent);
+  border-radius: var(--radius);
+  padding: 13px 16px;
+  font-size: 15px;
+  color: var(--green);
+  margin-bottom: 22px;
+}
+
+.field { padding: 12px 0; border-top: 1px solid var(--separator); }
+.field:first-of-type { border-top: 0; }
+.field-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+.field label { font-size: 13px; font-weight: 600; color: var(--label-2); }
+
+.field input {
+  font: inherit;
+  /* 16px minimum: anything smaller makes iOS Safari zoom on focus. */
+  font-size: 16px;
+  width: 100%;
+  padding: 10px 13px;
+  border-radius: 10px;
+  border: 1px solid var(--separator);
+  background: var(--bg);
+  color: var(--label);
+  transition: border-color 0.18s var(--ease), box-shadow 0.18s var(--ease);
+}
+
+.field input:focus {
+  outline: none;
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3.5px color-mix(in srgb, var(--blue) 18%, transparent);
+}
+
+.field.critical input { border-left: 3px solid var(--orange); }
+.field .issue { font-size: 13px; color: var(--orange); margin-top: 6px; }
+.field .note { font-size: 12.5px; color: var(--label-2); margin-top: 6px; }
+
+.badge {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 3px 8px;
+  border-radius: 980px;
+  background: var(--fill);
+  color: var(--label-2);
+  white-space: nowrap;
+}
+
+.badge.good { background: color-mix(in srgb, var(--green) 18%, transparent); color: var(--green); }
+.badge.warn { background: color-mix(in srgb, var(--orange) 18%, transparent); color: var(--orange); }
+.badge.edited { background: color-mix(in srgb, var(--blue) 16%, transparent); color: var(--blue); }
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 9px; }
+
+/* Passenger rows: editable, removable, and addable — a family booking is where
+   extraction is least reliable and where a quiet omission costs the most. */
+
+.passenger-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+
+.passenger-row input {
+  flex: 1;
+  font: inherit;
+  /* 16px minimum: anything smaller makes iOS Safari zoom on focus. */
+  font-size: 16px;
+  padding: 10px 13px;
+  border-radius: 10px;
+  border: 1px solid var(--separator);
+  background: var(--bg);
+  color: var(--label);
+}
+
+.passenger-row input:focus {
+  outline: none;
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3.5px color-mix(in srgb, var(--blue) 18%, transparent);
+}
+
+.row-remove {
+  flex: none;
+  width: 34px; height: 34px;
+  display: grid; place-items: center;
+  border: 0; border-radius: 50%;
+  background: none;
+  color: var(--label-3);
+  cursor: pointer;
+  transition: background 0.2s var(--ease), color 0.2s var(--ease);
+}
+
+.row-remove:hover { background: var(--fill); color: var(--red); }
+
+.passenger-list {
+  margin: 0;
+  padding: 0 0 0 22px;
+  background: var(--surface-solid);
+  border-radius: var(--radius);
+  padding: 14px 16px 14px 36px;
+}
+
+.passenger-list li { font-size: 15px; padding: 3px 0; }
+
+.chip {
+  font: inherit; font-size: 13.5px;
+  border: 1px solid var(--separator);
+  background: var(--surface-solid);
+  color: var(--blue);
+  border-radius: 980px;
+  padding: 6px 14px;
+  cursor: pointer;
+  transition: background 0.18s var(--ease), transform 0.12s var(--ease);
+}
+
+.chip:active { transform: scale(0.96); }
+.chip.good { color: var(--green); }
+
+/* ───────────────────────── sheets: help and settings ───────────────────────── */
+
+.help-body, .settings-body { padding: 22px 20px calc(90px + var(--bottom)); }
+
+.help-lead { font-size: 17px; margin-bottom: 18px; }
+.help-body h3 { font-size: 15.5px; margin: 22px 0 7px; }
+.help-body p { font-size: 15px; color: var(--label-2); margin-bottom: 10px; line-height: 1.5; }
+.help-body strong { color: var(--label); font-weight: 600; }
+
+.help-steps { margin: 0 0 16px; padding-left: 22px; }
+.help-steps li { font-size: 15px; color: var(--label-2); margin: 9px 0; line-height: 1.5; }
+
+.help-note {
+  background: var(--surface-solid);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  font-size: 14px;
+  color: var(--label-2);
+  line-height: 1.5;
+  margin: 16px 0;
+}
+
+.help-warning {
+  background: color-mix(in srgb, var(--red) 11%, var(--surface-solid));
+  border: 1px solid color-mix(in srgb, var(--red) 32%, transparent);
+  border-radius: var(--radius);
+  padding: 16px;
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: var(--label-2);
+  margin-bottom: 18px;
+}
+
+.help-warning strong { display: block; color: var(--label); margin-bottom: 5px; }
+
+.pager {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 12px 20px calc(12px + var(--bottom));
+  background: var(--surface);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border-top: 1px solid var(--separator);
+}
+
+.dots { display: flex; gap: 8px; }
+
+.dot {
+  width: 8px; height: 8px;
+  border: 0; border-radius: 50%;
+  background: var(--label-3);
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.25s var(--ease), transform 0.25s var(--ease);
+}
+
+.dot.on { background: var(--blue); transform: scale(1.25); }
+
+/* settings */
+
+.group { margin-bottom: 26px; }
+.group h2 { font-size: 13px; font-weight: 600; color: var(--label-2); padding: 0 4px; margin-bottom: 8px; }
+.group-note { font-size: 13px; color: var(--label-2); padding: 0 4px; margin-top: 9px; line-height: 1.45; }
+.group-note.warn-note { color: var(--orange); }
+.warn-note { color: var(--orange); }
+
+.options-list {
+  background: var(--surface-solid);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.option {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 0;
+  border-top: 1px solid var(--separator);
+  background: none;
+  color: var(--label);
+  font: inherit;
+  padding: 13px 16px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.option:first-child { border-top: 0; }
+.option-text { display: block; min-width: 0; }
+.option-text strong { display: block; font-size: 16px; font-weight: 500; }
+.option-text em { font-style: normal; font-size: 13px; color: var(--label-2); }
+
+.option-tick { color: var(--blue); opacity: 0; flex: none; transition: opacity 0.2s var(--ease); }
+.option.on .option-tick { opacity: 1; }
+
+.switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  background: var(--surface-solid);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  cursor: pointer;
+}
+
+.switch-row input { position: absolute; opacity: 0; pointer-events: none; }
+
+.track {
+  flex: none;
+  width: 51px; height: 31px;
+  border-radius: 980px;
+  background: var(--fill);
+  position: relative;
+  transition: background 0.28s var(--ease);
+}
+
+.thumb {
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 27px; height: 27px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.22);
+  transition: transform 0.28s var(--ease);
+}
+
+.switch-row input:checked ~ .track { background: var(--green); }
+.switch-row input:checked ~ .track .thumb { transform: translateX(20px); }
+.switch-row input:disabled ~ .track { opacity: 0.4; }
+
+.info-card {
+  background: var(--surface-solid);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  font-size: 14px;
+  color: var(--label-2);
+  line-height: 1.5;
+}
+
+.info-card p + p { margin-top: 7px; }
+
+.segmented {
+  display: flex;
+  background: var(--fill);
+  border-radius: 10px;
+  padding: 2px;
+}
+
+.segmented button {
+  flex: 1;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--label);
+  font: inherit;
+  font-size: 14.5px;
+  padding: 8px;
+  cursor: pointer;
+  transition: background 0.25s var(--ease);
+}
+
+.segmented button[aria-pressed='true'] {
+  background: var(--surface-solid);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  font-weight: 600;
+}
+
+.row {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  border: 0;
+  border-top: 1px solid var(--separator);
+  background: var(--surface-solid);
+  color: var(--label);
+  font: inherit;
+  font-size: 16px;
+  padding: 14px 16px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.row:first-of-type { border-top: 0; border-radius: var(--radius) var(--radius) 0 0; }
+.row:last-of-type { border-radius: 0 0 var(--radius) var(--radius); }
+.row:only-of-type { border-radius: var(--radius); }
+.row-note { color: var(--label-2); font-size: 14px; }
+.row.danger { color: var(--red); }
+
+.colophon { text-align: center; padding: 10px; color: var(--label-3); }
+.colophon svg { opacity: 0.5; margin-bottom: 10px; }
+.colophon p { font-size: 12.5px; line-height: 1.5; }
+
+.wordmark-slot { display: flex; justify-content: center; color: var(--label); }
+
+/* ───────────────────────── buttons ───────────────────────── */
+
+.primary {
+  border: 0;
+  border-radius: 12px;
+  background: var(--blue);
+  color: #fff;
+  font: inherit;
+  font-size: 17px;
+  font-weight: 500;
+  padding: 13px 26px;
+  cursor: pointer;
+  transition: transform 0.14s var(--ease), background 0.2s var(--ease);
+}
+
+.primary.big { width: 100%; padding: 15px; font-size: 17px; font-weight: 600; }
+.primary:active { transform: scale(0.975); }
+
+/* ───────────────────────── toast ───────────────────────── */
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(28px + var(--bottom));
+  transform: translateX(-50%);
+  z-index: 200;
+  max-width: min(90vw, 420px);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 13px 18px;
+  border-radius: 14px;
+  background: rgba(28, 28, 30, 0.94);
+  color: #fff;
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+  font-size: 14.5px;
+  animation: toast-in 0.32s var(--ease) both;
+}
+
+.toast.bad { background: rgba(200, 40, 32, 0.96); }
+.toast span { font-size: 13px; opacity: 0.82; }
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translate(-50%, 12px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}

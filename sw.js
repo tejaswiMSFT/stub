@@ -1,0 +1,145 @@
+/**
+ * Service worker — what makes the app work with no signal.
+ *
+ * This matters more here than in most apps: a ticket is needed precisely where
+ * connectivity fails. On an aeroplane, in a metro tunnel, at a rural bus stand, in a
+ * foreign country with no roaming. An app that needs the network to show a barcode has
+ * failed at the only moment it was required.
+ *
+ * So everything is cached on install and served cache-first. The app is entirely static
+ * and only a few megabytes; there is no reason to consult the network for it at all.
+ *
+ * Note what is NOT here: no fetch of user data, no analytics, no background sync, no
+ * push. The service worker never sends anything anywhere. It exists solely to make the
+ * app's own files available offline.
+ */
+
+// Bumping this invalidates every cached file. It must change whenever any asset does,
+// or returning users will keep the old app indefinitely.
+const VERSION = 'v1';
+const CACHE = `ticket-${VERSION}`;
+
+/**
+ * Everything needed to run.
+ *
+ * The wasm and worker files are large but non-negotiable: barcode decoding and PDF
+ * parsing are the app's core, and downloading them on first use would mean adding a
+ * ticket fails offline.
+ */
+const ASSETS = [
+  './',
+  './index.html',
+  './manifest.webmanifest',
+
+  './css/app.css',
+
+  './js/app.js',
+  './js/store.js',
+  './js/ingest.js',
+  './js/text.js',
+  './js/email.js',
+  './js/barcode.js',
+  './js/bcbp.js',
+  './js/model.js',
+  './js/errors.js',
+  './js/brand.js',
+  './js/artwork.js',
+  './js/adapters/index.js',
+  './js/adapters/registry.js',
+  './js/adapters/flight.js',
+  './js/adapters/rail.js',
+  './js/adapters/event.js',
+  './js/data/airports.js',
+
+  './vendor/pdf.min.mjs',
+  './vendor/pdf.worker.min.mjs',
+  './vendor/bwip-js.mjs',
+  './vendor/zxing/reader/index.js',
+  './vendor/zxing/reader/zxing_reader.wasm',
+
+  './icons/icon-192.png',
+  './icons/icon-512.png',
+  './icons/apple-touch-icon.png',
+];
+
+self.addEventListener('install', (event) => {
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE);
+
+    // Added individually rather than with addAll, because addAll rejects wholesale if a
+    // single file 404s — and a service worker that fails to install leaves the app with
+    // no offline support at all, silently. One missing icon should not cost that.
+    await Promise.all(ASSETS.map(async (url) => {
+      try {
+        await cache.add(new Request(url, { cache: 'reload' }));
+      } catch (error) {
+        console.warn('[sw] could not cache', url, error);
+      }
+    }));
+
+    // Take over at once. The usual objection — that a new worker might serve assets to
+    // an old page — does not apply here, since the whole bundle is replaced together.
+    await self.skipWaiting();
+  })());
+});
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil((async () => {
+    const names = await caches.keys();
+    await Promise.all(names.filter((name) => name !== CACHE).map((name) => caches.delete(name)));
+    await self.clients.claim();
+  })());
+});
+
+self.addEventListener('fetch', (event) => {
+  const { request } = event;
+
+  if (request.method !== 'GET') return;
+
+  const url = new URL(request.url);
+  if (url.origin !== self.location.origin) return;
+
+  event.respondWith((async () => {
+    const cached = await caches.match(request, { ignoreSearch: true });
+    if (cached) {
+      // Refresh in the background so the next launch is current, without ever making
+      // this launch wait on the network.
+      event.waitUntil(refresh(request));
+      return cached;
+    }
+
+    try {
+      const response = await fetch(request);
+      if (response.ok && response.type === 'basic') {
+        const cache = await caches.open(CACHE);
+        cache.put(request, response.clone());
+      }
+      return response;
+    } catch {
+      // Offline and uncached: for a navigation, the app shell is still the right answer,
+      // since routing happens client-side.
+      if (request.mode === 'navigate') {
+        const shell = await caches.match('./index.html');
+        if (shell) return shell;
+      }
+      return new Response('Offline', { status: 503, statusText: 'Offline' });
+    }
+  })());
+});
+
+async function refresh(request) {
+  try {
+    const response = await fetch(request);
+    if (response.ok && response.type === 'basic') {
+      const cache = await caches.open(CACHE);
+      await cache.put(request, response);
+    }
+  } catch {
+    // Offline is the normal case, not an error worth reporting.
+  }
+}
+
+// Lets the page trigger an immediate update rather than waiting for a natural reload.
+self.addEventListener('message', (event) => {
+  if (event.data === 'skip-waiting') self.skipWaiting();
+});

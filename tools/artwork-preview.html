@@ -1,0 +1,100 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Artwork preview</title>
+<style>
+  body { background:#f2f2f7; font:13px -apple-system,"Segoe UI",sans-serif; padding:20px; margin:0; color:#1d1d1f; }
+  h2 { font-size:12px; text-transform:uppercase; letter-spacing:.09em; color:#6e6e73; font-weight:600; margin:26px 0 12px; }
+  .grid { display:grid; grid-template-columns:repeat(2,375px); gap:20px; }
+  .label { text-transform:uppercase; letter-spacing:.08em; font-size:10px; color:#6e6e73; margin-bottom:6px; }
+  .pass { width:375px; border-radius:12px; overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,.14); }
+  .head { display:flex; align-items:center; padding:8px 12px 4px; }
+  .strip { position:relative; height:123px; }
+  .strip img.art { display:block; width:375px; height:123px; }
+  .over { position:absolute; inset:0; display:flex; align-items:center; justify-content:space-between; padding:0 14px; }
+  .over span { font-size:10px; letter-spacing:.08em; }
+  .over b { display:block; font-size:22px; font-weight:600; }
+  .body { padding:9px 12px 12px; font-size:12px; }
+  .bpfields { display:flex; justify-content:space-between; padding:8px 14px 2px; }
+  .bpfields span { font-size:10px; letter-spacing:.08em; }
+  .bpfields b { display:block; font-size:26px; font-weight:600; }
+  .footer { padding:8px 14px 12px; }
+  .icons { display:flex; gap:16px; align-items:flex-end; flex-wrap:wrap; }
+  .icons figure { margin:0; text-align:center; }
+  .icons figcaption { font-size:9px; color:#6e6e73; margin-top:5px; text-transform:uppercase; letter-spacing:.05em; }
+  .note { font-size:11px; color:#6e6e73; margin:-4px 0 14px; max-width:770px; line-height:1.5; }
+</style></head>
+<body>
+<h2>Icons — shown at 29pt, the size iOS uses on the lock screen</h2>
+<div class="icons" id="icons"></div>
+
+<h2>Event tickets, coupons and store cards — 375&times;123 strip</h2>
+<div class="grid" id="strips"></div>
+
+<h2>Boarding passes — no strip is permitted</h2>
+<p class="note">Apple's layout allows a boarding pass only logo, icon and a 286&times;15 footer.
+Wallet draws its own transit glyph between origin and destination, which is where the
+aeroplane or train actually comes from.</p>
+<div class="grid" id="boarding"></div>
+
+<script type="module">
+import { derivePalette, buildSvg, buildIconSvg, buildLogoSvg, walletColors } from '../js/artwork.js';
+
+const enc = s => 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(s)));
+
+const STRIPPED = [
+  ['movie','Interstellar','PVR CINEMAS','eventTicket'],
+  ['concert','Coldplay','TICKETMASTER','eventTicket'],
+  ['theatre','Hamlet','OLD VIC','eventTicket'],
+  ['sport','Arsenal v Spurs','ARSENAL FC','eventTicket'],
+  ['conference','Build 2026','MICROSOFT','eventTicket'],
+  ['cafe','Free Filter Coffee','BLUE TOKAI','storeCard'],
+  ['event','General Admission','BOOKMYSHOW','eventTicket'],
+];
+
+const BOARDING = [
+  ['flight','BOM','LHR','INDIGO','12A','06:40'],
+  ['rail','SBC','MAS','IRCTC','S7/42','22:40'],
+  ['bus','BLR','CCJ','KSRTC','21, 22','21:15'],
+];
+
+for (const c of [...STRIPPED.map(r => r[0]), 'flight', 'rail', 'bus']) {
+  const p = derivePalette({ category:c, title:c });
+  document.getElementById('icons').insertAdjacentHTML('beforeend',
+    `<figure><img src="${enc(buildIconSvg({category:c,palette:p}))}" width="29" height="29"><figcaption>${c}</figcaption></figure>`);
+}
+
+for (const [c, title, brand, style] of STRIPPED) {
+  const p = derivePalette({ category:c, title });
+  const w = walletColors(p);
+  document.getElementById('strips').insertAdjacentHTML('beforeend', `
+  <div><div class="label">${c} &middot; ${style} &middot; ${p.background} &middot; contrast ${p.contrast}</div>
+    <div class="pass" style="background:${w.backgroundColor};color:${w.foregroundColor}">
+      <div class="head"><img src="${enc(buildLogoSvg({category:c,palette:p,text:brand}))}" width="160" height="50"></div>
+      <div class="strip"><img class="art" src="${enc(buildSvg({slot:'strip',category:c,palette:p}))}">
+        <div class="over">
+          <span style="color:${w.labelColor}">SEAT<b style="color:${w.foregroundColor}">G14</b></span>
+          <span style="color:${w.labelColor};text-align:right">STARTS<b style="color:${w.foregroundColor}">19:30</b></span>
+        </div></div>
+      <div class="body" style="color:${w.labelColor}">${title}</div>
+    </div></div>`);
+}
+
+for (const [c, from, to, brand, seat, time] of BOARDING) {
+  const p = derivePalette({ category:c, title:`${from}${to}` });
+  const w = walletColors(p);
+  document.getElementById('boarding').insertAdjacentHTML('beforeend', `
+  <div><div class="label">${c} &middot; boardingPass &middot; ${p.background} &middot; contrast ${p.contrast}</div>
+    <div class="pass" style="background:${w.backgroundColor};color:${w.foregroundColor}">
+      <div class="head"><img src="${enc(buildLogoSvg({category:c,palette:p,text:brand}))}" width="160" height="50"></div>
+      <div class="bpfields">
+        <span style="color:${w.labelColor}">FROM<b style="color:${w.foregroundColor}">${from}</b></span>
+        <span style="color:${w.labelColor};text-align:right">TO<b style="color:${w.foregroundColor}">${to}</b></span>
+      </div>
+      <div class="bpfields">
+        <span style="color:${w.labelColor}">SEAT<b style="font-size:17px;color:${w.foregroundColor}">${seat}</b></span>
+        <span style="color:${w.labelColor};text-align:right">DEPARTS<b style="font-size:17px;color:${w.foregroundColor}">${time}</b></span>
+      </div>
+      <div class="footer"><img src="${enc(buildSvg({slot:'footer',category:c,palette:p}))}" width="286" height="15"></div>
+    </div></div>`);
+}
+</script></body></html>

@@ -1,0 +1,364 @@
+{
+ "name": "mmt-hotel",
+ "source": "pdf",
+ "redacted": true,
+ "capturedAt": "2026-08-10",
+ "pages": [
+  {
+   "width": 612,
+   "height": 792,
+   "items": [
+    {
+     "text": "100% money back guarantee applicable, if MMT ValueStays promises are not met. T&C",
+     "x": 108.5,
+     "y": 617.1,
+     "width": 350.6,
+     "height": 9
+    },
+    {
+     "text": "applied.",
+     "x": 108.5,
+     "y": 629.1,
+     "width": 31.5,
+     "height": 9
+    },
+    {
+     "text": "•",
+     "x": 101.6,
+     "y": 617.1,
+     "width": 3.2,
+     "height": 9
+    },
+    {
+     "text": "GST invoice can be collected directly from the property.",
+     "x": 108.5,
+     "y": 601.4,
+     "width": 220.9,
+     "height": 9
+    },
+    {
+     "text": "•",
+     "x": 101.6,
+     "y": 601.4,
+     "width": 3.2,
+     "height": 9
+    },
+    {
+     "text": "Passport, Aadhar, Driving License and Govt. ID are accepted as ID proof(s). Local ids are",
+     "x": 108.5,
+     "y": 573.6,
+     "width": 356.4,
+     "height": 9
+    },
+    {
+     "text": "allowed",
+     "x": 108.5,
+     "y": 585.6,
+     "width": 30.5,
+     "height": 9
+    },
+    {
+     "text": "•",
+     "x": 101.6,
+     "y": 573.6,
+     "width": 3.2,
+     "height": 9
+    },
+    {
+     "text": "INR 7,478",
+     "x": 235.9,
+     "y": 457.7,
+     "width": 47.2,
+     "height": 10.5
+    },
+    {
+     "text": "You saved 1,988",
+     "x": 294.4,
+     "y": 457.7,
+     "width": 70,
+     "height": 9
+    },
+    {
+     "text": "Pay the remaining amount of 7,478 using any payment mode",
+     "x": 235.9,
+     "y": 474.6,
+     "width": 245.5,
+     "height": 9
+    },
+    {
+     "text": "before 21 May 2023 to avoid automatic cancellation of your",
+     "x": 235.9,
+     "y": 486.6,
+     "width": 235.5,
+     "height": 9
+    },
+    {
+     "text": "booking",
+     "x": 235.9,
+     "y": 498.6,
+     "width": 31.5,
+     "height": 9
+    },
+    {
+     "text": "INR 7,478",
+     "x": 127.9,
+     "y": 456.2,
+     "width": 40.5,
+     "height": 9
+    },
+    {
+     "text": "(Booked with 0 Payment)",
+     "x": 127.9,
+     "y": 467.4,
+     "width": 94.4,
+     "height": 8.3
+    },
+    {
+     "text": "Standard Room",
+     "x": 235.9,
+     "y": 381.5,
+     "width": 73.5,
+     "height": 10.5
+    },
+    {
+     "text": "Breakfast",
+     "x": 250.1,
+     "y": 397.7,
+     "width": 38,
+     "height": 9
+    },
+    {
+     "text": "2 Adults",
+     "x": 250.1,
+     "y": 413.4,
+     "width": 32.5,
+     "height": 9
+    },
+    {
+     "text": "1 Room",
+     "x": 127.9,
+     "y": 381.5,
+     "width": 31.5,
+     "height": 9
+    },
+    {
+     "text": "Mr. SAMPLE",
+     "x": 235.9,
+     "y": 314,
+     "width": 55,
+     "height": 9
+    },
+    {
+     "text": "(Primary Guest)",
+     "x": 296.9,
+     "y": 314,
+     "width": 58.2,
+     "height": 8.3
+    },
+    {
+     "text": "SAMPLE, TRAVELLER PERSON",
+     "x": 235.9,
+     "y": 328.2,
+     "width": 111.5,
+     "height": 9
+    },
+    {
+     "text": "traveller@example.com, 999999999999",
+     "x": 235.9,
+     "y": 352.2,
+     "width": 160.2,
+     "height": 9
+    },
+    {
+     "text": "2 Guests",
+     "x": 127.9,
+     "y": 314,
+     "width": 36,
+     "height": 9
+    },
+    {
+     "text": "(2 Adults)",
+     "x": 127.9,
+     "y": 326.7,
+     "width": 35.3,
+     "height": 8.3
+    },
+    {
+     "text": "Check-out",
+     "x": 342,
+     "y": 253.5,
+     "width": 41,
+     "height": 9
+    },
+    {
+     "text": "Fri, 26 May",
+     "x": 342,
+     "y": 271.5,
+     "width": 52.5,
+     "height": 10.5
+    },
+    {
+     "text": "2023",
+     "x": 397.4,
+     "y": 271.5,
+     "width": 20,
+     "height": 9
+    },
+    {
+     "text": "Before 11:00 AM",
+     "x": 342,
+     "y": 286.2,
+     "width": 67.5,
+     "height": 9
+    },
+    {
+     "text": "Check-in",
+     "x": 235.9,
+     "y": 253.5,
+     "width": 35.5,
+     "height": 9
+    },
+    {
+     "text": "Mon, 22 May",
+     "x": 235.9,
+     "y": 271.5,
+     "width": 60.7,
+     "height": 10.5
+    },
+    {
+     "text": "2023",
+     "x": 299.5,
+     "y": 271.5,
+     "width": 20,
+     "height": 9
+    },
+    {
+     "text": "After 01:30 PM",
+     "x": 235.9,
+     "y": 286.2,
+     "width": 60,
+     "height": 9
+    },
+    {
+     "text": "4-Nights Stay",
+     "x": 127.9,
+     "y": 255,
+     "width": 54,
+     "height": 9
+    },
+    {
+     "text": "Sample Resort And Spa",
+     "x": 109.9,
+     "y": 138.1,
+     "width": 207.5,
+     "height": 15
+    },
+    {
+     "text": "Booking Id: NH99999999999999",
+     "x": 394.4,
+     "y": 46.3,
+     "width": 119.7,
+     "height": 8.3
+    },
+    {
+     "text": "PNR: 1234567890",
+     "x": 446.2,
+     "y": 61.3,
+     "width": 67.9,
+     "height": 8.3
+    },
+    {
+     "text": "(Booked on 10 Apr 2023)",
+     "x": 421.9,
+     "y": 76.3,
+     "width": 92.1,
+     "height": 8.3
+    },
+    {
+     "text": "Booking Voucher",
+     "x": 256.2,
+     "y": 63.1,
+     "width": 91.3,
+     "height": 12
+    },
+    {
+     "text": "1/1, WARD No.1, SAMPLE RESORT AND SPA, 1ST WARD OF SAMPLE,, SAMPLE,",
+     "x": 109.9,
+     "y": 171,
+     "width": 377.2,
+     "height": 9
+    },
+    {
+     "text": "SAMPLE, South Goa, Goa, Goa, IN",
+     "x": 109.9,
+     "y": 186,
+     "width": 146.9,
+     "height": 9
+    },
+    {
+     "text": "1234679001",
+     "x": 124.1,
+     "y": 204,
+     "width": 50,
+     "height": 9
+    },
+    {
+     "text": "traveller@example.com",
+     "x": 125.6,
+     "y": 222,
+     "width": 179.2,
+     "height": 9
+    },
+    {
+     "text": "Your property allows free cancellation (100% refund) till Sun, 21 May 2023, 12:59 PM",
+     "x": 118.1,
+     "y": 524.1,
+     "width": 339.4,
+     "height": 9
+    },
+    {
+     "text": "Important information",
+     "x": 97.9,
+     "y": 557.1,
+     "width": 85,
+     "height": 9
+    },
+    {
+     "text": "MakeMyTrip Support",
+     "x": 133.1,
+     "y": 667.4,
+     "width": 83.5,
+     "height": 9
+    },
+    {
+     "text": "+90000-00000 / +90000-00000 (India Fixed Line)",
+     "x": 130.1,
+     "y": 689.8,
+     "width": 215,
+     "height": 9
+    }
+   ]
+  }
+ ],
+ "expect": {
+  "adapter": "lodging",
+  "type": "lodging",
+  "fields": {
+   "property": "Sample Resort And Spa",
+   "provider": "MakeMyTrip",
+   "checkInTime": "13:30",
+   "checkOutTime": "11:00",
+   "nights": "4",
+   "guest": "SAMPLE",
+   "party": "2",
+   "phone": "1234679001"
+  },
+  "critical": [
+   "property",
+   "checkIn",
+   "checkOut",
+   "reference",
+   "guest"
+  ]
+ }
+}

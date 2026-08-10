@@ -1,0 +1,829 @@
+{
+ "name": "irctc-email",
+ "source": "pdf",
+ "redacted": true,
+ "capturedAt": "2026-08-10",
+ "pages": [
+  {
+   "width": 612,
+   "height": 792,
+   "items": [
+    {
+     "text": "IRCTC",
+     "x": 580.6,
+     "y": 180.3,
+     "width": 22.3,
+     "height": 7.3
+    },
+    {
+     "text": "Traveller <traveller@example.com>",
+     "x": 476.7,
+     "y": 26.7,
+     "width": 130.4,
+     "height": 7.9
+    },
+    {
+     "text": "Booking Confirmation on IRCTC, Train: 16575, 01-Jun-2025, CC, YPR - MAJN",
+     "x": 4.9,
+     "y": 61.3,
+     "width": 396.9,
+     "height": 10.9
+    },
+    {
+     "text": "traveller@example.com",
+     "x": 4.9,
+     "y": 80.7,
+     "width": 88.8,
+     "height": 7.9
+    },
+    {
+     "text": "<traveller@example.com>",
+     "x": 95.9,
+     "y": 80.7,
+     "width": 90.5,
+     "height": 7.9
+    },
+    {
+     "text": "Tue, May 13, 2025 at 2:34 PM",
+     "x": 506.1,
+     "y": 80.7,
+     "width": 105.9,
+     "height": 7.9
+    },
+    {
+     "text": "To: traveller@example.com",
+     "x": 4.9,
+     "y": 89.9,
+     "width": 92.2,
+     "height": 7.9
+    },
+    {
+     "text": "This is a system generated mail. Please do not reply to this email ID. (1) Call our 24-hour Customer Care (2) For IRCTC related queries use -",
+     "x": 14,
+     "y": 109.9,
+     "width": 401.2,
+     "height": 6.1
+    },
+    {
+     "text": "https://equery.irctc.co.in",
+     "x": 416.8,
+     "y": 109.9,
+     "width": 70.1,
+     "height": 6.1
+    },
+    {
+     "text": "Ticket Confirmation",
+     "x": 14,
+     "y": 180.9,
+     "width": 68.3,
+     "height": 7.3
+    },
+    {
+     "text": "Dear SAMPLE(User Id: traveller),",
+     "x": 12.1,
+     "y": 193.1,
+     "width": 112.1,
+     "height": 6.7
+    },
+    {
+     "text": "Thank you for using IRCTC's online rail reservation facility. Your booking details are indicated below.",
+     "x": 12.1,
+     "y": 202.2,
+     "width": 268.3,
+     "height": 6.1
+    },
+    {
+     "text": "PNR No. :",
+     "x": 15.8,
+     "y": 212.5,
+     "width": 25.2,
+     "height": 5.5
+    },
+    {
+     "text": "1234567890",
+     "x": 102.3,
+     "y": 212.5,
+     "width": 30.4,
+     "height": 5.5
+    },
+    {
+     "text": "Train No. / Name :",
+     "x": 197,
+     "y": 212.5,
+     "width": 46.2,
+     "height": 5.5
+    },
+    {
+     "text": "16575 / GOMTESHWARA EXP",
+     "x": 292,
+     "y": 212.5,
+     "width": 75.7,
+     "height": 5.5
+    },
+    {
+     "text": "Quota :",
+     "x": 404.3,
+     "y": 212.5,
+     "width": 19.1,
+     "height": 5.5
+    },
+    {
+     "text": "GENERAL",
+     "x": 499,
+     "y": 212.5,
+     "width": 26.1,
+     "height": 5.5
+    },
+    {
+     "text": "Transaction ID :",
+     "x": 15.8,
+     "y": 226.5,
+     "width": 41,
+     "height": 5.5
+    },
+    {
+     "text": "999999999999999",
+     "x": 102.3,
+     "y": 226.5,
+     "width": 45.6,
+     "height": 5.5
+    },
+    {
+     "text": "Date & Time of Booking :",
+     "x": 197,
+     "y": 226.5,
+     "width": 64.9,
+     "height": 5.5
+    },
+    {
+     "text": "13-May-2025 02:34:15 PM HRS",
+     "x": 292,
+     "y": 226.5,
+     "width": 77.8,
+     "height": 5.5
+    },
+    {
+     "text": "Class :",
+     "x": 404.3,
+     "y": 226.5,
+     "width": 17.9,
+     "height": 5.5
+    },
+    {
+     "text": "CHAIR CAR",
+     "x": 499,
+     "y": 226.5,
+     "width": 30.1,
+     "height": 5.5
+    },
+    {
+     "text": "From :",
+     "x": 15.8,
+     "y": 239.2,
+     "width": 17,
+     "height": 5.5
+    },
+    {
+     "text": "YESVANTPUR JN (YPR)",
+     "x": 102.3,
+     "y": 239.2,
+     "width": 61.2,
+     "height": 5.5
+    },
+    {
+     "text": "Date of Journey :",
+     "x": 197,
+     "y": 239.2,
+     "width": 44.6,
+     "height": 5.5
+    },
+    {
+     "text": "01-Jun-2025",
+     "x": 292,
+     "y": 239.2,
+     "width": 30.7,
+     "height": 5.5
+    },
+    {
+     "text": "To :",
+     "x": 404.3,
+     "y": 239.2,
+     "width": 9.6,
+     "height": 5.5
+    },
+    {
+     "text": "MANGALURU JN (MAJN)",
+     "x": 499,
+     "y": 239.2,
+     "width": 63.1,
+     "height": 5.5
+    },
+    {
+     "text": "Boarding At :",
+     "x": 15.8,
+     "y": 252,
+     "width": 34.4,
+     "height": 5.5
+    },
+    {
+     "text": "YPR",
+     "x": 102.3,
+     "y": 252,
+     "width": 11.2,
+     "height": 5.5
+    },
+    {
+     "text": "Date Of Boarding :",
+     "x": 197,
+     "y": 252,
+     "width": 48.3,
+     "height": 5.5
+    },
+    {
+     "text": "01-Jun-2025",
+     "x": 292,
+     "y": 252,
+     "width": 30.7,
+     "height": 5.5
+    },
+    {
+     "text": "Scheduled Departure* :",
+     "x": 404.3,
+     "y": 252,
+     "width": 60.4,
+     "height": 5.5
+    },
+    {
+     "text": "01-Jun-2025 07:00",
+     "x": 499,
+     "y": 252,
+     "width": 45.9,
+     "height": 5.5
+    },
+    {
+     "text": "Reservation Up to :",
+     "x": 15.8,
+     "y": 264.7,
+     "width": 50.1,
+     "height": 5.5
+    },
+    {
+     "text": "MANGALURU JN ( MAJN)",
+     "x": 102.3,
+     "y": 264.7,
+     "width": 64.7,
+     "height": 5.5
+    },
+    {
+     "text": "Scheduled Arrival :",
+     "x": 197,
+     "y": 264.7,
+     "width": 49.6,
+     "height": 5.5
+    },
+    {
+     "text": "01-Jun-2025 16:40",
+     "x": 292,
+     "y": 264.7,
+     "width": 45.9,
+     "height": 5.5
+    },
+    {
+     "text": "Adult:",
+     "x": 404.3,
+     "y": 264.7,
+     "width": 15.8,
+     "height": 5.5
+    },
+    {
+     "text": "1",
+     "x": 423.1,
+     "y": 264.7,
+     "width": 3,
+     "height": 5.5
+    },
+    {
+     "text": "Child:",
+     "x": 499,
+     "y": 264.7,
+     "width": 15.5,
+     "height": 5.5
+    },
+    {
+     "text": "0",
+     "x": 517.5,
+     "y": 264.7,
+     "width": 3,
+     "height": 5.5
+    },
+    {
+     "text": "Passenger Mobile No :",
+     "x": 15.8,
+     "y": 277.5,
+     "width": 58.6,
+     "height": 5.5
+    },
+    {
+     "text": "1234679001",
+     "x": 102.3,
+     "y": 277.5,
+     "width": 30.4,
+     "height": 5.5
+    },
+    {
+     "text": "Distance :",
+     "x": 197,
+     "y": 277.5,
+     "width": 26.1,
+     "height": 5.5
+    },
+    {
+     "text": "413KM",
+     "x": 292,
+     "y": 277.5,
+     "width": 17.3,
+     "height": 5.5
+    },
+    {
+     "text": "Insurance (No. of Psng) :",
+     "x": 404.3,
+     "y": 277.5,
+     "width": 64.7,
+     "height": 5.5
+    },
+    {
+     "text": "1",
+     "x": 499,
+     "y": 277.5,
+     "width": 3,
+     "height": 5.5
+    },
+    {
+     "text": "Passenger Details",
+     "x": 12.1,
+     "y": 290.8,
+     "width": 62.8,
+     "height": 7.3
+    },
+    {
+     "text": "Sl. No.",
+     "x": 15.8,
+     "y": 302.4,
+     "width": 17,
+     "height": 5.5
+    },
+    {
+     "text": "Name",
+     "x": 62.1,
+     "y": 302.4,
+     "width": 14.9,
+     "height": 5.5
+    },
+    {
+     "text": "Age",
+     "x": 173.7,
+     "y": 302.4,
+     "width": 10.3,
+     "height": 5.5
+    },
+    {
+     "text": "Gender",
+     "x": 206.3,
+     "y": 302.4,
+     "width": 19.1,
+     "height": 5.5
+    },
+    {
+     "text": "Catering Service Option",
+     "x": 257,
+     "y": 302.4,
+     "width": 62.2,
+     "height": 5.5
+    },
+    {
+     "text": "Status",
+     "x": 396.8,
+     "y": 302.4,
+     "width": 16.7,
+     "height": 5.5
+    },
+    {
+     "text": "Coach",
+     "x": 442.5,
+     "y": 302.4,
+     "width": 16.7,
+     "height": 5.5
+    },
+    {
+     "text": "Seat / Berth / WL No",
+     "x": 488.3,
+     "y": 302.4,
+     "width": 52.1,
+     "height": 5.5
+    },
+    {
+     "text": "1",
+     "x": 15.8,
+     "y": 314.5,
+     "width": 3,
+     "height": 5.5
+    },
+    {
+     "text": "TRAVELLER PERSON",
+     "x": 62.1,
+     "y": 314.5,
+     "width": 48.6,
+     "height": 5.5
+    },
+    {
+     "text": "27",
+     "x": 173.7,
+     "y": 314.5,
+     "width": 6.1,
+     "height": 5.5
+    },
+    {
+     "text": "Female",
+     "x": 206.3,
+     "y": 314.5,
+     "width": 18.2,
+     "height": 5.5
+    },
+    {
+     "text": "N/A",
+     "x": 257,
+     "y": 314.5,
+     "width": 9.1,
+     "height": 5.5
+    },
+    {
+     "text": "CNF",
+     "x": 396.8,
+     "y": 314.5,
+     "width": 11.2,
+     "height": 5.5
+    },
+    {
+     "text": "C1",
+     "x": 442.5,
+     "y": 314.5,
+     "width": 7,
+     "height": 5.5
+    },
+    {
+     "text": "38",
+     "x": 488.3,
+     "y": 314.5,
+     "width": 6.1,
+     "height": 5.5
+    },
+    {
+     "text": "Fare Details (Inclusive of GST)",
+     "x": 12.1,
+     "y": 326.6,
+     "width": 105.3,
+     "height": 7.3
+    },
+    {
+     "text": "Ticket Fare",
+     "x": 15.8,
+     "y": 338.8,
+     "width": 28.8,
+     "height": 5.5
+    },
+    {
+     "text": "Convenience Fee",
+     "x": 120.1,
+     "y": 338.8,
+     "width": 44.9,
+     "height": 5.5
+    },
+    {
+     "text": "Travel Insurance Premium",
+     "x": 274,
+     "y": 338.8,
+     "width": 68,
+     "height": 5.5
+    },
+    {
+     "text": "Total Fare",
+     "x": 498.8,
+     "y": 338.8,
+     "width": 28.6,
+     "height": 6.1
+    },
+    {
+     "text": "Rs. 560.00",
+     "x": 15.8,
+     "y": 350.9,
+     "width": 26.4,
+     "height": 5.5
+    },
+    {
+     "text": "Rs. 23.60",
+     "x": 120.1,
+     "y": 350.9,
+     "width": 23.4,
+     "height": 5.5
+    },
+    {
+     "text": "Rs. 0.45",
+     "x": 274,
+     "y": 350.9,
+     "width": 20.3,
+     "height": 5.5
+    },
+    {
+     "text": "Rs. 584.05 *",
+     "x": 498.8,
+     "y": 350.9,
+     "width": 30.1,
+     "height": 5.5
+    },
+    {
+     "text": "* Payment Gateway charges as applicable.",
+     "x": 12.1,
+     "y": 363.7,
+     "width": 110.2,
+     "height": 5.5
+    },
+    {
+     "text": "Must Read",
+     "x": 12.1,
+     "y": 388,
+     "width": 36.8,
+     "height": 7.3
+    },
+    {
+     "text": "Please take a screenshot of ERS i.e. Virtual Reservation Message(VRM) OF YOUR TICKET FROM YOUR Booked Tickets History page .You have to carry this VRM or SMS send to you along with any Govt. authorized ID Card during",
+     "x": 36.4,
+     "y": 395.9,
+     "width": 562.4,
+     "height": 5.5
+    },
+    {
+     "text": "train journey in original. Both theSMS(or VRM)& original ID will be examined by ticket checking staff on stations/trains for verification purpose.",
+     "x": 36.4,
+     "y": 401.9,
+     "width": 341.6,
+     "height": 5.5
+    },
+    {
+     "text": "List of Govt. authorized ID Cards permissible for undertaking journey on reserved tickets.",
+     "x": 379.5,
+     "y": 401.9,
+     "width": 214.7,
+     "height": 5.5
+    },
+    {
+     "text": "This ticket is booked on a personal user ID and can not be sold by an agent. If bought from an agent by any individual, it is at his/her own risk",
+     "x": 36.4,
+     "y": 408,
+     "width": 340.8,
+     "height": 5.5
+    },
+    {
+     "text": "Passengers are advised not to carry inflammable/dangerous/",
+     "x": 36.4,
+     "y": 414.1,
+     "width": 147.3,
+     "height": 5.5
+    },
+    {
+     "text": "explosive articles as part of their luggage and also to desist from smoking in the trains.",
+     "x": 183.7,
+     "y": 414.1,
+     "width": 208.7,
+     "height": 5.5
+    },
+    {
+     "text": "How to",
+     "x": 12.1,
+     "y": 422.6,
+     "width": 24.3,
+     "height": 7.3
+    },
+    {
+     "text": "Cancel your e-ticket/ File TDR for e-ticket",
+     "x": 38.2,
+     "y": 432.3,
+     "width": 99.8,
+     "height": 5.5
+    },
+    {
+     "text": "Change boarding point on e-ticket",
+     "x": 38.2,
+     "y": 438.4,
+     "width": 82,
+     "height": 5.5
+    },
+    {
+     "text": "Change in name on a reserved ticket",
+     "x": 38.2,
+     "y": 444.4,
+     "width": 89.3,
+     "height": 5.5
+    },
+    {
+     "text": "Railway Refund Rules",
+     "x": 244.3,
+     "y": 434.7,
+     "width": 53.8,
+     "height": 5.5
+    },
+    {
+     "text": "Customer Care",
+     "x": 12.1,
+     "y": 454.7,
+     "width": 52.2,
+     "height": 7.3
+    },
+    {
+     "text": "In case you require any further assistance ,please raise your query at",
+     "x": 36.4,
+     "y": 462.6,
+     "width": 167.4,
+     "height": 5.5
+    },
+    {
+     "text": "https://equery.irctc.co.in",
+     "x": 205.3,
+     "y": 462.6,
+     "width": 63.1,
+     "height": 5.5
+    },
+    {
+     "text": "or call us at 14646 / 99999999999 / 99999999999 ( 24*7 Hrs ; Language: Hindi or English).",
+     "x": 269.9,
+     "y": 462.6,
+     "width": 229,
+     "height": 5.5
+    },
+    {
+     "text": "Just dial 139 from your landline, mobile & CDMA phones for railway enquiries.",
+     "x": 36.4,
+     "y": 468.7,
+     "width": 188.3,
+     "height": 5.5
+    },
+    {
+     "text": "For any enquiries or information regarding your transaction with IRCTC, do not provide your credit/debit card details by any means to IRCTC. All your queries can be replied on the basis of 15 digit IRCTC Transaction id/ 10 digit PNR",
+     "x": 36.4,
+     "y": 474.8,
+     "width": 558.8,
+     "height": 5.5
+    },
+    {
+     "text": "no./ User id. IRCTC does not store the credit/ debit card information in any form during the transaction.",
+     "x": 36.4,
+     "y": 480.9,
+     "width": 247.5,
+     "height": 5.5
+    },
+    {
+     "text": "Book Hotels",
+     "x": 12.1,
+     "y": 489.4,
+     "width": 42.5,
+     "height": 7.3
+    },
+    {
+     "text": "Booked your train ticket, now complete it with booking the hotels on IRCTC website for a wonderful stay.",
+     "x": 12.1,
+     "y": 502.7,
+     "width": 271.9,
+     "height": 5.5
+    },
+    {
+     "text": "\"Book Now!\"",
+     "x": 285.6,
+     "y": 502.7,
+     "width": 33.7,
+     "height": 5.5
+    },
+    {
+     "text": "To book and get food delivered on your train berth, please call IRCTC Toll free No. 1323 or log in at",
+     "x": 12.1,
+     "y": 515.5,
+     "width": 265.5,
+     "height": 6.1
+    },
+    {
+     "text": "www.ecatering.irctc.co.in",
+     "x": 279.3,
+     "y": 515.5,
+     "width": 66.8,
+     "height": 6.1
+    },
+    {
+     "text": "******************************",
+     "x": 12.1,
+     "y": 528.2,
+     "width": 70.9,
+     "height": 6.1
+    },
+    {
+     "text": "******************************",
+     "x": 83,
+     "y": 528.2,
+     "width": 70.9,
+     "height": 6.1
+    },
+    {
+     "text": "******************************",
+     "x": 153.9,
+     "y": 528.2,
+     "width": 70.9,
+     "height": 6.1
+    },
+    {
+     "text": "******************************",
+     "x": 224.8,
+     "y": 528.2,
+     "width": 70.9,
+     "height": 6.1
+    },
+    {
+     "text": "******************************",
+     "x": 295.7,
+     "y": 528.2,
+     "width": 70.9,
+     "height": 6.1
+    },
+    {
+     "text": "**************",
+     "x": 366.6,
+     "y": 528.2,
+     "width": 33.1,
+     "height": 6.1
+    },
+    {
+     "text": "Please don't print unless extremely necessary.",
+     "x": 12.1,
+     "y": 544.6,
+     "width": 186.4,
+     "height": 7.3
+    },
+    {
+     "text": "Warm Regards,",
+     "x": 12.1,
+     "y": 559.2,
+     "width": 39.9,
+     "height": 5.5
+    },
+    {
+     "text": "Customer Care",
+     "x": 12.1,
+     "y": 565.2,
+     "width": 39.2,
+     "height": 5.5
+    },
+    {
+     "text": "Internet Ticketing",
+     "x": 12.1,
+     "y": 571.3,
+     "width": 45.4,
+     "height": 5.5
+    },
+    {
+     "text": "IRCTC",
+     "x": 12.1,
+     "y": 577.4,
+     "width": 16.7,
+     "height": 5.5
+    }
+   ]
+  }
+ ],
+ "expect": {
+  "adapter": "rail",
+  "type": "rail",
+  "fields": {
+   "pnr": "1234567890",
+   "origin": "YPR",
+   "destination": "MAJN",
+   "service": "16575 / GOMTESHWARA EXP",
+   "date": "2025-06-01",
+   "departureTime": "07:00",
+   "arrivalTime": "16:40",
+   "coach": "C1",
+   "seat": "38",
+   "passenger": "TRAVELLER PERSON",
+   "provider": "IRCTC",
+   "class": "CHAIR CAR",
+   "status": "CNF",
+   "quota": "GENERAL"
+  },
+  "critical": [
+   "pnr",
+   "service",
+   "date",
+   "passenger",
+   "coach",
+   "seat"
+  ],
+  "absent": [
+   "berthPosition"
+  ]
+ }
+}

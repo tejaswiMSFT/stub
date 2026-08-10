@@ -1,0 +1,747 @@
+{
+ "name": "airindia-express",
+ "source": "pdf",
+ "redacted": true,
+ "capturedAt": "2026-08-10",
+ "pages": [
+  {
+   "width": 595,
+   "height": 842,
+   "items": [
+    {
+     "text": "Booked on Wed, Jul 29 2026, 03:22 (UTC)",
+     "x": 369.5,
+     "y": 135.3,
+     "width": 170.1,
+     "height": 9
+    },
+    {
+     "text": "Dear SAMPLE,",
+     "x": 74.7,
+     "y": 66.1,
+     "width": 108.4,
+     "height": 15
+    },
+    {
+     "text": "Your booking is confirmed!",
+     "x": 75.8,
+     "y": 78.9,
+     "width": 88.8,
+     "height": 7.5
+    },
+    {
+     "text": "PNR :",
+     "x": 74.7,
+     "y": 102.1,
+     "width": 26.5,
+     "height": 9.8
+    },
+    {
+     "text": "AB1CD2",
+     "x": 104,
+     "y": 102.1,
+     "width": 42.2,
+     "height": 9.8
+    },
+    {
+     "text": "Itinerary generated on Wed, Jul 29 2026, 03:24 (UTC)",
+     "x": 59.3,
+     "y": 136.4,
+     "width": 215.1,
+     "height": 9
+    },
+    {
+     "text": "IX 1531 Wed, Sep 16 2026",
+     "x": 88.2,
+     "y": 176.3,
+     "width": 120.5,
+     "height": 9.8
+    },
+    {
+     "text": "Onward",
+     "x": 485.4,
+     "y": 176.3,
+     "width": 36.3,
+     "height": 9.8
+    },
+    {
+     "text": "Operated by Air India Express",
+     "x": 88.5,
+     "y": 192.6,
+     "width": 120.1,
+     "height": 9
+    },
+    {
+     "text": "Name",
+     "x": 72.8,
+     "y": 342.2,
+     "width": 32.7,
+     "height": 12
+    },
+    {
+     "text": "Seat",
+     "x": 253.5,
+     "y": 342.2,
+     "width": 25.3,
+     "height": 12
+    },
+    {
+     "text": "Add Ons",
+     "x": 356.4,
+     "y": 342.2,
+     "width": 50,
+     "height": 12
+    },
+    {
+     "text": "Mr SAMPLE",
+     "x": 72.8,
+     "y": 376.7,
+     "width": 83.3,
+     "height": 12
+    },
+    {
+     "text": "BLR - IXE",
+     "x": 76.5,
+     "y": 468.3,
+     "width": 33.3,
+     "height": 7.5
+    },
+    {
+     "text": "10F (BLR - IXE)",
+     "x": 254.3,
+     "y": 375.6,
+     "width": 85.4,
+     "height": 12
+    },
+    {
+     "text": "10 kg Cabin Baggage",
+     "x": 378.9,
+     "y": 375.6,
+     "width": 115.4,
+     "height": 12
+    },
+    {
+     "text": "TATA AIG Insurance",
+     "x": 378.9,
+     "y": 395.9,
+     "width": 110.7,
+     "height": 12
+    },
+    {
+     "text": "Selected Fare:",
+     "x": 367.6,
+     "y": 434.9,
+     "width": 68.3,
+     "height": 10.5
+    },
+    {
+     "text": "Fare Details",
+     "x": 95.2,
+     "y": 581.5,
+     "width": 68,
+     "height": 12
+    },
+    {
+     "text": "Total Airfare",
+     "x": 78.8,
+     "y": 600,
+     "width": 53.1,
+     "height": 9.8
+    },
+    {
+     "text": "1,646",
+     "x": 232.8,
+     "y": 600.8,
+     "width": 24.4,
+     "height": 9.8
+    },
+    {
+     "text": "Total Add Ons",
+     "x": 78.8,
+     "y": 617.3,
+     "width": 62.3,
+     "height": 9.8
+    },
+    {
+     "text": "773",
+     "x": 241,
+     "y": 618.1,
+     "width": 16.3,
+     "height": 9.8
+    },
+    {
+     "text": "TATA AIG Insurance",
+     "x": 78.8,
+     "y": 634.6,
+     "width": 90,
+     "height": 9.8
+    },
+    {
+     "text": "149",
+     "x": 241,
+     "y": 635.4,
+     "width": 16.3,
+     "height": 9.8
+    },
+    {
+     "text": "Common Use Terminal",
+     "x": 78.8,
+     "y": 651.9,
+     "width": 100.2,
+     "height": 9.8
+    },
+    {
+     "text": "Equipment Fee",
+     "x": 78.8,
+     "y": 663.2,
+     "width": 66.1,
+     "height": 9.8
+    },
+    {
+     "text": "75",
+     "x": 246.4,
+     "y": 658.4,
+     "width": 10.8,
+     "height": 9.8
+    },
+    {
+     "text": "Regional Connectivity Scheme",
+     "x": 78.8,
+     "y": 680.5,
+     "width": 132.8,
+     "height": 9.8
+    },
+    {
+     "text": "Fee",
+     "x": 78.8,
+     "y": 691.8,
+     "width": 16.8,
+     "height": 9.8
+    },
+    {
+     "text": "100",
+     "x": 241,
+     "y": 686.9,
+     "width": 16.3,
+     "height": 9.8
+    },
+    {
+     "text": "India CGST",
+     "x": 78.8,
+     "y": 709.1,
+     "width": 50.9,
+     "height": 9.8
+    },
+    {
+     "text": "53",
+     "x": 246.4,
+     "y": 709.8,
+     "width": 10.8,
+     "height": 9.8
+    },
+    {
+     "text": "India SGST",
+     "x": 78.8,
+     "y": 726.3,
+     "width": 50.4,
+     "height": 9.8
+    },
+    {
+     "text": "53",
+     "x": 246.4,
+     "y": 727.1,
+     "width": 10.8,
+     "height": 9.8
+    },
+    {
+     "text": "User Development Fee",
+     "x": 78.8,
+     "y": 743.6,
+     "width": 100.2,
+     "height": 9.8
+    },
+    {
+     "text": "1,021",
+     "x": 232.8,
+     "y": 744.4,
+     "width": 24.4,
+     "height": 9.8
+    },
+    {
+     "text": "Aviation Security Fee",
+     "x": 78.8,
+     "y": 760.9,
+     "width": 92.1,
+     "height": 9.8
+    },
+    {
+     "text": "236",
+     "x": 241,
+     "y": 761.7,
+     "width": 16.3,
+     "height": 9.8
+    },
+    {
+     "text": "Fuel Surcharge (YQ)",
+     "x": 78.8,
+     "y": 778.2,
+     "width": 89.9,
+     "height": 9.8
+    },
+    {
+     "text": "299",
+     "x": 241,
+     "y": 779,
+     "width": 16.3,
+     "height": 9.8
+    },
+    {
+     "text": "Convenience Fee",
+     "x": 78.8,
+     "y": 795.5,
+     "width": 76.4,
+     "height": 9.8
+    },
+    {
+     "text": "249",
+     "x": 241,
+     "y": 796.3,
+     "width": 16.3,
+     "height": 9.8
+    },
+    {
+     "text": "Mode of Payment",
+     "x": 325.4,
+     "y": 598.4,
+     "width": 80.7,
+     "height": 9.8
+    },
+    {
+     "text": "UPI",
+     "x": 326.1,
+     "y": 614.5,
+     "width": 16.3,
+     "height": 9.8
+    },
+    {
+     "text": "4,654",
+     "x": 498,
+     "y": 614.5,
+     "width": 24.4,
+     "height": 9.8
+    },
+    {
+     "text": "14:40",
+     "x": 131.1,
+     "y": 233.6,
+     "width": 26.8,
+     "height": 10.5
+    },
+    {
+     "text": "Wed, Sep 16 2026",
+     "x": 114.9,
+     "y": 245.4,
+     "width": 62.1,
+     "height": 7.5
+    },
+    {
+     "text": "BLR, Bengaluru",
+     "x": 103.4,
+     "y": 266,
+     "width": 85,
+     "height": 11.3
+    },
+    {
+     "text": "Kempegowda International Airport Bengaluru,T2",
+     "x": 65.7,
+     "y": 278.5,
+     "width": 160.5,
+     "height": 7.5
+    },
+    {
+     "text": "1h 20m",
+     "x": 294.6,
+     "y": 231.9,
+     "width": 33.6,
+     "height": 9.8
+    },
+    {
+     "text": "16:00",
+     "x": 446.9,
+     "y": 233.6,
+     "width": 26.8,
+     "height": 10.5
+    },
+    {
+     "text": "Wed, Sep 16 2026",
+     "x": 430.6,
+     "y": 245.4,
+     "width": 62.1,
+     "height": 7.5
+    },
+    {
+     "text": "IXE, Mangaluru",
+     "x": 423.7,
+     "y": 265.2,
+     "width": 75.9,
+     "height": 10.5
+    },
+    {
+     "text": "Mangaluru Intl Airport",
+     "x": 425.8,
+     "y": 277.7,
+     "width": 71.7,
+     "height": 7.5
+    }
+   ]
+  },
+  {
+   "width": 595,
+   "height": 842,
+   "items": [
+    {
+     "text": "traveller@examp",
+     "x": 190.5,
+     "y": 165.9,
+     "width": 72.8,
+     "height": 9.8
+    },
+    {
+     "text": "le.com",
+     "x": 190.5,
+     "y": 177.2,
+     "width": 25.5,
+     "height": 9.8
+    },
+    {
+     "text": "+90000-00000",
+     "x": 190.5,
+     "y": 150.1,
+     "width": 74,
+     "height": 9.8
+    },
+    {
+     "text": "Paid",
+     "x": 78.8,
+     "y": 47.2,
+     "width": 20.6,
+     "height": 9.8
+    },
+    {
+     "text": "4,654",
+     "x": 234.3,
+     "y": 47.2,
+     "width": 24.4,
+     "height": 9.8
+    },
+    {
+     "text": "Total Fare",
+     "x": 78.8,
+     "y": 64,
+     "width": 46.6,
+     "height": 9.8
+    },
+    {
+     "text": "4,654",
+     "x": 234.3,
+     "y": 64,
+     "width": 24.4,
+     "height": 9.8
+    },
+    {
+     "text": "Contact Details",
+     "x": 95.2,
+     "y": 131.5,
+     "width": 87.3,
+     "height": 12
+    },
+    {
+     "text": "Contact No.",
+     "x": 77.3,
+     "y": 150.7,
+     "width": 51.5,
+     "height": 9.8
+    },
+    {
+     "text": "Email ID",
+     "x": 77.3,
+     "y": 168,
+     "width": 36.8,
+     "height": 9.8
+    },
+    {
+     "text": "Promo Code",
+     "x": 77.3,
+     "y": 216,
+     "width": 58,
+     "height": 9.8
+    },
+    {
+     "text": "DIRECT",
+     "x": 190.5,
+     "y": 216,
+     "width": 36.3,
+     "height": 9.8
+    },
+    {
+     "text": "24/7 Call Centre: 90000-00000 / 90000-00000 |",
+     "x": 94,
+     "y": 271.1,
+     "width": 198.5,
+     "height": 9
+    },
+    {
+     "text": "(+90000-00000)",
+     "x": 372.5,
+     "y": 271.1,
+     "width": 74.3,
+     "height": 9
+    },
+    {
+     "text": "Chat with Tia",
+     "x": 314,
+     "y": 271.1,
+     "width": 56,
+     "height": 9
+    },
+    {
+     "text": "Check your Contact Details",
+     "x": 84.7,
+     "y": 312.1,
+     "width": 146.3,
+     "height": 11.3
+    },
+    {
+     "text": "It is important that you update your correct mobile number and email, so we can keep you",
+     "x": 84.7,
+     "y": 325.1,
+     "width": 445.8,
+     "height": 11.3
+    },
+    {
+     "text": "posted about any changes or disruptions, and to ensure you get your loyalty benefits.",
+     "x": 84.7,
+     "y": 338.1,
+     "width": 423.4,
+     "height": 11.3
+    },
+    {
+     "text": "Pre-book your Meal",
+     "x": 84.7,
+     "y": 368.8,
+     "width": 104.4,
+     "height": 11.3
+    },
+    {
+     "text": "Pre-book from our wide range of Gourmair Hot Meals and Lite Bites at least 18 hours",
+     "x": 84.7,
+     "y": 381.8,
+     "width": 422.7,
+     "height": 11.3
+    },
+    {
+     "text": "before departure for International and 12 hours before for Domestic flights. Quick bites,",
+     "x": 84.7,
+     "y": 394.8,
+     "width": 432.1,
+     "height": 11.3
+    },
+    {
+     "text": "munchies and beverages are available to buy on board.",
+     "x": 84.7,
+     "y": 407.8,
+     "width": 277,
+     "height": 11.3
+    },
+    {
+     "text": "Web Check-in",
+     "x": 84.7,
+     "y": 438.5,
+     "width": 74.4,
+     "height": 11.3
+    },
+    {
+     "text": "Web check-in from 14 days up to 3 hours before your departure for International and",
+     "x": 84.7,
+     "y": 451.5,
+     "width": 419.6,
+     "height": 11.3
+    },
+    {
+     "text": "domestic 1 hour before departure on",
+     "x": 84.7,
+     "y": 464.9,
+     "width": 182,
+     "height": 11.3
+    },
+    {
+     "text": "airindiaexpress.com.",
+     "x": 269.8,
+     "y": 464.9,
+     "width": 111.9,
+     "height": 11.3
+    },
+    {
+     "text": "Flying safe with Air India Express",
+     "x": 84.7,
+     "y": 495.5,
+     "width": 179.4,
+     "height": 11.3
+    },
+    {
+     "text": "Please check state regulations and local travel restrictions before you fly. You can view a",
+     "x": 84.7,
+     "y": 508.5,
+     "width": 442.1,
+     "height": 11.3
+    },
+    {
+     "text": "list of guidelines under Support on",
+     "x": 84.7,
+     "y": 521.9,
+     "width": 170.1,
+     "height": 11.3
+    },
+    {
+     "text": "airindiaexpress.com.",
+     "x": 257.9,
+     "y": 521.9,
+     "width": 111.9,
+     "height": 11.3
+    },
+    {
+     "text": "At the Airport",
+     "x": 84.7,
+     "y": 562.8,
+     "width": 106.3,
+     "height": 16.5
+    },
+    {
+     "text": "Travel documents",
+     "x": 84.7,
+     "y": 594.7,
+     "width": 96.3,
+     "height": 11.3
+    },
+    {
+     "text": "Carry a valid boarding pass, ID proof and any relevant documents, including visas or entry",
+     "x": 84.7,
+     "y": 607.7,
+     "width": 448.3,
+     "height": 11.3
+    },
+    {
+     "text": "permits. You may be denied boarding, detained or deported by the respective authorities if",
+     "x": 84.7,
+     "y": 620.7,
+     "width": 449,
+     "height": 11.3
+    },
+    {
+     "text": "you fail to meet requirements.",
+     "x": 84.7,
+     "y": 633.7,
+     "width": 148.2,
+     "height": 11.3
+    },
+    {
+     "text": "Cabin Baggage",
+     "x": 84.7,
+     "y": 664.4,
+     "width": 81.9,
+     "height": 11.3
+    },
+    {
+     "text": "You can carry one cabin bag (56 cm x 36 cm x 23 cm) and one small bag (40 cm x 30 cm x",
+     "x": 84.7,
+     "y": 677.4,
+     "width": 453.3,
+     "height": 11.3
+    },
+    {
+     "text": "10 cm). The total permitted weight for the two pieces must not exceed 7 kg unless you",
+     "x": 84.7,
+     "y": 690.4,
+     "width": 428.3,
+     "height": 11.3
+    },
+    {
+     "text": "have pre-booked Xtra-Carry-On cabin baggage.",
+     "x": 84.7,
+     "y": 703.4,
+     "width": 238.2,
+     "height": 11.3
+    },
+    {
+     "text": "Checked Baggage",
+     "x": 84.7,
+     "y": 734,
+     "width": 97.5,
+     "height": 11.3
+    },
+    {
+     "text": "Two (2) check-in bags are included for Business Class Fares and on all international",
+     "x": 84.7,
+     "y": 747,
+     "width": 419.5,
+     "height": 11.3
+    },
+    {
+     "text": "flights. One (1) check-in bag is included for all other fares on domestic flights. Extra",
+     "x": 84.7,
+     "y": 760.1,
+     "width": 413.3,
+     "height": 11.3
+    },
+    {
+     "text": "charges are levied for any additional pieces of baggage. Pre-book up to 40 kg excess",
+     "x": 84.7,
+     "y": 773.1,
+     "width": 424.6,
+     "height": 11.3
+    },
+    {
+     "text": "baggage / extra piece(s) at lower than airport prices. Guests travelling on the same PNR,",
+     "x": 84.7,
+     "y": 786.1,
+     "width": 442.1,
+     "height": 11.3
+    },
+    {
+     "text": "can combine baggage allowances. Each bag should weigh no more than 32 kg.",
+     "x": 84.7,
+     "y": 799.1,
+     "width": 395.2,
+     "height": 11.3
+    }
+   ]
+  }
+ ],
+ "expect": {
+  "adapter": "flight",
+  "type": "flight",
+  "fields": {
+   "pnr": "AB1CD2",
+   "origin": "BLR",
+   "destination": "IXE",
+   "flight": "IX 1531",
+   "date": "2026-09-16",
+   "seat": "10F",
+   "departureTime": "14:40",
+   "arrivalTime": "16:00",
+   "terminal": "2",
+   "provider": "Air India Express",
+   "passenger": "SAMPLE"
+  },
+  "critical": [
+   "pnr",
+   "flight",
+   "date",
+   "origin",
+   "destination"
+  ],
+  "absent": [
+   "gate"
+  ]
+ }
+}

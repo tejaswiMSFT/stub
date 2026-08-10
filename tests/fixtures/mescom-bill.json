@@ -1,0 +1,962 @@
+{
+ "name": "mescom-bill",
+ "source": "pdf",
+ "redacted": true,
+ "capturedAt": "2026-08-10",
+ "pages": [
+  {
+   "width": 612,
+   "height": 792,
+   "items": [
+    {
+     "text": "Office of the Asst. Executive Engineer (Ele.), C, O&M Sub-division - KAVOOR SUBDIVISION",
+     "x": 134.9,
+     "y": 661.5,
+     "width": 346.3,
+     "height": 8
+    },
+    {
+     "text": "RR No.",
+     "x": 60.5,
+     "y": 675.8,
+     "width": 26.7,
+     "height": 8
+    },
+    {
+     "text": "Billing Period",
+     "x": 133.5,
+     "y": 675.8,
+     "width": 51.6,
+     "height": 8
+    },
+    {
+     "text": "Due Date",
+     "x": 234.9,
+     "y": 675.8,
+     "width": 34.7,
+     "height": 8
+    },
+    {
+     "text": "Disconnection",
+     "x": 304.8,
+     "y": 675.8,
+     "width": 55.1,
+     "height": 8
+    },
+    {
+     "text": "Date",
+     "x": 324.8,
+     "y": 685.4,
+     "width": 17.3,
+     "height": 8
+    },
+    {
+     "text": "Bill No.",
+     "x": 398.6,
+     "y": 675.8,
+     "width": 27.6,
+     "height": 8
+    },
+    {
+     "text": "Account ID",
+     "x": 466.3,
+     "y": 675.8,
+     "width": 42.2,
+     "height": 8
+    },
+    {
+     "text": "Amount",
+     "x": 542.7,
+     "y": 675.8,
+     "width": 30.2,
+     "height": 8
+    },
+    {
+     "text": "Payable",
+     "x": 543.8,
+     "y": 685.4,
+     "width": 30.2,
+     "height": 8
+    },
+    {
+     "text": "(XXXXX00000",
+     "x": 48.9,
+     "y": 694.6,
+     "width": 49.8,
+     "height": 8
+    },
+    {
+     "text": "0)",
+     "x": 70.2,
+     "y": 703.9,
+     "width": 7.1,
+     "height": 8
+    },
+    {
+     "text": "90000-00000",
+     "x": 114.8,
+     "y": 694.6,
+     "width": 88.9,
+     "height": 8
+    },
+    {
+     "text": "90000-00000",
+     "x": 231.7,
+     "y": 694.6,
+     "width": 40.9,
+     "height": 8
+    },
+    {
+     "text": "90000-00000",
+     "x": 314.1,
+     "y": 694.6,
+     "width": 40.9,
+     "height": 8
+    },
+    {
+     "text": "999999999999",
+     "x": 385.7,
+     "y": 694.6,
+     "width": 53.4,
+     "height": 8
+    },
+    {
+     "text": "1234567890",
+     "x": 465.1,
+     "y": 694.6,
+     "width": 44.5,
+     "height": 8
+    },
+    {
+     "text": "Rs. 2048.00",
+     "x": 537.3,
+     "y": 694.6,
+     "width": 43.1,
+     "height": 8
+    },
+    {
+     "text": "Name of the Bank",
+     "x": 47.1,
+     "y": 713.4,
+     "width": 67.6,
+     "height": 8
+    },
+    {
+     "text": "Branch",
+     "x": 156.2,
+     "y": 713.4,
+     "width": 27.6,
+     "height": 8
+    },
+    {
+     "text": "Cheque/DD No.",
+     "x": 218.1,
+     "y": 713.4,
+     "width": 58.2,
+     "height": 8
+    },
+    {
+     "text": "Cheque/DD Date",
+     "x": 315.1,
+     "y": 713.4,
+     "width": 62.7,
+     "height": 8
+    },
+    {
+     "text": "Amount (Rs.)",
+     "x": 420.5,
+     "y": 713.4,
+     "width": 50.2,
+     "height": 8
+    },
+    {
+     "text": "Amount in Rupees",
+     "x": 512.2,
+     "y": 713.4,
+     "width": 70.7,
+     "height": 8
+    },
+    {
+     "text": "*1234567890*",
+     "x": 47.1,
+     "y": 749.4,
+     "width": 177.5,
+     "height": 28
+    },
+    {
+     "text": "Receipt No.",
+     "x": 315.1,
+     "y": 730.9,
+     "width": 44,
+     "height": 8
+    },
+    {
+     "text": "Date",
+     "x": 420.5,
+     "y": 730.9,
+     "width": 17.3,
+     "height": 8
+    },
+    {
+     "text": "Cashier Signature",
+     "x": 512.2,
+     "y": 730.9,
+     "width": 68.5,
+     "height": 8
+    },
+    {
+     "text": "MESCOM GSTN No:",
+     "x": 190,
+     "y": 63.5,
+     "width": 112.7,
+     "height": 12
+    },
+    {
+     "text": "00XXXXX0000X0XX",
+     "x": 306,
+     "y": 63.5,
+     "width": 116,
+     "height": 12
+    },
+    {
+     "text": "Office of the Asst. Executive Engineer (Ele.), C, O&M Sub-division - KAVOOR SUBDIVISION",
+     "x": 213.9,
+     "y": 73.9,
+     "width": 346.3,
+     "height": 8
+    },
+    {
+     "text": "RR No.",
+     "x": 64.3,
+     "y": 97.7,
+     "width": 20,
+     "height": 6
+    },
+    {
+     "text": "Account ID",
+     "x": 139.4,
+     "y": 97.7,
+     "width": 31.7,
+     "height": 6
+    },
+    {
+     "text": "Bill No.",
+     "x": 221.4,
+     "y": 97.7,
+     "width": 20.7,
+     "height": 6
+    },
+    {
+     "text": "Billing Period",
+     "x": 297.9,
+     "y": 97.7,
+     "width": 38.7,
+     "height": 6
+    },
+    {
+     "text": "Bill Date",
+     "x": 381.1,
+     "y": 101.9,
+     "width": 24,
+     "height": 6
+    },
+    {
+     "text": "Due Date",
+     "x": 446,
+     "y": 97.7,
+     "width": 26,
+     "height": 6
+    },
+    {
+     "text": "Disconnection Date",
+     "x": 509.7,
+     "y": 97.7,
+     "width": 56,
+     "height": 6
+    },
+    {
+     "text": "(XXXXX00000)",
+     "x": 52.9,
+     "y": 111.7,
+     "width": 42.7,
+     "height": 6
+    },
+    {
+     "text": "1234567890",
+     "x": 138.6,
+     "y": 111.7,
+     "width": 33.4,
+     "height": 6
+    },
+    {
+     "text": "999999999999",
+     "x": 211.7,
+     "y": 111.8,
+     "width": 40,
+     "height": 6
+    },
+    {
+     "text": "90000-00000",
+     "x": 283.9,
+     "y": 111.7,
+     "width": 66.7,
+     "height": 6
+    },
+    {
+     "text": "90000-00000",
+     "x": 382.9,
+     "y": 111.7,
+     "width": 30.7,
+     "height": 6
+    },
+    {
+     "text": "90000-00000",
+     "x": 443.7,
+     "y": 111.7,
+     "width": 30.7,
+     "height": 6
+    },
+    {
+     "text": "90000-00000",
+     "x": 523.2,
+     "y": 111.7,
+     "width": 30.7,
+     "height": 6
+    },
+    {
+     "text": "Name & Address:",
+     "x": 41.4,
+     "y": 121.7,
+     "width": 50,
+     "height": 6
+    },
+    {
+     "text": "SAMPLE",
+     "x": 41.4,
+     "y": 134.6,
+     "width": 32,
+     "height": 6
+    },
+    {
+     "text": "\"SAMPLE COURT\" D NO 2-",
+     "x": 41.4,
+     "y": 147.6,
+     "width": 103.3,
+     "height": 6
+    },
+    {
+     "text": "12/34, F NO: 101SAMPLENAGARA",
+     "x": 41.4,
+     "y": 154.5,
+     "width": 90.7,
+     "height": 6
+    },
+    {
+     "text": "\"SAMPLE COURT\"",
+     "x": 41.4,
+     "y": 161.4,
+     "width": 79.6,
+     "height": 6
+    },
+    {
+     "text": "TRAVELLER PERSON",
+     "x": 41.4,
+     "y": 168.4,
+     "width": 76.3,
+     "height": 6
+    },
+    {
+     "text": "GUEST SAMPLE4",
+     "x": 41.4,
+     "y": 175.3,
+     "width": 52,
+     "height": 6
+    },
+    {
+     "text": ", KAR",
+     "x": 43.1,
+     "y": 182.2,
+     "width": 15.7,
+     "height": 6
+    },
+    {
+     "text": "-560001",
+     "x": 63.7,
+     "y": 182.2,
+     "width": 22,
+     "height": 6
+    },
+    {
+     "text": "Type",
+     "x": 162.9,
+     "y": 121.5,
+     "width": 13.3,
+     "height": 6
+    },
+    {
+     "text": "Domestic - LT1",
+     "x": 317.2,
+     "y": 124.3,
+     "width": 40.7,
+     "height": 6
+    },
+    {
+     "text": "Wheeling Energy",
+     "x": 410.4,
+     "y": 123.4,
+     "width": 60.9,
+     "height": 8
+    },
+    {
+     "text": "0",
+     "x": 495,
+     "y": 123.4,
+     "width": 4.4,
+     "height": 8
+    },
+    {
+     "text": "Tariff",
+     "x": 162.9,
+     "y": 136.4,
+     "width": 18.2,
+     "height": 8
+    },
+    {
+     "text": "2LT1",
+     "x": 323.9,
+     "y": 138,
+     "width": 18.2,
+     "height": 8
+    },
+    {
+     "text": "GJS Reg Date",
+     "x": 410.4,
+     "y": 136.4,
+     "width": 51.6,
+     "height": 8
+    },
+    {
+     "text": "Sanctioned load (KW)",
+     "x": 162.9,
+     "y": 149.4,
+     "width": 77.8,
+     "height": 8
+    },
+    {
+     "text": "3.00",
+     "x": 328.6,
+     "y": 149.4,
+     "width": 15.6,
+     "height": 8
+    },
+    {
+     "text": "Average [FY22-23]",
+     "x": 410.4,
+     "y": 149.4,
+     "width": 67.1,
+     "height": 8
+    },
+    {
+     "text": "Sanctioned load (HP)",
+     "x": 162.9,
+     "y": 170.6,
+     "width": 76,
+     "height": 8
+    },
+    {
+     "text": "Entitlement Units",
+     "x": 410.4,
+     "y": 159.5,
+     "width": 60.5,
+     "height": 8
+    },
+    {
+     "text": "Base Consumption",
+     "x": 410.4,
+     "y": 173.8,
+     "width": 67.6,
+     "height": 8
+    },
+    {
+     "text": "Meter Readings for Meter ID 1234567890",
+     "x": 47.2,
+     "y": 200.4,
+     "width": 97,
+     "height": 5
+    },
+    {
+     "text": "Description",
+     "x": 54.5,
+     "y": 212.5,
+     "width": 27.5,
+     "height": 5
+    },
+    {
+     "text": "Date",
+     "x": 112.4,
+     "y": 212.5,
+     "width": 10.8,
+     "height": 5
+    },
+    {
+     "text": "KWH Meter",
+     "x": 149.6,
+     "y": 212.5,
+     "width": 26.7,
+     "height": 5
+    },
+    {
+     "text": "KVAH Meter",
+     "x": 193.5,
+     "y": 212.5,
+     "width": 28.9,
+     "height": 5
+    },
+    {
+     "text": "MD meter",
+     "x": 239.3,
+     "y": 212.5,
+     "width": 22.8,
+     "height": 5
+    },
+    {
+     "text": "PF",
+     "x": 290.2,
+     "y": 212.5,
+     "width": 6.4,
+     "height": 5
+    },
+    {
+     "text": "Present Reading",
+     "x": 49.7,
+     "y": 225.2,
+     "width": 37.2,
+     "height": 5
+    },
+    {
+     "text": "03-MAY-2026",
+     "x": 102.4,
+     "y": 225.2,
+     "width": 30.8,
+     "height": 5
+    },
+    {
+     "text": "764",
+     "x": 158.7,
+     "y": 225.2,
+     "width": 8.3,
+     "height": 5
+    },
+    {
+     "text": "0",
+     "x": 206.5,
+     "y": 225.2,
+     "width": 2.8,
+     "height": 5
+    },
+    {
+     "text": "1.54",
+     "x": 245.8,
+     "y": 225.2,
+     "width": 9.7,
+     "height": 5
+    },
+    {
+     "text": "0.81",
+     "x": 288.5,
+     "y": 225.2,
+     "width": 9.7,
+     "height": 5
+    },
+    {
+     "text": "Previous Reading",
+     "x": 48.5,
+     "y": 239.1,
+     "width": 39.5,
+     "height": 5
+    },
+    {
+     "text": "03-APR-2026",
+     "x": 102.6,
+     "y": 239.1,
+     "width": 30.3,
+     "height": 5
+    },
+    {
+     "text": "538",
+     "x": 158.7,
+     "y": 239.1,
+     "width": 8.3,
+     "height": 5
+    },
+    {
+     "text": "0",
+     "x": 206.5,
+     "y": 239.1,
+     "width": 2.8,
+     "height": 5
+    },
+    {
+     "text": "Difference",
+     "x": 56.9,
+     "y": 253.5,
+     "width": 22.8,
+     "height": 5
+    },
+    {
+     "text": "226",
+     "x": 158.7,
+     "y": 253.5,
+     "width": 8.3,
+     "height": 5
+    },
+    {
+     "text": "0",
+     "x": 206.5,
+     "y": 253.5,
+     "width": 2.8,
+     "height": 5
+    },
+    {
+     "text": "-0.37",
+     "x": 245,
+     "y": 253.5,
+     "width": 11.4,
+     "height": 5
+    },
+    {
+     "text": "Meter Constant",
+     "x": 51.2,
+     "y": 267.9,
+     "width": 34.2,
+     "height": 5
+    },
+    {
+     "text": "1",
+     "x": 161.5,
+     "y": 267.9,
+     "width": 2.8,
+     "height": 5
+    },
+    {
+     "text": "1",
+     "x": 206.5,
+     "y": 267.9,
+     "width": 2.8,
+     "height": 5
+    },
+    {
+     "text": "1",
+     "x": 249.3,
+     "y": 267.9,
+     "width": 2.8,
+     "height": 5
+    },
+    {
+     "text": "Consumption",
+     "x": 53.5,
+     "y": 281.8,
+     "width": 29.5,
+     "height": 5
+    },
+    {
+     "text": "226",
+     "x": 158.7,
+     "y": 281.8,
+     "width": 8.3,
+     "height": 5
+    },
+    {
+     "text": "0",
+     "x": 206.5,
+     "y": 281.8,
+     "width": 2.8,
+     "height": 5
+    },
+    {
+     "text": "-0.37",
+     "x": 245,
+     "y": 281.8,
+     "width": 11.4,
+     "height": 5
+    },
+    {
+     "text": "Less/Add:",
+     "x": 56.5,
+     "y": 292.8,
+     "width": 22.2,
+     "height": 5
+    },
+    {
+     "text": "Consumption",
+     "x": 53.5,
+     "y": 298.6,
+     "width": 29.5,
+     "height": 5
+    },
+    {
+     "text": "0",
+     "x": 161.5,
+     "y": 295.7,
+     "width": 2.8,
+     "height": 5
+    },
+    {
+     "text": "0",
+     "x": 206.5,
+     "y": 295.7,
+     "width": 2.8,
+     "height": 5
+    },
+    {
+     "text": "Net Consumption",
+     "x": 49,
+     "y": 309.6,
+     "width": 38.6,
+     "height": 5
+    },
+    {
+     "text": "226",
+     "x": 158.7,
+     "y": 309.6,
+     "width": 8.3,
+     "height": 5
+    },
+    {
+     "text": "0",
+     "x": 206.5,
+     "y": 309.6,
+     "width": 2.8,
+     "height": 5
+    },
+    {
+     "text": "-0.37",
+     "x": 245,
+     "y": 309.6,
+     "width": 11.4,
+     "height": 5
+    },
+    {
+     "text": "0.01",
+     "x": 288.5,
+     "y": 309.6,
+     "width": 9.7,
+     "height": 5
+    },
+    {
+     "text": "Your Detailed Bill",
+     "x": 324.5,
+     "y": 332.1,
+     "width": 49.7,
+     "height": 6
+    },
+    {
+     "text": "Amount (Rs.)",
+     "x": 521.2,
+     "y": 338.1,
+     "width": 37.7,
+     "height": 6
+    },
+    {
+     "text": "Description",
+     "x": 332.8,
+     "y": 341.8,
+     "width": 33,
+     "height": 6
+    },
+    {
+     "text": "Fixed charges: 3.00 KW at Rs 150.00 per kW",
+     "x": 209.1,
+     "y": 351.6,
+     "width": 120.4,
+     "height": 6
+    },
+    {
+     "text": "450.00",
+     "x": 530.8,
+     "y": 351.6,
+     "width": 18.3,
+     "height": 6
+    },
+    {
+     "text": "Energy Charges : For 226.00 KWH at Rs 5.80 per KWH",
+     "x": 209.1,
+     "y": 359.1,
+     "width": 148.1,
+     "height": 6
+    },
+    {
+     "text": "1,310.80",
+     "x": 528.3,
+     "y": 359.1,
+     "width": 23.4,
+     "height": 6
+    },
+    {
+     "text": "Fuel Cost Adjustment Charges : 226.00 KWH at Rs 0.40 per KWH",
+     "x": 209.1,
+     "y": 366.5,
+     "width": 175.7,
+     "height": 6
+    },
+    {
+     "text": "90.40",
+     "x": 532.5,
+     "y": 366.5,
+     "width": 15,
+     "height": 6
+    },
+    {
+     "text": "Interest on Revenue",
+     "x": 209.1,
+     "y": 374.4,
+     "width": 54,
+     "height": 6
+    },
+    {
+     "text": "0.00",
+     "x": 534.2,
+     "y": 374.4,
+     "width": 11.7,
+     "height": 6
+    },
+    {
+     "text": "Interest on Tax",
+     "x": 209.1,
+     "y": 381.9,
+     "width": 40,
+     "height": 6
+    },
+    {
+     "text": "0.00",
+     "x": 534.2,
+     "y": 381.9,
+     "width": 11.7,
+     "height": 6
+    },
+    {
+     "text": "Tax",
+     "x": 209.1,
+     "y": 389.3,
+     "width": 10,
+     "height": 6
+    },
+    {
+     "text": "117.97",
+     "x": 530.8,
+     "y": 389.3,
+     "width": 18.3,
+     "height": 6
+    },
+    {
+     "text": "P&G Surcharge (Government Portion)",
+     "x": 209.1,
+     "y": 397.9,
+     "width": 126,
+     "height": 7
+    },
+    {
+     "text": "79.10",
+     "x": 532.5,
+     "y": 396.7,
+     "width": 15,
+     "height": 6
+    },
+    {
+     "text": "Current Bill Amount",
+     "x": 209.1,
+     "y": 405.8,
+     "width": 57,
+     "height": 6
+    },
+    {
+     "text": "2048.27",
+     "x": 529.2,
+     "y": 405.8,
+     "width": 21.7,
+     "height": 6
+    },
+    {
+     "text": "Arrears",
+     "x": 209.1,
+     "y": 413.4,
+     "width": 21.3,
+     "height": 6
+    },
+    {
+     "text": "0.00",
+     "x": 534.2,
+     "y": 413.4,
+     "width": 11.7,
+     "height": 6
+    },
+    {
+     "text": "Bill Correction",
+     "x": 209.1,
+     "y": 421.1,
+     "width": 41.3,
+     "height": 6
+    },
+    {
+     "text": "0.00",
+     "x": 534.2,
+     "y": 421.1,
+     "width": 11.7,
+     "height": 6
+    },
+    {
+     "text": "Bill rounding adjustment",
+     "x": 209.1,
+     "y": 429,
+     "width": 64,
+     "height": 6
+    },
+    {
+     "text": "-0.27",
+     "x": 533.2,
+     "y": 429,
+     "width": 13.7,
+     "height": 6
+    },
+    {
+     "text": "Net Payable Amount",
+     "x": 209.1,
+     "y": 438.1,
+     "width": 58.3,
+     "height": 6
+    },
+    {
+     "text": "2048.00",
+     "x": 530,
+     "y": 438.1,
+     "width": 21.7,
+     "height": 6
+    },
+    {
+     "text": "Rupees Two Thousand Forty-Eight Only",
+     "x": 465.3,
+     "y": 445.8,
+     "width": 114.3,
+     "height": 6
+    },
+    {
+     "text": "Sd/-",
+     "x": 385.8,
+     "y": 476,
+     "width": 11.3,
+     "height": 6
+    },
+    {
+     "text": "Assistant Executive Engineer (Ele.)",
+     "x": 341.3,
+     "y": 483.1,
+     "width": 100.4,
+     "height": 6
+    }
+   ]
+  }
+ ],
+ "expect": {
+  "rejected": true
+ }
+}

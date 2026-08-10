@@ -1,0 +1,56 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Stub — brand</title>
+<style>
+  body { background:#f2f2f7; font:14px -apple-system,"Segoe UI",Roboto,sans-serif; padding:28px; margin:0; color:#1c1c1e; }
+  h2 { font-size:11px; text-transform:uppercase; letter-spacing:.09em; color:#6e6e73; margin:30px 0 12px; font-weight:600; }
+  .row { display:flex; align-items:flex-end; gap:22px; flex-wrap:wrap; }
+  .row.dark { background:#000; padding:20px; border-radius:14px; color:#fff; }
+  figure { margin:0; text-align:center; }
+  figcaption { font-size:10px; color:#6e6e73; margin-top:6px; }
+  .dark figcaption { color:#98989d; }
+  img { display:block; }
+  .tile { border-radius:22.5%; }
+</style></head>
+<body>
+
+<h2>App icon — actual sizes</h2>
+<div class="row">
+  <figure><img class="tile" src="../icons/icon-192.png" width="16" height="16"><figcaption>16</figcaption></figure>
+  <figure><img class="tile" src="../icons/icon-192.png" width="29" height="29"><figcaption>29</figcaption></figure>
+  <figure><img class="tile" src="../icons/apple-touch-icon.png" width="60" height="60"><figcaption>60</figcaption></figure>
+  <figure><img class="tile" src="../icons/apple-touch-icon.png" width="120" height="120"><figcaption>120</figcaption></figure>
+  <figure><img class="tile" src="../icons/icon-512.png" width="180" height="180"><figcaption>180</figcaption></figure>
+</div>
+
+<h2>Maskable — as Android may crop it</h2>
+<div class="row">
+  <figure><img src="../icons/icon-maskable-192.png" width="88" height="88" style="border-radius:50%"><figcaption>circle</figcaption></figure>
+  <figure><img src="../icons/icon-maskable-192.png" width="88" height="88" style="border-radius:22%"><figcaption>squircle</figcaption></figure>
+  <figure><img src="../icons/icon-maskable-192.png" width="88" height="88"><figcaption>square</figcaption></figure>
+</div>
+
+<h2>Wordmark</h2>
+<div class="row" id="wordmarks"></div>
+
+<h2>On dark</h2>
+<div class="row dark" id="wordmarks-dark"></div>
+
+<h2>Mark alone, in text colour</h2>
+<div class="row" id="marks"></div>
+
+<script type="module">
+import { markSvg, wordmarkSvg, svgUrl, brand } from '../js/brand-identity.js';
+
+const add = (id, html) => document.getElementById(id).insertAdjacentHTML('beforeend', html);
+
+for (const h of [24, 34, 48]) {
+  add('wordmarks', `<figure><img src="${svgUrl(wordmarkSvg({ height: h, colour: '#1c1c1e' }))}" height="${h}"><figcaption>${h}px</figcaption></figure>`);
+}
+for (const h of [24, 34, 48]) {
+  add('wordmarks-dark', `<figure><img src="${svgUrl(wordmarkSvg({ height: h, colour: '#ffffff' }))}" height="${h}"><figcaption>${h}px</figcaption></figure>`);
+}
+for (const [size, colour] of [[28, '#1c1c1e'], [44, brand.colour.ink], [72, '#8e8e93']]) {
+  add('marks', `<figure><img src="${svgUrl(markSvg({ size, variant: 'plain', colour }))}" width="${size}"><figcaption>${size}px</figcaption></figure>`);
+}
+</script>
+</body></html>

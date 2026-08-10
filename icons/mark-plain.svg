@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="Stub">
+  <defs>
+    <mask id="sebm33qo">
+      <rect width="512" height="512" fill="#000"/>
+      <rect x="79.4" y="139.4" width="353.3" height="233.2" rx="25.6" fill="#fff"/>
+      <circle cx="319.6" cy="139.4" r="37.3" fill="#000"/>
+      <circle cx="319.6" cy="372.6" r="37.3" fill="#000"/>
+      <rect x="314.0" y="154.6"
+        width="11.3" height="28.0" rx="5.6" fill="#000"/><rect x="314.0" y="212.9"
+        width="11.3" height="28.0" rx="5.6" fill="#000"/><rect x="314.0" y="271.2"
+        width="11.3" height="28.0" rx="5.6" fill="#000"/><rect x="314.0" y="329.4"
+        width="11.3" height="28.0" rx="5.6" fill="#000"/>
+    </mask>
+  </defs>
+  
+  
+  <rect width="512" height="512" fill="#0a84ff" mask="url(#sebm33qo)"/>
+</svg>

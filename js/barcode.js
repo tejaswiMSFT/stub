@@ -1,0 +1,317 @@
+/**
+ * Barcode reading — symbology-agnostic.
+ *
+ * A cinema QR and a flight PDF417 arrive here identically; the caller does not care
+ * which is which until an adapter interprets the payload. We therefore scan for all
+ * ticket-relevant symbologies at once and return every result found, ranked.
+ *
+ * Reading real tickets is harder than reading a clean test barcode: screenshots are
+ * compressed, photographed tickets are skewed and shadowed, and PDF-rendered PDF417
+ * can be very wide and thin. The strategy below escalates effort only as needed, so
+ * the common case stays fast on a phone.
+ */
+
+const ZXING_MODULE = new URL('../vendor/zxing/reader/index.js', import.meta.url).href;
+const ZXING_WASM = new URL('../vendor/zxing/reader/zxing_reader.wasm', import.meta.url).href;
+
+/**
+ * Symbologies Apple Wallet can display, which is the only set worth finding — a
+ * barcode we cannot reproduce in a pass is of no use to the user.
+ */
+export const WALLET_FORMATS = ['QRCode', 'PDF417', 'Aztec', 'Code128'];
+
+/** Maps zxing's names to Apple's PKBarcodeFormat constants. */
+const APPLE_FORMAT = {
+  QRCode: 'PKBarcodeFormatQR',
+  PDF417: 'PKBarcodeFormatPDF417',
+  Aztec: 'PKBarcodeFormatAztec',
+  Code128: 'PKBarcodeFormatCode128',
+};
+
+let readerPromise = null;
+
+async function loadReader() {
+  if (!readerPromise) {
+    readerPromise = import(ZXING_MODULE).then(async (lib) => {
+      lib.prepareZXingModule({
+        overrides: { locateFile: (path) => (path.endsWith('.wasm') ? ZXING_WASM : path) },
+        fireImmediately: true,
+      });
+      return lib;
+    });
+  }
+  return readerPromise;
+}
+
+function canvasToImageData(canvas) {
+  const context = canvas.getContext('2d', { willReadFrequently: true });
+  return context.getImageData(0, 0, canvas.width, canvas.height);
+}
+
+/**
+ * Boosts local contrast on a greyscale copy.
+ *
+ * Photographed tickets often have a soft gradient across them from ambient lighting,
+ * which defeats a global threshold — one side of the barcode blows out while the
+ * other stays muddy. Normalising against the image's own range recovers most of these
+ * without the cost of a full adaptive threshold.
+ */
+function enhanceContrast(imageData) {
+  const { data, width, height } = imageData;
+  const output = new ImageData(width, height);
+  const out = output.data;
+
+  let min = 255;
+  let max = 0;
+  const grey = new Uint8ClampedArray(width * height);
+
+  for (let i = 0, p = 0; i < data.length; i += 4, p++) {
+    // Rec. 601 luma — closer to perceived brightness than a plain average.
+    const value = (data[i] * 299 + data[i + 1] * 587 + data[i + 2] * 114) / 1000;
+    grey[p] = value;
+    if (value < min) min = value;
+    if (value > max) max = value;
+  }
+
+  const range = max - min || 1;
+  for (let p = 0, i = 0; p < grey.length; p++, i += 4) {
+    const stretched = ((grey[p] - min) / range) * 255;
+    out[i] = out[i + 1] = out[i + 2] = stretched;
+    out[i + 3] = 255;
+  }
+  return output;
+}
+
+/** Inverts — some tickets print light-on-dark, which most decoders reject outright. */
+function invert(imageData) {
+  const { data, width, height } = imageData;
+  const output = new ImageData(width, height);
+  const out = output.data;
+  for (let i = 0; i < data.length; i += 4) {
+    out[i] = 255 - data[i];
+    out[i + 1] = 255 - data[i + 1];
+    out[i + 2] = 255 - data[i + 2];
+    out[i + 3] = 255;
+  }
+  return output;
+}
+
+/**
+ * zxing returns bytes for binary payloads and a decoded string for text. BCBP is
+ * plain ASCII, but cinema QRs are frequently binary or non-UTF-8, and mangling them
+ * would silently produce a pass whose barcode scans to the wrong value at the gate —
+ * the single worst failure this tool could have. We therefore keep the raw bytes.
+ */
+function extractPayload(result) {
+  const bytes = result.bytes instanceof Uint8Array ? result.bytes : null;
+  const text = typeof result.text === 'string' ? result.text : '';
+
+  let isBinary = false;
+  if (bytes && bytes.length) {
+    for (const byte of bytes) {
+      if (byte === 0 || (byte < 0x20 && byte !== 0x0a && byte !== 0x0d && byte !== 0x09)) {
+        isBinary = true;
+        break;
+      }
+    }
+  }
+
+  return {
+    text,
+    bytes,
+    isBinary,
+    /** Latin-1 preserves every byte 1:1, which is what Wallet expects by default. */
+    latin1: bytes ? Array.from(bytes, (b) => String.fromCharCode(b)).join('') : text,
+  };
+}
+
+function scoreResult(result, payload) {
+  let score = 0;
+  // PDF417 and Aztec carry structured travel data far more often than QR does.
+  if (result.format === 'PDF417') score += 30;
+  else if (result.format === 'Aztec') score += 20;
+  else if (result.format === 'QRCode') score += 15;
+  else score += 5;
+
+  // A recognisable IATA record is decisive — nothing else on a ticket looks like this.
+  if (/^M[1-9]/.test(payload.text)) score += 60;
+
+  // Longer payloads carry more information; very short ones are usually a decorative
+  // QR pointing at the airline's app rather than the ticket itself.
+  score += Math.min(20, Math.floor(payload.latin1.length / 25));
+  if (payload.latin1.length < 12) score -= 25;
+
+  // A URL is almost always marketing, not the ticket token.
+  if (/^https?:\/\//i.test(payload.text) && payload.text.length < 120) score -= 20;
+
+  return score;
+}
+
+function toBarcode(result, payload, attempt) {
+  const points = Array.isArray(result.position?.topLeft)
+    ? result.position
+    : result.position || null;
+
+  return {
+    format: result.format,
+    appleFormat: APPLE_FORMAT[result.format] || null,
+    walletCompatible: Boolean(APPLE_FORMAT[result.format]),
+    text: payload.text,
+    bytes: payload.bytes,
+    latin1: payload.latin1,
+    isBinary: payload.isBinary,
+    eccLevel: result.eccLevel || null,
+    position: points,
+    /** Which preprocessing pass found it — a proxy for how clean the source was. */
+    attempt,
+    score: scoreResult(result, payload),
+  };
+}
+
+/**
+ * Attempts decoding with escalating effort. Most tickets resolve on the first pass;
+ * the later passes exist for photographs and low-quality screenshots and are skipped
+ * entirely when they are not needed.
+ */
+async function runAttempts(reader, imageData, { onProgress } = {}) {
+  const base = {
+    tryHarder: true,
+    tryRotate: true,
+    tryInvert: true,
+    formats: WALLET_FORMATS,
+    maxNumberOfSymbols: 8,
+  };
+
+  const attempts = [
+    { name: 'direct', data: imageData, options: base },
+    { name: 'contrast', data: null, options: base, transform: enhanceContrast },
+    // Downscaling helps when a screenshot was upscaled: interpolation softens module
+    // edges, and sampling back down restores a crisper black/white transition.
+    { name: 'contrast-pure', data: null, options: { ...base, binarizer: 'GlobalHistogram' }, transform: enhanceContrast },
+    { name: 'inverted', data: null, options: base, transform: (d) => invert(enhanceContrast(d)) },
+  ];
+
+  const found = new Map();
+
+  for (const attempt of attempts) {
+    onProgress?.({ phase: 'barcode', attempt: attempt.name });
+    const data = attempt.data || attempt.transform(imageData);
+
+    let results = [];
+    try {
+      results = await reader.readBarcodes(data, attempt.options);
+    } catch {
+      continue; // A failed pass is not fatal; later passes may still succeed.
+    }
+
+    for (const result of results) {
+      if (!result?.isValid && !result?.text && !result?.bytes?.length) continue;
+      const payload = extractPayload(result);
+      if (!payload.latin1) continue;
+
+      const key = `${result.format}:${payload.latin1}`;
+      if (!found.has(key)) found.set(key, toBarcode(result, payload, attempt.name));
+    }
+
+    // A high-confidence structured hit means further passes cannot improve matters.
+    const best = [...found.values()].sort((a, b) => b.score - a.score)[0];
+    if (best && best.score >= 75) break;
+  }
+
+  return [...found.values()].sort((a, b) => b.score - a.score);
+}
+
+/**
+ * Reads every ticket-relevant barcode from a rendered canvas.
+ *
+ * Returns all findings rather than just the best one: a cinema ticket may carry both
+ * its real QR and a marketing QR, and letting the user pick beats guessing wrong.
+ */
+export async function readBarcodes(canvas, options = {}) {
+  const reader = await loadReader();
+  const imageData = canvasToImageData(canvas);
+  const barcodes = await runAttempts(reader, imageData, options);
+
+  return {
+    barcodes,
+    primary: barcodes[0] || null,
+    /** Present but unusable in Wallet — worth telling the user rather than ignoring. */
+    unsupported: barcodes.filter((b) => !b.walletCompatible),
+    found: barcodes.length > 0,
+  };
+}
+
+/**
+ * Reads barcodes from an ingested source, whatever shape it came in.
+ *
+ * A PDF or photograph presents one canvas containing everything. An email presents a
+ * ranked list of individual images, only one of which is the barcode — so candidates
+ * are tried in order and the search stops as soon as something convincing appears,
+ * rather than grinding through a masthead and six social icons on a phone.
+ */
+export async function readBarcodesFromSource(ingested, options = {}) {
+  const candidates = ingested?.barcodeCandidates?.length
+    ? ingested.barcodeCandidates
+    : (ingested?.barcodeCanvas ? [{ canvas: ingested.barcodeCanvas, scale: ingested.barcodeScale || 1 }] : []);
+
+  if (!candidates.length) {
+    return { barcodes: [], primary: null, unsupported: [], found: false, searched: 0 };
+  }
+
+  const all = new Map();
+  let searched = 0;
+
+  for (const candidate of candidates) {
+    searched++;
+    options.onProgress?.({ phase: 'barcode-candidate', index: searched, of: candidates.length });
+    const { barcodes } = await readBarcodes(candidate.canvas, options);
+
+    for (const barcode of barcodes) {
+      const key = `${barcode.format}:${barcode.latin1}`;
+      if (!all.has(key)) {
+        // Where the barcode sat in the source, so the review screen can point at it.
+        all.set(key, candidate.region ? { ...barcode, sourceRegion: candidate.region } : barcode);
+      }
+    }
+
+    const best = [...all.values()].sort((a, b) => b.score - a.score)[0];
+    // Any Wallet-compatible payload of real length is the ticket; decoration is
+    // either a short URL or nothing at all, so there is no reason to keep looking.
+    if (best && best.walletCompatible && best.score >= 40) break;
+  }
+
+  const barcodes = [...all.values()].sort((a, b) => b.score - a.score);
+  return {
+    barcodes,
+    primary: barcodes[0] || null,
+    unsupported: barcodes.filter((b) => !b.walletCompatible),
+    found: barcodes.length > 0,
+    searched,
+  };
+}
+
+/**
+ * Converts a decoded barcode into the `barcodes` entry Wallet expects.
+ *
+ * Encoding matters more than it appears: Wallet re-encodes `message` when it draws
+ * the barcode, so a payload round-tripped through the wrong charset scans to
+ * different bytes than the original. iso-8859-1 maps every byte 0–255 to exactly one
+ * character, so binary payloads survive intact.
+ */
+export function toWalletBarcode(barcode, { altText } = {}) {
+  if (!barcode?.walletCompatible) return null;
+
+  const useLatin1 = barcode.isBinary || barcode.latin1 !== barcode.text;
+
+  return {
+    format: barcode.appleFormat,
+    message: useLatin1 ? barcode.latin1 : barcode.text,
+    messageEncoding: useLatin1 ? 'iso-8859-1' : 'utf-8',
+    ...(altText ? { altText } : {}),
+  };
+}
+
+/** Human-readable symbology name for the UI. */
+export function formatLabel(format) {
+  return { QRCode: 'QR code', PDF417: 'PDF417', Aztec: 'Aztec', Code128: 'Code 128' }[format] || format;
+}
