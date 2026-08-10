@@ -41,8 +41,8 @@ export function helpPages(platform) {
   pages.push(
     { title: 'Guide', body: howToUse(platform) },
     { title: 'How it works', body: howItWorks() },
-    { title: 'Managing', body: managing() },
-    { title: 'Removing', body: removing() },
+    { title: 'Management', body: managing() },
+    { title: 'Uninstall', body: removing() },
     { title: 'Privacy', body: privacy() },
     { title: 'About', body: about() },
   );
@@ -261,22 +261,22 @@ function managing() {
 function removing() {
   return `
     <div class="help-warning">
-      <strong>Deleting this app deletes your tickets with it.</strong>
+      <strong>Deleting this app deletes your data with it.</strong>
       On both iPhone and Android, removing an app like this one removes everything stored
       inside it. There is no way to recover it afterwards, and nobody else has a copy —
       that is the direct consequence of nothing being uploaded anywhere.
     </div>
 
-    <p><strong>Export a backup first</strong> if you might want your tickets again. It
-    takes a moment, and it is the only way back.</p>
+    <p><strong>Export a backup first</strong> if you might want any of it again. It takes a
+    moment, and it is the only way back.</p>
 
     <h3>How to remove it</h3>
     <p><strong>iPhone:</strong> press and hold the icon, then Remove App, then Delete App.</p>
     <p><strong>Android:</strong> press and hold the icon, then Uninstall.</p>
 
-    <h3>Keeping the app, clearing the tickets</h3>
-    <p>If you only want to start fresh, use <strong>Delete every ticket</strong> in
-    Settings. The app stays where it is.</p>
+    <h3>Keeping the app, clearing the data</h3>
+    <p>If you only want to start fresh, use <strong>Delete everything</strong> in Settings.
+    The app stays where it is.</p>
 
     <h3>If your browser clears it</h3>
     <p>When installed, this app asks your browser to keep its data safe, and browsers

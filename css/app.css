@@ -541,6 +541,36 @@ p { margin: 0; }
   .dot.pressing { transform: none; }
 }
 
+/*
+ * The artwork band at the top of a pass.
+ *
+ * Drawn from the ticket's own category and colour, so a flight looks like sky and a
+ * cinema booking like a darkened auditorium. Sits behind the route, which is why the
+ * composition carries a scrim — text over artwork has to stay readable.
+ */
+.pass-art {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  /* Only as tall as the route block above the fields, or it covers their labels. */
+  height: 92px;
+  overflow: hidden;
+  border-radius: var(--radius) var(--radius) 0 0;
+  pointer-events: none;
+  /* Fades out rather than ending on a hard line across the card. */
+  -webkit-mask-image: linear-gradient(to bottom, #000 62%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 62%, transparent 100%);
+}
+
+.pass-art svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.pass-card { position: relative; }
+.pass-card .pass-route { position: relative; z-index: 1; }
+
 .landing-footer {
   margin-top: 38px;
   padding-top: 20px;
@@ -793,6 +823,8 @@ p { margin: 0; }
 }
 
 .pass-glyph { flex: none; opacity: 0.72; }
+/* The transit mark inherits the pass's own foreground, or it renders as a grey block. */
+.pass-glyph svg, .card-route .arrow svg { fill: currentColor; }
 
 .pass-grid {
   display: grid;

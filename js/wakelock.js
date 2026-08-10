@@ -15,21 +15,40 @@
 
 let lock = null;
 let wanted = false;
+let lastError = null;
 
 export function supported() {
   return 'wakeLock' in navigator;
+}
+
+/** Why the last attempt failed, for the diagnostics in Settings. */
+export function lastFailure() {
+  return lastError;
 }
 
 export async function acquire() {
   wanted = true;
   if (!supported() || lock) return Boolean(lock);
 
+  // The request is refused outright unless the page is visible, and a page that has just
+  // navigated to the scan screen may not have been painted yet. Waiting a frame is the
+  // difference between the lock being granted and being silently denied — which is
+  // exactly what was happening: supported, wanted, and never acquired.
+  if (document.visibilityState !== 'visible') {
+    lastError = 'the page was not visible';
+    return false;
+  }
+
   try {
     lock = await navigator.wakeLock.request('screen');
+    lastError = null;
     lock.addEventListener('release', () => { lock = null; });
     return true;
-  } catch {
-    // Denied, or the tab is not visible. Neither is worth reporting.
+  } catch (error) {
+    // Denied, or the tab is not visible. Recorded rather than discarded, because a
+    // setting that claims to keep the screen awake and quietly does not is worse than
+    // one that admits it could not.
+    lastError = error?.message || String(error);
     lock = null;
     return false;
   }

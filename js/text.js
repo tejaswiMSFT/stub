@@ -408,10 +408,28 @@ export function readTable(lines, headers, { minMatch = 2, maxRows = 12, maxGap =
 
     for (let next = index + 1; next < lines.length && rows.length < maxRows; next++) {
       const line = lines[next];
-      const distance = (line.y - (header.y + header.height)) / (header.height || 10);
-      if (distance > maxGap * (rows.length + 1)) break;
+
+      // Measured from the last row rather than the header.
+      //
+      // The gap allowance used to grow with every row accepted, so a table that had read
+      // a few rows would accept a line arbitrarily far below it — and an IRCTC ticket
+      // with one passenger came back with twelve "passengers", the rest being the terms
+      // and conditions printed further down the page.
+      const previous = rows.length ? rows[rows.length - 1].line : header;
+      const distance = (line.y - (previous.y + previous.height)) / (header.height || 10);
+      if (distance > maxGap) break;
 
       const cells = splitColumns(line);
+
+      // A single cell spanning the whole table is prose, not a row. Terms and conditions
+      // are set as full-width paragraphs, and one of those overlaps every column at once.
+      const spansEverything = cells.length === 1
+        && cells[0].width > (header.width || 0) * 0.8;
+      if (spansEverything) {
+        if (rows.length) break;
+        continue;
+      }
+
       const row = {};
       let filled = 0;
 
@@ -422,6 +440,13 @@ export function readTable(lines, headers, { minMatch = 2, maxRows = 12, maxGap =
           return overlap > Math.min(candidate.width, headerColumn.width) * 0.35;
         });
         if (cell?.text) { row[name] = cell.text.trim(); filled++; }
+      }
+
+      // A line filling only one column of several is not a row of this table.
+      const columnCount = Object.keys(positions).length;
+      if (columnCount >= 3 && filled < 2) {
+        if (rows.length) break;
+        continue;
       }
 
       // A line that lines up with nothing is past the end of the table.

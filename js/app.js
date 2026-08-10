@@ -19,7 +19,7 @@ import { readBarcodesFromSource, formatLabel, keepBarcodeImage } from './barcode
 import { buildLines, linesFromOcr } from './text.js';
 import { extract } from './adapters/index.js';
 import { extractBrand } from './brand.js';
-import { derivePalette, walletColors, glyphFor } from './artwork.js';
+import { derivePalette, walletColors, glyphFor, buildSvg } from './artwork.js';
 import { Confidence, Source } from './model.js';
 import { IngestError } from './errors.js';
 import * as store from './store.js';
@@ -776,6 +776,22 @@ function isUnsure(ticket, key) {
   return provenance.confidence === Confidence.LOW;
 }
 
+/**
+ * The artwork band across the top of a pass.
+ *
+ * artwork.js draws a composition per category — a darkened auditorium for cinema, sky
+ * for a flight, the amber of a railway — and every one of them was going unused, leaving
+ * passes as flat blocks of colour. They are used directly as SVG rather than rasterised:
+ * sharp at any size, and nothing to download or store.
+ */
+function passArtwork(ticket, palette) {
+  const category = ticket.kind === 'lodging' ? 'event' : ticket.kind;
+  const svg = buildSvg({ slot: 'strip', category, palette, scrim: true });
+  if (!svg) return '';
+
+  return `<div class="pass-art" aria-hidden="true">${svg}</div>`;
+}
+
 function renderPass(ticket) {
   const palette = paletteFor(ticket);
   const colours = walletColors(palette);
@@ -853,6 +869,7 @@ function renderPass(ticket) {
 
   $('pass-scroll').innerHTML = `
     <div class="pass-card" style="--card-bg:${colours.backgroundColor};--card-fg:${colours.foregroundColor};--card-label:${colours.labelColor}">
+      ${passArtwork(ticket, palette)}
       ${primary}
       <div class="pass-grid">
         ${golden.map(([key, label, value]) => `
@@ -914,7 +931,16 @@ function renderPass(ticket) {
   `;
 
   const button = $('show-code');
-  if (button) button.addEventListener('click', () => openScan(ticket));
+  if (button) button.addEventListener('click', () => {
+    // Requested here, inside the tap itself.
+    //
+    // Safari grants a wake lock only during a user gesture, and openScan is async — by
+    // the time it reached the request, several awaits had passed and the gesture was
+    // over, so the lock was silently denied and the screen dimmed anyway. Asking on the
+    // click keeps it within the gesture the browser requires.
+    if (prefs.settings().keepAwake) wakelock.acquire();
+    openScan(ticket);
+  });
 }
 
 function seatLabel(ticket) {
@@ -967,8 +993,6 @@ async function openScan(ticket) {
   // arrived and do not need a way out presented to them immediately.
   $('screen-scan').classList.remove('controls');
   clearTimeout(controlsTimer);
-
-  if (prefs.settings().keepAwake) wakelock.acquire();
 
   try {
     // A decoded barcode is redrawn from its own bytes, which is sharpest. If we cannot
@@ -1622,6 +1646,11 @@ async function openSettings() {
                ${wakelock.supported() ? '' : 'disabled'}>
         <span class="track" aria-hidden="true"><span class="thumb"></span></span>
       </label>
+      ${wakelock.supported() && current.keepAwake && wakelock.lastFailure() ? `
+        <p class="group-note warn-note">
+          Your browser refused this last time — ${escapeHtml(wakelock.lastFailure())}. The
+          code still shows; the screen may dim.
+        </p>` : ''}
     </section>
 
     <section class="group">
@@ -1898,21 +1927,31 @@ function kindGlyph(kind, transitType) {
   return `<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">${glyph}</svg>`;
 }
 
+/**
+ * The mark between origin and destination.
+ *
+ * Drawn from the same set as everything else — artwork.js has proper train, bus and
+ * aircraft glyphs with their interior detail cut out. The simplified paths used here
+ * before drew the train as a filled box, which rendered as a grey square.
+ *
+ * The aircraft is rotated to point along the route: it sits between two airport codes
+ * and is read as an arrow, so nose-right says "this flight, in this direction". Trains
+ * and buses are not directional in the same way and stay upright.
+ */
 function transitGlyph(transitType) {
-  const paths = {
-    PKTransitTypeAir: 'M12 1.6c.95 0 1.7.85 1.7 1.9v4.9l7.9 4.55v2.2l-7.9-2.35v4.35l2.4 1.75v1.75l-4.1-1.15-4.1 1.15V19.3l2.4-1.75v-4.35L2.4 15.55v-2.2l7.9-4.55V3.5c0-1.05.75-1.9 1.7-1.9z',
-    PKTransitTypeTrain: 'M8 2.6h8a3.4 3.4 0 0 1 3.4 3.4v8.6a2.6 2.6 0 0 1-2.6 2.6H7.2a2.6 2.6 0 0 1-2.6-2.6V6A3.4 3.4 0 0 1 8 2.6zM9.4 17.2 7 21.4M14.6 17.2 17 21.4',
-    PKTransitTypeBus: 'M2.6 5.4h14.2a4.6 4.6 0 0 1 3.5 1.6l1.2 1.5a2 2 0 0 1 .5 1.3v5.4a1.4 1.4 0 0 1-1.4 1.4H2.6a1.4 1.4 0 0 1-1.4-1.4V6.8a1.4 1.4 0 0 1 1.4-1.4z',
-  };
+  const category = {
+    PKTransitTypeAir: 'flight',
+    PKTransitTypeTrain: 'rail',
+    PKTransitTypeBus: 'bus',
+  }[transitType];
 
-  const path = paths[transitType];
-  if (!path) return '<span class="plain-arrow">→</span>';
+  if (!category) return '<span class="plain-arrow">→</span>';
 
-  const rotate = transitType === 'PKTransitTypeAir'
-    ? ' transform="rotate(90 12 12)"'
-    : '';
+  const rotate = category === 'flight' ? ' transform="rotate(90 12 12)"' : '';
 
-  return `<svg viewBox="0 0 24 24" width="19" height="19" fill="currentColor" aria-hidden="true"><path d="${path}"${rotate}/></svg>`;
+  return `<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
+    <g${rotate}>${glyphFor(category)}</g>
+  </svg>`;
 }
 
 function formatDate(iso) {
@@ -1990,6 +2029,11 @@ function wire() {
 
     // Tapping the code itself enlarges it past the screen edge, for a scanner that is
     // struggling. Tapping anywhere else reveals the way out, as before.
+    //
+    // Either way this is a gesture, so it is also the moment to try the wake lock again
+    // if it was refused earlier — Safari grants one only during a gesture.
+    if (prefs.settings().keepAwake) wakelock.acquire();
+
     if (event.target.id === 'scan-canvas') {
       event.target.classList.toggle('zoomed');
       return;

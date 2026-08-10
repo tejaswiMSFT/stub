@@ -729,7 +729,21 @@ export function readPassengerTable(lines) {
     if (row.name) row.name = row.name.replace(/^\s*\d+\s*[.)]\s*/, '').trim();
   }
 
-  return table;
+  // Anything that is plainly not a person.
+  //
+  // The table ends where the ticket's small print begins, and a heading such as
+  // "Acronyms:" sits close enough to be mistaken for one more row. A name does not end
+  // in a colon, is not a sentence, and is not a currency amount.
+  table.rows = table.rows.filter((row) => {
+    const name = (row.name || '').trim();
+    if (!name) return false;
+    if (/[:；;]$/.test(name)) return false;
+    if (name.split(/\s+/).length > 5) return false;
+    if (/\d{4,}|₹|rs\.?\s*\d|%|\bfee\b|\bfare\b|\bcharges?\b|\btotal\b|\bdetails?\b/i.test(name)) return false;
+    return /[A-Za-z]{2,}/.test(name);
+  });
+
+  return table.rows.length ? table : null;
 }
 
 /**
