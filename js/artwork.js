@@ -127,6 +127,8 @@ export function derivePalette({ category = 'event', title = '', seedColor = null
   let saturation;
   let lightness;
 
+  let seedSaturation = 0;
+
   const fromLogo = parseHex(seedColor);
   if (fromLogo) {
     const [r, g, b] = fromLogo.map((v) => v / 255);
@@ -136,6 +138,10 @@ export function derivePalette({ category = 'event', title = '', seedColor = null
 
     lightness = (max + min) / 2;
     saturation = delta === 0 ? 0 : delta / (1 - Math.abs(2 * lightness - 1));
+
+    // Remembered before the clamp below, which raises any sample to at least 0.35 and so
+    // would make a grey look colourful.
+    seedSaturation = saturation;
 
     if (delta === 0) hue = CATEGORY_HUE[category] ?? 232;
     else if (max === r) hue = ((g - b) / delta % 6) * 60;
@@ -148,7 +154,18 @@ export function derivePalette({ category = 'event', title = '', seedColor = null
     // white pass text.
     saturation = Math.min(Math.max(saturation, 0.35), 0.72);
     lightness = Math.min(Math.max(lightness, 0.16), 0.34);
-  } else {
+  }
+
+  // A washed-out seed is not a brand colour, and using it made everything look alike.
+  //
+  // The seed is sampled from the document, and documents are overwhelmingly dark text on
+  // white — so most tickets produced a near-neutral, which the clamp above then stretched
+  // into the same dark shade whatever the ticket was. A flight, a train and a film all
+  // arrived identical, and the category hues existed but never showed.
+  //
+  // Only a genuinely colourful sample is trusted. Everything else falls back to the
+  // category, which is the whole reason those hues were chosen.
+  if (!fromLogo || seedSaturation < 0.25) {
     hue = (CATEGORY_HUE[category] ?? 232) + ((seed % 21) - 10);
     saturation = 0.42 + ((seed >> 5) % 18) / 100;
     lightness = 0.19 + ((seed >> 9) % 9) / 100;

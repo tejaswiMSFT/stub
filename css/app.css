@@ -500,22 +500,67 @@ p { margin: 0; }
  * A pass is a physical object in the user's mind, and a shadow that deepens toward the
  * bottom is what makes a rectangle read as one lying on a surface.
  */
+/*
+ * Depth on the cards.
+ *
+ * A pass is a physical object in the user's mind, and three things make a rectangle read
+ * as one: a shadow that is tight and dark near the surface but wide and soft further out,
+ * a bright hairline along the top edge where light would catch it, and a faint sheen
+ * across the upper half. Any one alone looks like a coloured box.
+ *
+ * Consolidated here because a later `.card` rule was overriding an earlier one, leaving
+ * the shadows defined and unused.
+ */
 .card {
   box-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.06),
-    0 6px 16px -6px rgba(0, 0, 0, 0.18);
+    0 1px 1px rgba(0, 0, 0, 0.10),
+    0 2px 4px rgba(0, 0, 0, 0.08),
+    0 8px 18px -6px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* The sheen. Sits above the background and below the text. */
+.card::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 62%;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.14) 0%,
+    rgba(255, 255, 255, 0.05) 45%,
+    transparent 100%
+  );
+  pointer-events: none;
+  z-index: -1;
 }
 
 .card.large {
   box-shadow:
-    0 2px 4px rgba(0, 0, 0, 0.07),
-    0 14px 30px -10px rgba(0, 0, 0, 0.24);
+    0 1px 1px rgba(0, 0, 0, 0.10),
+    0 4px 8px rgba(0, 0, 0, 0.10),
+    0 18px 34px -12px rgba(0, 0, 0, 0.30),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
 }
 
 .card.pressing {
   box-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.08),
-    0 3px 8px -4px rgba(0, 0, 0, 0.2);
+    0 1px 1px rgba(0, 0, 0, 0.12),
+    0 2px 5px -2px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+/* The same treatment on the pass itself, which is the same object made larger. */
+.pass-card {
+  box-shadow:
+    0 1px 1px rgba(0, 0, 0, 0.10),
+    0 4px 10px rgba(0, 0, 0, 0.10),
+    0 22px 40px -14px rgba(0, 0, 0, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.20);
+  overflow: hidden;
 }
 
 /* A card sliding in as the list is built, each a little after the last. */
@@ -565,7 +610,10 @@ p { margin: 0; }
   width: 100%;
   height: 100%;
   display: block;
+  /* The composition is drawn at Wallet's strip ratio, which is far wider than the band
+     it fills here; without this it is letterboxed against the card. */
   object-fit: cover;
+  object-position: center;
 }
 
 .pass-card { position: relative; }
@@ -676,10 +724,10 @@ p { margin: 0; }
   margin-bottom: 12px;
   background: var(--card-bg, #1d3557);
   color: var(--card-fg, #fff);
-  box-shadow: var(--shadow);
   font: inherit;
   cursor: pointer;
-  transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease), opacity 0.2s;
+  /* Shadow, sheen and press feedback are defined above; repeating them here overrode
+     them with a flatter version. */
 }
 
 .card:active { transform: scale(0.985); }
@@ -712,7 +760,16 @@ p { margin: 0; }
 .card-route { display: flex; align-items: center; gap: 12px; }
 .card-route .place { font-size: 27px; font-weight: 600; letter-spacing: -0.02em; }
 .card.large .card-route .place { font-size: 34px; }
-.card-route .place.single { font-size: 21px; line-height: 1.2; }
+/* Same reasoning as the pass: a title is not a three-letter code. */
+.card-route .place.single {
+  font-size: clamp(15px, 4.4vw, 21px);
+  line-height: 1.2;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
 .card-route .arrow { opacity: 0.7; display: flex; }
 .plain-arrow { font-size: 18px; }
 
@@ -810,7 +867,24 @@ p { margin: 0; }
 .endpoint { min-width: 0; }
 .endpoint.right { text-align: right; }
 .endpoint .code { display: block; font-size: 38px; font-weight: 600; letter-spacing: -0.025em; }
-.endpoint .code.single { font-size: 24px; }
+
+/*
+ * A single heading — a film, a hotel — rather than an airport code.
+ *
+ * Sized to fit rather than fixed: "IXE" and "K.G.F. Chapter 2 (2D) (Kannada)" cannot
+ * share a size, and the long one was overflowing the card. It wraps to two lines and
+ * then truncates, because a third line pushes the fields off the pass.
+ */
+.endpoint .code.single {
+  font-size: clamp(17px, 5.6vw, 26px);
+  line-height: 1.18;
+  letter-spacing: -0.01em;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
 
 .place-name {
   display: block;
@@ -999,11 +1073,11 @@ p { margin: 0; }
   transform-origin: center;
 }
 
-/* Tapped to fill the screen, for a scanner that is struggling. */
+/* Enlarged a step, with the whole screen as the target to put it back. */
 #scan-canvas.zoomed {
   max-width: none;
   max-height: none;
-  width: 128vw;
+  width: min(112vw, 112vh);
   height: auto;
 }
 

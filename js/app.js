@@ -785,11 +785,18 @@ function isUnsure(ticket, key) {
  * sharp at any size, and nothing to download or store.
  */
 function passArtwork(ticket, palette) {
+  // Lodging has no composition of its own, so it borrows the neutral one — but keeps its
+  // own hue, which is what the palette already carries.
   const category = ticket.kind === 'lodging' ? 'event' : ticket.kind;
   const svg = buildSvg({ slot: 'strip', category, palette, scrim: true });
   if (!svg) return '';
 
-  return `<div class="pass-art" aria-hidden="true">${svg}</div>`;
+  // The composition is drawn at Wallet's strip ratio, which is much wider than the band
+  // it fills here. `object-fit` does not apply to an inline SVG, so it is told to crop
+  // rather than letterbox through its own attribute.
+  const cropped = svg.replace('<svg ', '<svg preserveAspectRatio="xMidYMid slice" ');
+
+  return `<div class="pass-art" aria-hidden="true">${cropped}</div>`;
 }
 
 function renderPass(ticket) {
@@ -799,10 +806,11 @@ function renderPass(ticket) {
 
   // What names the pass. A stay is identified by the property, not by the agent who
   // sold it: "MakeMyTrip" on the face of a hotel pass tells a guest nothing they need
-  // at a reception desk.
+  // at a reception desk. A film or an event is named by its title, for the same reason —
+  // "Ticket" in the bar is true and useless.
   const heading = ticket.kind === 'lodging'
     ? (f.property || f.provider || 'Stay')
-    : (f.provider || 'Ticket');
+    : (f.provider || f.title || 'Ticket');
 
   $('pass-title').textContent = heading;
 
@@ -984,7 +992,7 @@ async function openScan(ticket) {
   const note = $('scan-note');
 
   reference.textContent = ticket.fields?.pnr || ticket.fields?.reference || '';
-  note.textContent = 'Tap the code to enlarge it';
+  note.textContent = 'Tap anywhere to enlarge it';
 
   // Never opens zoomed, whatever was left from last time.
   canvas.classList.remove('zoomed');
@@ -1152,9 +1160,15 @@ async function handleSource(loader, description) {
     }
 
     if (!lines.length) {
-      draft.warnings.push(barcodes.primary
-        ? 'We read the barcode but not the printed text, so most details need filling in.'
-        : 'We could not read any text or barcode from this. You can fill the details in yourself.');
+      // Only when nothing else has already explained it. A kept barcode image raises its
+      // own warning, and saying the same thing twice in different words reads as a fault
+      // in the app rather than a fact about the ticket.
+      const alreadySaid = draft.warnings.some((w) => /printed text|kept exactly/i.test(w));
+      if (!alreadySaid) {
+        draft.warnings.push(barcodes.primary
+          ? 'We read the barcode but not the printed text, so most details need filling in.'
+          : 'We could not read any text or barcode from this. You can fill the details in yourself.');
+      }
     }
     if (barcodes.unsupported?.length && !barcodes.primary) {
       draft.warnings.push(`A ${formatLabel(barcodes.unsupported[0].format)} was found, which we cannot redraw.`);
@@ -2027,17 +2041,18 @@ function wire() {
   $('screen-scan').addEventListener('click', (event) => {
     if (event.target.closest('.scan-close')) { closeScan(); return; }
 
-    // Tapping the code itself enlarges it past the screen edge, for a scanner that is
-    // struggling. Tapping anywhere else reveals the way out, as before.
-    //
-    // Either way this is a gesture, so it is also the moment to try the wake lock again
-    // if it was refused earlier — Safari grants one only during a gesture.
+    // Any tap here is a gesture, so it is the moment to try the wake lock again if it
+    // was refused earlier — Safari grants one only during a gesture.
     if (prefs.settings().keepAwake) wakelock.acquire();
 
-    if (event.target.id === 'scan-canvas') {
-      event.target.classList.toggle('zoomed');
-      return;
-    }
+    // Tapping anywhere toggles the enlarged view.
+    //
+    // The target used to be the code itself, which enlarged past the screen edge and
+    // took its own tap target with it — leaving no way back. Anywhere on the screen
+    // works, and the note says which state you are in.
+    const canvas = $('scan-canvas');
+    const zoomed = canvas.classList.toggle('zoomed');
+    $('scan-note').textContent = zoomed ? 'Tap anywhere to shrink it' : 'Tap anywhere to enlarge it';
 
     revealScanControls();
   });
