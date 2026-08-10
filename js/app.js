@@ -439,6 +439,9 @@ function renderHome() {
   const { upcoming, past } = store.partition(state.tickets);
 
   if (!state.tickets.length) {
+    // No button here. A "+" already sits in the bar above, and offering two controls for
+    // one action makes the user choose between identical things. The empty state says
+    // what is true and points at the control that already exists.
     body.innerHTML = `
       <div class="empty">
         <div class="empty-mark" aria-hidden="true">
@@ -447,11 +450,9 @@ function renderHome() {
                   fill="none" stroke="currentColor" stroke-width="1.4"/>
           </svg>
         </div>
-        <h2>No tickets yet</h2>
-        <p class="muted">Add a boarding pass, a train ticket, or a cinema booking.</p>
-        <button class="primary" id="empty-add" type="button">Add a ticket</button>
+        <h2>You have no saved tickets</h2>
+        <p class="muted">Tap <span class="inline-plus" aria-hidden="true">+</span> above to add a boarding pass, a train ticket, or a booking.</p>
       </div>`;
-    $('empty-add').addEventListener('click', openAdd);
     return;
   }
 
@@ -905,14 +906,54 @@ function step(id, status) {
   if (status === 'done') { item.classList.remove('active'); item.classList.add('done'); }
 }
 
+/**
+ * Tells the user something went wrong, without showing them a library's stack trace.
+ *
+ * An IngestError carries language written for a person. Anything else is a bug, and its
+ * raw message — "undefined is not a function" — tells the user nothing and blames their
+ * file for our mistake. Those get a plain sentence and an offer to copy the details,
+ * because the one thing worse than a bug is a bug nobody can report: this exact failure
+ * cost a round trip when the message was truncated on screen and could not be read.
+ */
 function fail(error) {
   const isIngest = error instanceof IngestError;
-  toast(error?.message || 'Something went wrong.', {
-    detail: error?.hint || (isIngest ? '' : 'A clearer photo or the original PDF usually works better.'),
-    tone: 'bad',
-  });
+
+  if (isIngest) {
+    toast(error.message, { detail: error.hint || '', tone: 'bad' });
+  } else {
+    toast('Something went wrong reading that file.', {
+      detail: 'This is a bug, not something you did. Tap to copy the details.',
+      tone: 'bad',
+      onTap: () => copyDiagnostics(error),
+    });
+  }
+
   show('add', { remember: false });
   console.error(error);
+}
+
+/**
+ * Puts the failure on the clipboard, with the browser it happened in.
+ *
+ * A bug that only appears on one engine is invisible without knowing which engine, and
+ * a phone offers no console to read.
+ */
+async function copyDiagnostics(error) {
+  const report = [
+    `Stub — error report`,
+    `when: ${new Date().toISOString()}`,
+    `browser: ${navigator.userAgent}`,
+    `error: ${error?.name || 'Error'}: ${error?.message || String(error)}`,
+    error?.stack ? `stack:\n${error.stack}` : '',
+  ].filter(Boolean).join('\n');
+
+  try {
+    await navigator.clipboard.writeText(report);
+    toast('Details copied.', { detail: 'Paste them into an issue on GitHub.', tone: 'good' });
+  } catch {
+    // Clipboard access can be refused; showing the text is the fallback that always works.
+    window.prompt('Copy these details:', report);
+  }
 }
 
 // ────────────────────────────── review ──────────────────────────────
@@ -1381,14 +1422,29 @@ function formatBytes(bytes) {
 }
 
 let toastTimer = null;
-function toast(message, { detail = '', tone = 'good' } = {}) {
+/**
+ * A brief message at the foot of the screen.
+ *
+ * An error that offers an action stays until it is dismissed. The timeout exists so a
+ * confirmation does not linger, but applying it to a failure meant the explanation
+ * vanished mid-read — which is how a real bug report came back as "it said undefined is
+ * not a function and then the message chopped off".
+ */
+function toast(message, { detail = '', tone = 'good', onTap = null } = {}) {
   const element = $('toast');
-  element.className = `toast ${tone}`;
+  element.className = `toast ${tone}${onTap ? ' tappable' : ''}`;
   element.innerHTML = `<strong>${escapeHtml(message)}</strong>${detail ? `<span>${escapeHtml(detail)}</span>` : ''}`;
   element.hidden = false;
 
+  element.onclick = onTap
+    ? () => { element.hidden = true; onTap(); }
+    : null;
+
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { element.hidden = true; }, detail ? 5200 : 2800);
+
+  // Anything the user can act on waits for them.
+  if (onTap) return;
+  toastTimer = setTimeout(() => { element.hidden = true; }, detail ? 6500 : 2800);
 }
 
 function escapeHtml(value) {

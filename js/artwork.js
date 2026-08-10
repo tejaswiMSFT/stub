@@ -18,6 +18,8 @@
  * under the text region.
  */
 
+import { createCanvas as makeCanvas } from './canvas.js';
+
 /**
  * Apple's image slots, at 1x. The 2x and 3x variants are these multiplied — Wallet
  * picks per device, and omitting them yields visibly soft artwork on every modern phone.
@@ -784,9 +786,7 @@ export async function rasterise(svg, scale = 1) {
     const width = image.width * scale;
     const height = image.height * scale;
 
-    const canvas = typeof OffscreenCanvas !== 'undefined'
-      ? new OffscreenCanvas(width, height)
-      : Object.assign(document.createElement('canvas'), { width, height });
+    const canvas = makeCanvas(width, height);
 
     const ctx = canvas.getContext('2d');
     ctx.drawImage(image, 0, 0, width, height);

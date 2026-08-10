@@ -21,6 +21,7 @@
  */
 
 import { parseHex, luminance, contrastRatio } from './artwork.js';
+import { createCanvas as makeCanvas } from './canvas.js';
 
 /** Logos sit at the top of a ticket. Below this we are looking at the body text. */
 const SEARCH_BAND = 0.32;
@@ -605,9 +606,7 @@ function downscale(canvas, scale) {
 
   const width = Math.max(1, Math.round(canvas.width * scale));
   const height = Math.max(1, Math.round(canvas.height * scale));
-  const out = typeof OffscreenCanvas !== 'undefined'
-    ? new OffscreenCanvas(width, height)
-    : Object.assign(document.createElement('canvas'), { width, height });
+  const out = makeCanvas(width, height);
 
   const context = out.getContext('2d');
   context.imageSmoothingQuality = 'high';
@@ -630,9 +629,7 @@ export async function renderBrandLogo(image, { slot = { width: 160, height: 50 }
     const width = slot.width * scale;
     const height = slot.height * scale;
 
-    const canvas = typeof OffscreenCanvas !== 'undefined'
-      ? new OffscreenCanvas(width, height)
-      : Object.assign(document.createElement('canvas'), { width, height });
+    const canvas = makeCanvas(width, height);
     const context = canvas.getContext('2d');
     context.imageSmoothingQuality = 'high';
 
@@ -654,9 +651,7 @@ export async function renderBrandLogo(image, { slot = { width: 160, height: 50 }
 }
 
 function toCanvas({ data, width, height }) {
-  const canvas = typeof OffscreenCanvas !== 'undefined'
-    ? new OffscreenCanvas(width, height)
-    : Object.assign(document.createElement('canvas'), { width, height });
+  const canvas = makeCanvas(width, height);
   const context = canvas.getContext('2d');
   context.putImageData(new ImageData(new Uint8ClampedArray(data), width, height), 0, 0);
   return canvas;

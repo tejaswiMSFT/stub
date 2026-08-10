@@ -271,6 +271,25 @@ p { margin: 0; }
 
 .landing-inner { padding: 40px 20px calc(40px + var(--bottom)); text-align: center; }
 
+/*
+ * Credit, centred at the foot of the landing page.
+ *
+ * Set quiet deliberately: it is a signature, not a claim on the page. Spaced well clear
+ * of the last control so it reads as a footer rather than another thing to tap.
+ */
+.landing-footer {
+  margin-top: 38px;
+  padding-top: 20px;
+  border-top: 1px solid var(--separator);
+}
+
+.landing-footer p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--label-2);
+}
+
 .app-mark img { border-radius: 22%; box-shadow: 0 8px 26px rgba(0, 0, 0, 0.16); }
 
 .landing h1 { font-size: clamp(30px, 7vw, 42px); margin: 22px 0 12px; }
@@ -439,6 +458,21 @@ p { margin: 0; }
 .empty-mark { color: var(--label-3); margin-bottom: 18px; }
 .empty h2 { font-size: 21px; margin-bottom: 6px; }
 .empty .muted { margin-bottom: 22px; font-size: 15px; }
+
+/* The "+" shown inline in the empty state, matching the real button in the bar. */
+.inline-plus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px; height: 20px;
+  margin: 0 1px;
+  vertical-align: -4px;
+  border-radius: 6px;
+  background: var(--fill);
+  color: var(--blue);
+  font-weight: 600;
+  line-height: 1;
+}
 
 .caution {
   margin-top: 22px;
@@ -1126,6 +1160,27 @@ kbd {
 
 .toast.bad { background: rgba(200, 40, 32, 0.96); }
 .toast span { font-size: 13px; opacity: 0.82; }
+
+/*
+ * A toast the user can act on: it stays until tapped, so it says so.
+ * Text wraps rather than truncating — an error message that ends mid-sentence cannot be
+ * reported, which is worse than the bug it describes.
+ */
+.toast.tappable { cursor: pointer; }
+.toast.tappable::after {
+  content: 'Tap to dismiss';
+  margin-top: 4px;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+
+.toast strong,
+.toast span {
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
 
 @keyframes toast-in {
   from { opacity: 0; transform: translate(-50%, 12px); }

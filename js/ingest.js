@@ -20,6 +20,7 @@
  */
 
 import { IngestError } from './errors.js';
+import { createCanvas as makeCanvas } from './canvas.js';
 import {
   parseMessage,
   providerFromSender,
@@ -69,12 +70,15 @@ function clampScale(width, height, scale) {
   return Math.max(1, scale * Math.sqrt(MAX_RENDER_PIXELS / pixels));
 }
 
+/**
+ * A canvas to draw on.
+ *
+ * See js/canvas.js — the choice between an offscreen and a DOM canvas is probed there
+ * once, because asking whether `OffscreenCanvas` merely *exists* was the bug that broke
+ * every PDF on iOS Safari.
+ */
 function createCanvas(width, height) {
-  if (typeof OffscreenCanvas !== 'undefined') return new OffscreenCanvas(width, height);
-  const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
-  return canvas;
+  return makeCanvas(width, height);
 }
 
 /**

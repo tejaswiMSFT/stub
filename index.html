@@ -63,6 +63,10 @@
     </ul>
 
     <button class="text-link" id="open-anyway" type="button">Use it in the browser instead</button>
+
+    <footer class="landing-footer">
+      <p>Vibe coded by Tejaswi · Built with 💓 and Microsoft Scout.</p>
+    </footer>
   </div>
 </section>
 
@@ -80,10 +84,18 @@
         </svg>
       </button>
       <button class="icon-button" id="open-settings" type="button" aria-label="Settings">
+        <!--
+          A cog, not a sun.
+          The previous icon was a circle with eight straight rays, which reads as
+          brightness — the control for light and dark mode — rather than settings.
+          Teeth are drawn as short tapered spokes around the rim so the shape stays
+          legible at 21px, where a fully modelled gear turns to mush.
+        -->
         <svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true">
-          <circle cx="12" cy="12" r="3.1" fill="none" stroke="currentColor" stroke-width="1.7"/>
-          <path d="M12 2.6v2.2M12 19.2v2.2M21.4 12h-2.2M4.8 12H2.6M18.6 5.4l-1.6 1.6M7 17l-1.6 1.6M18.6 18.6 17 17M7 7 5.4 5.4"
-                fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+          <circle cx="12" cy="12" r="3.05" fill="none" stroke="currentColor" stroke-width="1.7"/>
+          <circle cx="12" cy="12" r="7.4" fill="none" stroke="currentColor" stroke-width="1.7"/>
+          <path d="M12 2.9v1.7M12 19.4v1.7M21.1 12h-1.7M4.6 12H2.9M18.44 5.56l-1.2 1.2M6.76 17.24l-1.2 1.2M18.44 18.44l-1.2-1.2M6.76 6.76l-1.2-1.2"
+                fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/>
         </svg>
       </button>
     </div>
