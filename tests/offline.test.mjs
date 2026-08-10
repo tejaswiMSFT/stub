@@ -56,11 +56,14 @@ test('the cache list names no file that has been deleted or renamed', async () =
   assert.deepEqual(stale, [], `listed but no longer present:\n  ${stale.join('\n  ')}`);
 });
 
-test('the version is bumped when assets change', async () => {
+test('the cache name changes with every build', async () => {
   const version = source.match(/const VERSION = '([^']+)'/)?.[1];
   assert.ok(version, 'the service worker must declare a VERSION');
 
-  // Returning users keep the old app until this changes, so it is worth stating loudly
-  // that it exists rather than discovering it when a fix fails to reach anyone.
-  assert.match(version, /^v\d+$/, 'VERSION should look like v1, v2, …');
+  // Stamped from the git commit by tools/stamp-build.mjs, so it cannot be forgotten.
+  // A cache name that does not change means returning users keep the old app forever
+  // and a fix reaches nobody — which is the failure mode this whole mechanism exists
+  // to prevent. 'dev' is allowed for an unstamped working copy.
+  assert.match(version, /^(?:[0-9a-f]{7,40}|dev)$/,
+    'VERSION should be a git commit hash — run `node tools/stamp-build.mjs`');
 });

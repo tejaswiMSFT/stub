@@ -27,8 +27,10 @@ import * as code from './barcode-render.js';
 import * as prefs from './settings.js';
 import * as wakelock from './wakelock.js';
 import * as resume from './resume.js';
+import * as updates from './update.js';
 import { helpPages } from './help.js';
 import { markSvg, wordmarkSvg, svgUrl, brand } from './brand-identity.js';
+import { BUILD } from './build.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -167,6 +169,32 @@ async function start() {
 
   watchLifecycle();
   handleLaunchIntent();
+  announceUpdate();
+}
+
+/**
+ * Tells the user when the app has changed under them.
+ *
+ * Updates apply silently and at a safe moment, which is right — nobody should be
+ * interrupted, least of all at a barrier. But an app that quietly rearranges itself is
+ * unsettling: something looks different and the user is left wondering whether they
+ * did it. One line afterwards turns that into a courtesy.
+ *
+ * Deliberately not shown on a first run, and never while a ticket is on screen.
+ */
+function announceUpdate() {
+  const previous = updates.consumeUpdatedFrom(BUILD.version);
+  if (!previous) return;
+
+  // A resumed session may have opened straight onto a pass. The notice can wait.
+  if (document.querySelector('#screen-pass:not([hidden]), #screen-scan:not([hidden])')) return;
+
+  setTimeout(() => {
+    toast('Stub was updated.', {
+      detail: `Now on version ${BUILD.version}. Your tickets are exactly as you left them.`,
+      tone: 'good',
+    });
+  }, 900);
 }
 
 /**
@@ -258,14 +286,35 @@ function handleLaunchIntent() {
   if (action) history.replaceState(null, '', location.pathname);
 }
 
+/**
+ * Registers the service worker and keeps the app current.
+ *
+ * See js/update.js for why this never blocks: an app whose job is showing a ticket at a
+ * barrier must not refuse to run because a newer version exists somewhere on a network
+ * the user cannot reach.
+ */
 async function registerServiceWorker() {
-  if (!('serviceWorker' in navigator)) return;
-  try {
-    await navigator.serviceWorker.register('./sw.js');
-  } catch (error) {
-    // Offline support is a bonus, not a requirement; the app still works without it.
-    console.warn('Service worker registration failed', error);
-  }
+  updates.configure({
+    // Safe means nothing would be lost by reloading. A pass on screen is the clear no —
+    // it may be under a scanner at this very moment. Mid-review is also no, since the
+    // user has typed corrections that only exist in memory.
+    safeToReload: () => {
+      const showing = document.querySelector('#screen-pass:not([hidden])');
+      const reviewing = document.querySelector('#screen-review:not([hidden])');
+      const working = document.querySelector('#screen-working:not([hidden])');
+      return !showing && !reviewing && !working && !state.draft;
+    },
+
+    onUpdateReady: () => {
+      toast('An update is ready.', {
+        detail: 'Tap to restart. Your tickets are kept.',
+        tone: 'good',
+        onTap: () => updates.apply(),
+      });
+    },
+  });
+
+  await updates.start();
 }
 
 async function requestPersistence() {
@@ -1284,9 +1333,23 @@ async function openSettings() {
       </p>
     </section>
 
+    <section class="group">
+      <h2>Version</h2>
+      <div class="info-card">
+        <p>You are running <strong>${escapeHtml(BUILD.version)}</strong>, from ${escapeHtml(BUILD.date)}.</p>
+        <p id="update-state" class="group-note">Checking for updates…</p>
+      </div>
+      <button class="row" id="check-updates" type="button"><span>Check for updates</span></button>
+      <p class="group-note">
+        Updates arrive on their own and apply when you are not using a ticket. Your saved
+        tickets are never affected — they live on your device, separately from the app.
+      </p>
+    </section>
+
     <div class="colophon">
       ${wordmarkSvg({ height: 26, colour: 'currentColor' })}
       <p>Everything happens on your device. No server, no account, nothing uploaded.</p>
+      <p class="credit">Vibe coded by Tejaswi · Built with 💓 and Microsoft Scout.</p>
     </div>
   `;
 
@@ -1296,6 +1359,37 @@ async function openSettings() {
       openSettings();
     });
   }
+
+  // Version and updates.
+  //
+  // Shown plainly so that "are you on the latest?" can be answered by looking, rather
+  // than by asking someone to try again and hoping their cache cooperated.
+  const updateState = $('update-state');
+  const setState = (text) => { if (updateState) updateState.textContent = text; };
+
+  if (updates.isPending()) {
+    setState('An update is ready — tap below to restart.');
+  } else {
+    setState('Checking…');
+    updates.check({ force: true }).then((found) => {
+      setState(found
+        ? 'An update is ready — tap below to restart.'
+        : 'This is the latest version.');
+    });
+  }
+
+  $('check-updates').addEventListener('click', async () => {
+    if (updates.isPending()) {
+      updates.apply();
+      return;
+    }
+
+    setState('Checking…');
+    const found = await updates.check({ force: true });
+    setState(found
+      ? 'An update is ready — tap again to restart.'
+      : 'This is the latest version.');
+  });
 
   $('keep-awake').addEventListener('change', (event) => {
     prefs.update({ keepAwake: event.target.checked });

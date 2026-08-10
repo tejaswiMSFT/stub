@@ -16,7 +16,7 @@
 
 // Bumping this invalidates every cached file. It must change whenever any asset does,
 // or returning users will keep the old app indefinitely.
-const VERSION = 'v3';
+const VERSION = 'b297db9';
 const CACHE = `ticket-${VERSION}`;
 
 /**
@@ -52,10 +52,12 @@ const ASSETS = [
   './js/errors.js',
   './js/brand.js',
   './js/brand-identity.js',
+  './js/build.js',
   './js/artwork.js',
   './js/help.js',
   './js/resume.js',
   './js/settings.js',
+  './js/update.js',
   './js/wakelock.js',
   './js/adapters/index.js',
   './js/adapters/registry.js',
