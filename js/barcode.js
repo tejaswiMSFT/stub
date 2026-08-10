@@ -311,6 +311,87 @@ export function toWalletBarcode(barcode, { altText } = {}) {
   };
 }
 
+/**
+ * Keeps a picture of a barcode that could not be decoded.
+ *
+ * Decoding and preserving are different problems, and failing the first should not throw
+ * away the second. A gate scanner reads pixels; it neither knows nor cares whether we
+ * understood them. So when a barcode is visibly present but will not decode — a low
+ * resolution scan, an unusual symbology, a damaged print — the original image is kept
+ * and shown as it is.
+ *
+ * This honours the never-regenerate rule better than the alternative, which was to show
+ * nothing at all. These are literally the original pixels, not a re-encoding of anything.
+ *
+ * Only candidates shaped like a barcode are considered: a square for a 2D code, or a
+ * wide stripe for a 1D one. A photograph or a logo is neither.
+ */
+export async function keepBarcodeImage(ingested) {
+  const candidates = (ingested?.barcodeCandidates || [])
+    .filter((candidate) => candidate?.canvas?.width);
+
+  if (!candidates.length) return null;
+
+  const scored = candidates
+    .map((candidate) => ({ candidate, score: barcodeShapeScore(candidate.canvas) }))
+    .filter((entry) => entry.score > 0)
+    .sort((a, b) => b.score - a.score);
+
+  const best = scored[0]?.candidate;
+  if (!best) return null;
+
+  try {
+    const blob = best.canvas.convertToBlob
+      ? await best.canvas.convertToBlob({ type: 'image/png' })
+      : await new Promise((resolve) => best.canvas.toBlob(resolve, 'image/png'));
+
+    if (!blob) return null;
+
+    const dataUrl = await new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(blob);
+    });
+
+    if (!dataUrl) return null;
+
+    return {
+      image: dataUrl,
+      width: best.canvas.width,
+      height: best.canvas.height,
+      /** Never decoded, so there is no payload to claim — only the picture. */
+      decoded: false,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * How much a candidate looks like a barcode rather than a photograph or a logo.
+ *
+ * Shape is the only signal available without decoding, but it is a good one: 2D codes
+ * are square, 1D codes are wide stripes, and neither is a portrait or a masthead.
+ */
+function barcodeShapeScore(canvas) {
+  const { width, height } = canvas;
+  if (!width || !height) return 0;
+
+  // Too small to carry a payload at all.
+  if (width < 80 || height < 30) return 0;
+
+  const ratio = width / height;
+
+  // Square-ish: QR, Aztec, Data Matrix.
+  if (ratio > 0.8 && ratio < 1.25) return 100 - Math.abs(1 - ratio) * 50;
+
+  // A wide stripe: Code 128, PDF417.
+  if (ratio > 2 && ratio < 9 && height >= 40) return 60 - Math.abs(4 - ratio) * 4;
+
+  return 0;
+}
+
 /** Human-readable symbology name for the UI. */
 export function formatLabel(format) {
   return { QRCode: 'QR code', PDF417: 'PDF417', Aztec: 'Aztec', Code128: 'Code 128' }[format] || format;

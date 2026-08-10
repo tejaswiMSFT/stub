@@ -154,6 +154,15 @@ export function fromDraft(draft, { source = null, id = null } = {}) {
       }
       : null,
 
+    /**
+     * A picture of a barcode we could not decode.
+     *
+     * Kept so the pass can still show something scannable. These are the original
+     * pixels, which is why it is stored rather than regenerated — there is nothing to
+     * regenerate it from.
+     */
+    barcodeImage: draft.barcodeImage || null,
+
     colours: draft.colours || null,
     logo: draft.logo || null,
 

@@ -128,6 +128,119 @@ async function readTextContent(page) {
 }
 
 /**
+ * The images a PDF page actually contains, at the resolution they were embedded.
+ *
+ * A barcode occupying 3 cm of an A4 page is a small fraction of a full-page render, and
+ * detail is lost before the decoder ever sees it — which is why airline PDFs with a
+ * perfectly good QR were reported as having none. pdf.js can hand over the image objects
+ * themselves, exactly as the airline placed them, and those decode far more readily.
+ *
+ * Only plausible barcode shapes are kept: something square-ish or a wide stripe, big
+ * enough to carry data. A logo or a photograph is neither, and trying every image on a
+ * page would be slow on a phone for no gain.
+ */
+async function extractPageImages(page, { limit = 8 } = {}) {
+  const found = [];
+
+  let operators;
+  try {
+    operators = await page.getOperatorList();
+  } catch {
+    return found;
+  }
+
+  const { OPS } = await loadPdfjs();
+  const names = new Set();
+
+  for (let i = 0; i < operators.fnArray.length; i++) {
+    const op = operators.fnArray[i];
+    if (op !== OPS.paintImageXObject && op !== OPS.paintJpegXObject) continue;
+    const name = operators.argsArray[i]?.[0];
+    if (typeof name === 'string') names.add(name);
+  }
+
+  for (const name of names) {
+    if (found.length >= limit) break;
+
+    let image;
+    try {
+      // Newer pdf.js resolves images through a callback; older returns them directly.
+      image = page.objs.has?.(name)
+        ? page.objs.get(name)
+        : await new Promise((resolve) => {
+          try { page.objs.get(name, resolve); } catch { resolve(null); }
+        });
+    } catch {
+      continue;
+    }
+
+    if (!image?.width || !image?.height) continue;
+
+    const { width, height } = image;
+    const ratio = width / height;
+
+    // Too small to hold a payload, or too elongated to be anything but a rule or border.
+    if (width < 60 || height < 24) continue;
+    if (ratio > 12 || ratio < 0.08) continue;
+
+    const canvas = imageToCanvasSource(image);
+    if (canvas) found.push({ canvas, scale: 1, region: null, native: true });
+  }
+
+  return found;
+}
+
+/**
+ * Draws a pdf.js image object onto a canvas the decoder can read.
+ *
+ * pdf.js hands back either a bitmap it has already decoded or raw pixel data, and the
+ * shape differs between versions, so both are handled.
+ */
+function imageToCanvasSource(image) {
+  try {
+    const canvas = makeCanvas(image.width, image.height);
+    const context = canvas.getContext('2d', { willReadFrequently: true });
+
+    if (image.bitmap) {
+      context.drawImage(image.bitmap, 0, 0);
+      return canvas;
+    }
+
+    if (!image.data) return null;
+
+    const expected = image.width * image.height * 4;
+    const pixels = context.createImageData(image.width, image.height);
+
+    if (image.data.length === expected) {
+      pixels.data.set(image.data);
+    } else if (image.data.length === image.width * image.height * 3) {
+      // RGB without alpha.
+      for (let i = 0, j = 0; i < image.data.length; i += 3, j += 4) {
+        pixels.data[j] = image.data[i];
+        pixels.data[j + 1] = image.data[i + 1];
+        pixels.data[j + 2] = image.data[i + 2];
+        pixels.data[j + 3] = 255;
+      }
+    } else if (image.data.length === image.width * image.height) {
+      // Greyscale, which is what most barcodes are stored as.
+      for (let i = 0, j = 0; i < image.data.length; i++, j += 4) {
+        pixels.data[j] = image.data[i];
+        pixels.data[j + 1] = image.data[i];
+        pixels.data[j + 2] = image.data[i];
+        pixels.data[j + 3] = 255;
+      }
+    } else {
+      return null;
+    }
+
+    context.putImageData(pixels, 0, 0);
+    return canvas;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * pdf.js reports text as many small runs with their own transform matrices. We keep
  * each run's bounding box because the review UI highlights the exact region a field
  * came from — that visual link is what makes verification quick rather than tedious.
@@ -257,6 +370,15 @@ async function ingestPdf(file, { onProgress } = {}) {
     ? rendered
     : await renderPageToBitmap(primary.page, DISPLAY_RENDER_SCALE);
 
+  // The page's own images first, at the resolution they were embedded, then the whole
+  // page as a fallback. A barcode is a small part of an A4 sheet, and decoding it from a
+  // full-page render throws away most of the detail that makes it readable.
+  const embedded = await extractPageImages(primary.page).catch(() => []);
+  const barcodeCandidates = [
+    ...embedded,
+    { canvas: rendered.canvas, scale: rendered.scale, region: null },
+  ];
+
   return {
     kind,
     fileName: file.name,
@@ -270,6 +392,8 @@ async function ingestPdf(file, { onProgress } = {}) {
     /** High-resolution canvas for barcode decoding. */
     barcodeCanvas: rendered.canvas,
     barcodeScale: rendered.scale,
+    /** The page's own images, tried before the full-page render. */
+    barcodeCandidates,
     /** Lower-resolution canvas for on-screen display and region highlighting. */
     displayCanvas: display.canvas,
     displayScale: display.scale,

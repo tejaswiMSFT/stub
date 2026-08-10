@@ -15,7 +15,7 @@
  */
 
 import { ingest, ingestFromDataTransfer, describeSource } from './ingest.js';
-import { readBarcodesFromSource, formatLabel } from './barcode.js';
+import { readBarcodesFromSource, formatLabel, keepBarcodeImage } from './barcode.js';
 import { buildLines, linesFromOcr } from './text.js';
 import { extract } from './adapters/index.js';
 import { extractBrand } from './brand.js';
@@ -591,7 +591,7 @@ function cardMarkup(ticket, { large = false, dim = false } = {}) {
             style="--card-bg:${colours.backgroundColor};--card-fg:${colours.foregroundColor};--card-label:${colours.labelColor}">
       <div class="card-head">
         <span class="card-provider">${escapeHtml(f.provider || '')}</span>
-        ${ticket.barcode ? '<span class="card-chip">Scannable</span>' : ''}
+        ${(ticket.barcode || ticket.barcodeImage) ? '<span class="card-chip">Scannable</span>' : ''}
       </div>
       ${route}
       <div class="card-foot">
@@ -809,14 +809,14 @@ function renderPass(ticket) {
           </div>`).join('')}
       </div>
 
-      ${ticket.barcode ? `
+      ${(ticket.barcode || ticket.barcodeImage) ? `
         <button class="show-code" id="show-code" type="button">
           <svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true">
             <path d="M3 4v16M6.5 4v16M10 4v11M13.5 4v16M17 4v11M20.5 4v16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/>
           </svg>
           Show the code
         </button>` : `
-        <p class="no-code">No barcode was found on this ticket. Keep the original with you.</p>`}
+        <p class="no-code">This ticket has no barcode — many bookings don't. Your booking reference is above.</p>`}
     </div>
 
     ${ticket.allSeats?.length > 1 ? `
@@ -920,6 +920,14 @@ async function openScan(ticket) {
   if (prefs.settings().keepAwake) wakelock.acquire();
 
   try {
+    // A barcode we decoded is redrawn from its own bytes. One we could not decode is
+    // shown as the picture we kept — the original pixels, which scan just as well.
+    if (!ticket.barcode && ticket.barcodeImage?.image) {
+      await drawKeptBarcode(canvas, ticket.barcodeImage);
+      note.textContent = 'The code from your ticket, exactly as it was printed';
+      return;
+    }
+
     await code.render(canvas, ticket.barcode, {
       targetWidth: Math.min(window.innerWidth - 40, 620),
     });
@@ -927,6 +935,33 @@ async function openScan(ticket) {
   } catch (error) {
     note.textContent = error.message;
   }
+}
+
+/**
+ * Draws a kept barcode picture as large and as crisply as the screen allows.
+ *
+ * Smoothing is switched off deliberately: a barcode is hard edges, and interpolating
+ * between them is exactly what stops a scanner reading it.
+ */
+async function drawKeptBarcode(canvas, kept) {
+  const image = new Image();
+  await new Promise((resolve, reject) => {
+    image.onload = resolve;
+    image.onerror = () => reject(new Error('The saved code could not be shown.'));
+    image.src = kept.image;
+  });
+
+  const target = Math.min(window.innerWidth - 40, 620);
+  const scale = target / image.width;
+
+  canvas.width = Math.round(image.width * scale);
+  canvas.height = Math.round(image.height * scale);
+
+  const context = canvas.getContext('2d');
+  context.imageSmoothingEnabled = false;
+  context.fillStyle = '#ffffff';
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  context.drawImage(image, 0, 0, canvas.width, canvas.height);
 }
 
 function revealScanControls() {
@@ -984,6 +1019,20 @@ async function handleSource(loader, description) {
     step('identify', 'active');
     const draft = await extract({ lines, barcode: barcodes.primary, ingested });
     step('identify', 'done');
+
+    // A barcode we can see but could not read is still worth keeping. The original
+    // pixels scan perfectly well at a gate — a scanner reads the image, not our
+    // understanding of it — and showing them is more faithful than showing nothing.
+    if (!barcodes.primary) {
+      const kept = await keepBarcodeImage(ingested).catch(() => null);
+      if (kept) {
+        draft.barcodeImage = kept;
+        draft.warnings.push(
+          'We could not read the code on this ticket, so it is kept exactly as it was '
+          + 'printed. It should still scan — hold the screen up as you would the original.'
+        );
+      }
+    }
 
     if (!lines.length) {
       draft.warnings.push(barcodes.primary
