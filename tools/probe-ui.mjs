@@ -41,7 +41,7 @@ const server = createServer(async (request, response) => {
     response.writeHead(200, { 'content-type': TYPES[extname(path)] || 'application/octet-stream' });
     response.end(body);
   } catch {
-    response.writeHead(404);
+    if (!response.headersSent) response.writeHead(404);
     response.end('not found');
   }
 });

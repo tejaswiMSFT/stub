@@ -246,6 +246,25 @@ p { margin: 0; }
   backdrop-filter: var(--blur);
   -webkit-backdrop-filter: var(--blur);
   border-bottom: 1px solid var(--separator);
+
+  /*
+   * Its own layer, so the blur is composited once rather than recalculated as content
+   * moves beneath it. Without this, iOS Safari blurs a sticky bar unevenly while
+   * scrolling — content shows through in patches and the bar looks broken.
+   */
+  transform: translateZ(0);
+  will-change: backdrop-filter;
+  isolation: isolate;
+}
+
+/*
+ * Where the blur cannot be trusted, a solid bar.
+ *
+ * A translucent bar that renders half-blurred is worse than an opaque one: the effect is
+ * decoration, and legibility is not.
+ */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .bar { background: var(--surface-solid); }
 }
 
 .bar-title {
@@ -335,6 +354,61 @@ p { margin: 0; }
 @media (prefers-reduced-motion: reduce) {
   .heartbeat { animation: none; }
 }
+
+/* A kind mark on cards and passes that have no route to draw. */
+.card-kind, .pass-kind {
+  display: block;
+  margin-bottom: 6px;
+  opacity: 0.75;
+}
+
+.pass-kind { margin-bottom: 8px; }
+
+/*
+ * Help pages slide as they change.
+ *
+ * Without this a swipe replaced the text instantly and it was hard to tell anything had
+ * happened — the gesture worked and felt broken, which is worse than not offering it.
+ */
+.help-body.turning-forward { animation: page-forward 0.26s var(--ease); }
+.help-body.turning-back { animation: page-back 0.26s var(--ease); }
+
+@keyframes page-forward {
+  from { opacity: 0; transform: translateX(22px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes page-back {
+  from { opacity: 0; transform: translateX(-22px); }
+  to { opacity: 1; transform: none; }
+}
+
+.help-action { margin: 18px 0 6px; }
+
+.help-button {
+  display: inline-block;
+  padding: 12px 22px;
+  border-radius: 12px;
+  background: var(--blue);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.help-list { margin: 0 0 14px; padding-left: 20px; }
+.help-list li { font-size: 15px; color: var(--label-2); margin: 8px 0; line-height: 1.5; }
+
+/* Where each detail came from, shown behind the ticket's own menu. */
+.action-panel.sources { background: var(--surface-solid); }
+
+.sources-body {
+  max-height: 60vh;
+  overflow-y: auto;
+  padding: 20px 20px 6px;
+}
+
+.sources-body h2 { font-size: 17px; margin-bottom: 12px; }
 
 .landing-footer {
   margin-top: 38px;
@@ -738,12 +812,36 @@ p { margin: 0; }
 .scan-inner { text-align: center; padding: 20px; width: 100%; }
 
 #scan-canvas {
-  max-width: min(88vw, 560px);
+  /*
+   * As large as the screen allows.
+   *
+   * A web page cannot raise screen brightness the way a native wallet can, so physical
+   * size is the only thing that helps a scanner — and a barcode too small to read makes
+   * this screen pointless. The cap was 560px, which on a modern phone left most of the
+   * display empty.
+   *
+   * Height is capped too, or a tall PDF417 runs off the bottom.
+   */
+  max-width: min(96vw, 900px);
+  max-height: 78vh;
   width: auto;
   height: auto;
   /* Nearest-neighbour: any smoothing softens the module edges a scanner looks for. */
   image-rendering: pixelated;
   image-rendering: crisp-edges;
+}
+
+/*
+ * A wide 1D barcode turned upright, filling a portrait screen.
+ *
+ * Scanners read a barcode in any orientation, and rotating a stripe that is four times
+ * wider than it is tall roughly triples how large it can be shown on a phone held
+ * normally.
+ */
+#scan-canvas.upright {
+  transform: rotate(90deg);
+  max-width: 78vh;
+  max-height: 96vw;
 }
 
 .scan-reference {

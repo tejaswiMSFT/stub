@@ -686,6 +686,15 @@ const GLYPHS = {
                transform="translate(0,1.2)"/>
          <rect x="6.2" y="11.4" width="11.6" height="3.4" fill="#000" opacity="0.45"/>`,
 
+  // A bed, seen from the side — headboard, mattress, pillow.
+  //
+  // Nothing else in this set is bed-shaped, which is what makes it read instantly. A
+  // building or a key would be truer to "hotel" and far worse as a mark: both collapse
+  // into an ambiguous rectangle at the size a card actually shows.
+  lodging: `<path d="M2.4 6.2a1 1 0 0 1 2 0v5.9h15.1a2.1 2.1 0 0 1 2.1 2.1v4.5a1 1 0 0 1-2 0v-1.3H4.4v1.3a1 1 0 0 1-2 0z"/>
+            <path d="M6.9 7.7a2.3 2.3 0 1 1 0 4.6 2.3 2.3 0 0 1 0-4.6z" opacity="0.75"/>
+            <path d="M11.4 8.3h6.9a1.6 1.6 0 0 1 1.6 1.6v2.2h-8.5z" opacity="0.6"/>`,
+
   // Torn stub — the universal mark for admission, and the app's own emblem.
   event: `<path d="M3.4 5h17.2a1 1 0 0 1 1 1v3.1a.8.8 0 0 1-.6.8 2.2 2.2 0 0 0 0 4.2.8.8 0 0 1 .6.8V18a1 1 0 0 1-1 1H3.4a1 1 0 0 1-1-1v-3.1a.8.8 0 0 1 .6-.8 2.2 2.2 0 0 0 0-4.2.8.8 0 0 1-.6-.8V6a1 1 0 0 1 1-1z"/>
           <path d="M14.6 6.6v1.8M14.6 11.1v1.8M14.6 15.6v1.8" stroke="#000" stroke-opacity="0.55" stroke-width="1.3" stroke-linecap="round" fill="none"/>`,

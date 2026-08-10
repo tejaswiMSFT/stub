@@ -173,12 +173,26 @@ export class Field {
     this.source = Source.USER;
     this.confidence = value ? Confidence.HIGH : Confidence.MISSING;
     this.edited = true;
+    // Touching a field is approval of what it now says, whether or not the text changed.
+    this.confirmed = true;
     this.issues = this.issues.filter((issue) => issue.severity === 'info');
     return this;
   }
 
+  /**
+   * The user has seen this value and accepted it.
+   *
+   * Confidence is raised as well as the flag being set. Leaving it low meant everything
+   * downstream — the badge in review, the "?" on the pass, whether the field blocks
+   * saving — kept treating an approved value as doubtful, and the user's answer appeared
+   * to do nothing at all.
+   */
   confirm() {
     this.confirmed = true;
+    if (this.confidence === Confidence.LOW || this.confidence === Confidence.MISSING) {
+      this.confidence = Confidence.MEDIUM;
+    }
+    this.issues = this.issues.filter((issue) => issue.severity === 'info');
     return this;
   }
 }

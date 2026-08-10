@@ -11,37 +11,36 @@
  * Written for a person, not a developer. No jargon, no "cache", no "IndexedDB".
  */
 
+/**
+ * Where feedback goes.
+ *
+ * The subject is prefilled so a message arrives already identified as being about this
+ * app rather than anything else on the site.
+ */
+const CONTACT_URL = 'https://tejaswimsft.github.io/?subject=Stub%20—%20feedback#contact';
+
 export function helpPages(platform) {
-  return [
-    {
+  const pages = [];
+
+  // The install guide is useless to someone reading it inside the installed app — they
+  // have already done it. Shown only in a browser, where it is the whole point.
+  if (!platform.standalone) {
+    pages.push({
       title: 'Install',
       body: platform.iosNonSafari ? iosOtherBrowser(platform) : platform.iOS ? iosInstall() : androidInstall(platform),
-    },
-    {
-      title: 'How to use the app',
-      body: howToUse(platform),
-    },
-    {
-      title: 'How it works',
-      body: howItWorks(),
-    },
-    {
-      title: 'Managing tickets',
-      body: managing(),
-    },
-    {
-      title: 'Removing the app',
-      body: removing(),
-    },
-    {
-      title: 'Data privacy',
-      body: privacy(),
-    },
-    {
-      title: 'About',
-      body: about(),
-    },
-  ];
+    });
+  }
+
+  pages.push(
+    { title: 'How to use the app', body: howToUse(platform) },
+    { title: 'How it works', body: howItWorks() },
+    { title: 'Managing tickets', body: managing() },
+    { title: 'Removing the app', body: removing() },
+    { title: 'Data privacy', body: privacy() },
+    { title: 'About', body: about() },
+  );
+
+  return pages;
 }
 
 /**
@@ -279,7 +278,7 @@ function removing() {
 
     function privacy() {
       return `
-    <p class="help-lead">We hold nothing about you, because we hold nothing at all.</p>
+    <p class="help-lead">Nothing about you is collected, stored, or sent anywhere.</p>
 
     <h3>Collected: nothing</h3>
     <p>No account, no sign-in, no analytics, no advertising, no crash reporting. Nobody is
@@ -342,7 +341,14 @@ in a tunnel. <strong>Your saved tickets are never touched by an update.</strong>
     only way a claim like "nothing leaves your device" can be worth anything.</p>
     <p><a href="https://github.com/tejaswiMSFT/stub" target="_blank" rel="noopener">github.com/tejaswiMSFT/stub</a></p>
 
+    <h3>Something wrong? Something missing?</h3>
+    <p>Tickets vary enormously between airlines, railways and countries, and the only way
+    this improves is people saying what it got wrong on theirs.</p>
+    <p class="help-action">
+      <a class="help-button" href="${CONTACT_URL}" target="_blank" rel="noopener">Get in touch</a>
+    </p>
+
     <div class="help-note">
-    Vibe coded by Tejaswi · Built with 💓 and Microsoft Scout.
+    Vibe coded by Tejaswi · Built with <span class="heartbeat" aria-label="love">❤️</span> and Microsoft Scout.
     </div>`;
-}
+    }

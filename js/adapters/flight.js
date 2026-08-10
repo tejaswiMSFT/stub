@@ -362,11 +362,9 @@ async function build(context) {
       key: 'cabin', label: 'Class', value: leg.cabin, source: Source.BARCODE,
     }));
   }
-  if (leg.sequence) {
-    draft.set('sequence', new Field({
-      key: 'sequence', label: 'Seq', value: leg.sequence, source: Source.BARCODE,
-    }));
-  }
+  // The check-in sequence number is deliberately not surfaced. It records that you were
+  // the nth person to check in, which is of no use to a traveller and reads as noise
+  // beside the fields that matter — particularly when it decodes as "0".
   if (leg.frequentFlyerNumber) {
     draft.set('frequentFlyer', new Field({
       key: 'frequentFlyer', label: 'Frequent flyer', value: leg.frequentFlyerNumber, source: Source.BARCODE,

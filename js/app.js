@@ -19,7 +19,7 @@ import { readBarcodesFromSource, formatLabel, keepBarcodeImage } from './barcode
 import { buildLines, linesFromOcr } from './text.js';
 import { extract } from './adapters/index.js';
 import { extractBrand } from './brand.js';
-import { derivePalette, walletColors } from './artwork.js';
+import { derivePalette, walletColors, glyphFor } from './artwork.js';
 import { Confidence, Source } from './model.js';
 import { IngestError } from './errors.js';
 import * as store from './store.js';
@@ -566,7 +566,10 @@ function cardMarkup(ticket, { large = false, dim = false } = {}) {
          <span class="arrow">${transitGlyph(ticket.transitType)}</span>
          <span class="place">${escapeHtml(f.destination)}</span>
        </div>`
-    : `<div class="card-route"><span class="place single">${escapeHtml(f.title || f.property || f.provider || 'Ticket')}</span></div>`;
+    : `<div class="card-route">
+         <span class="card-kind" aria-hidden="true">${kindGlyph(ticket.kind, ticket.transitType)}</span>
+         <span class="place single">${escapeHtml(f.title || f.property || f.provider || 'Ticket')}</span>
+       </div>`;
 
   // A stay is summarised by its window, a journey by its service and departure. Sharing
   // one line left every hotel card blank below the name.
@@ -635,6 +638,7 @@ function openPassMenu() {
     <div class="action-backdrop" data-close="1"></div>
     <div class="action-panel" role="dialog" aria-label="Ticket options">
       <button class="action" data-act="edit" type="button">Edit details</button>
+      <button class="action" data-act="sources" type="button">Where these came from</button>
       <button class="action" data-act="export" type="button">Export this ticket</button>
       <button class="action danger" data-act="delete" type="button">Delete ticket</button>
       <button class="action cancel" data-close="1" type="button">Cancel</button>
@@ -655,6 +659,11 @@ function openPassMenu() {
 
     if (action === 'edit') {
       editTicket(ticket);
+      return;
+    }
+
+    if (action === 'sources') {
+      showSources(ticket);
       return;
     }
 
@@ -695,6 +704,38 @@ function editTicket(ticket) {
   state.editingId = ticket.id;
   renderReview();
   show('review');
+}
+
+/**
+ * Where each detail on a ticket came from.
+ *
+ * Kept out of the way, because it answers a question most people never ask — but when
+ * something looks wrong it is the first thing worth seeing, so it must be somewhere.
+ */
+function showSources(ticket) {
+  const fields = ticket.fields || {};
+  const rows = Object.entries(ticket.provenance || {})
+    .filter(([key]) => fields[key])
+    .map(([key, meta]) =>
+      `<div><dt>${escapeHtml(meta.label || key)}</dt><dd>${escapeHtml(sourceLabel(meta))}</dd></div>`)
+    .join('');
+
+  const sheet = document.createElement('div');
+  sheet.className = 'action-sheet';
+  sheet.innerHTML = `
+    <div class="action-backdrop" data-close="1"></div>
+    <div class="action-panel sources" role="dialog" aria-label="Where these came from">
+      <div class="sources-body">
+        <h2>Where these came from</h2>
+        <dl class="detail-list subtle">${rows || '<div><dt>Nothing recorded</dt><dd></dd></div>'}</dl>
+      </div>
+      <button class="action cancel" data-close="1" type="button">Done</button>
+    </div>`;
+
+  document.body.appendChild(sheet);
+  sheet.addEventListener('click', (event) => {
+    if (event.target.closest('[data-close]')) sheet.remove();
+  });
 }
 
 function openPass(id) {
@@ -754,7 +795,12 @@ function renderPass(ticket) {
            ${ticket.destinationName ? `<span class="place-name">${escapeHtml(ticket.destinationName)}</span>` : ''}
          </div>
        </div>`
-    : `<div class="pass-route"><div class="endpoint"><span class="code single">${escapeHtml(f.title || f.property || f.provider || 'Ticket')}</span></div></div>`;
+    : `<div class="pass-route">
+         <div class="endpoint">
+           <span class="pass-kind" aria-hidden="true">${kindGlyph(ticket.kind, ticket.transitType)}</span>
+           <span class="code single">${escapeHtml(f.title || f.property || f.provider || 'Ticket')}</span>
+         </div>
+       </div>`;
 
   // The golden-rule fields: what is actually checked at a barrier.
   //
@@ -848,16 +894,11 @@ function renderPass(ticket) {
         ${ticket.warnings.map((w) => `<p class="section-body">${escapeHtml(w)}</p>`).join('')}
       </section>` : ''}
 
-    <section class="pass-section">
-      <h2>Where these came from</h2>
-      <dl class="detail-list subtle">
-        ${Object.entries(ticket.provenance || {})
-          .filter(([key]) => f[key])
-          .map(([key, meta]) => `
-            <div><dt>${escapeHtml(meta.label || key)}</dt><dd>${escapeHtml(sourceLabel(meta))}</dd></div>`)
-          .join('')}
-      </dl>
-    </section>
+    <!--
+      Where each detail came from is diagnostic, not something a traveller needs while
+      holding the pass. It moved behind the "..." menu, where someone checking our
+      working can find it and everyone else is not made to scroll past it.
+    -->
 
     <p class="pass-disclaimer">
       Made on your device from a ticket you supplied. Not issued by the operator — keep
@@ -924,14 +965,20 @@ async function openScan(ticket) {
     // shown as the picture we kept — the original pixels, which scan just as well.
     if (!ticket.barcode && ticket.barcodeImage?.image) {
       await drawKeptBarcode(canvas, ticket.barcodeImage);
-      note.textContent = 'The code from your ticket, exactly as it was printed';
       return;
     }
 
+    // As large as the screen allows. A web page cannot raise brightness the way a native
+    // wallet can, so size is the only thing that helps a scanner — and a barcode too
+    // small to read is the one failure this screen exists to prevent.
     await code.render(canvas, ticket.barcode, {
-      targetWidth: Math.min(window.innerWidth - 40, 620),
+      targetWidth: Math.min(window.innerWidth - 24, 900),
     });
-    note.textContent = `${code.formatName(ticket.barcode.format)} · exactly as it was on your ticket`;
+
+    // A wide code is turned upright, which lets it be shown far larger on a phone held
+    // in portrait. Scanners read a barcode at any angle.
+    const wide = canvas.width / canvas.height > 2.5;
+    canvas.classList.toggle('upright', wide && window.innerHeight > window.innerWidth);
   } catch (error) {
     note.textContent = error.message;
   }
@@ -951,7 +998,7 @@ async function drawKeptBarcode(canvas, kept) {
     image.src = kept.image;
   });
 
-  const target = Math.min(window.innerWidth - 40, 620);
+  const target = Math.min(window.innerWidth - 24, 900);
   const scale = target / image.width;
 
   canvas.width = Math.round(image.width * scale);
@@ -1236,13 +1283,19 @@ function passengersMarkup(draft) {
 }
 
 function fieldMarkup(field) {
+  // A value the user has confirmed or typed is settled, whatever our confidence was when
+  // we read it. Showing "Unsure" beside a field they explicitly approved says their
+  // answer was ignored — which is exactly how it felt, because `confirmed` was set and
+  // then never looked at again.
   const badge = field.edited
     ? '<span class="badge edited">Edited</span>'
-    : field.source === Source.BARCODE
-      ? '<span class="badge good">Barcode</span>'
-      : field.confidence === Confidence.LOW || field.confidence === Confidence.MISSING
-        ? `<span class="badge warn">${field.value ? 'Unsure' : 'Missing'}</span>`
-        : '';
+    : field.confirmed
+      ? '<span class="badge good">Confirmed</span>'
+      : field.source === Source.BARCODE
+        ? '<span class="badge good">Barcode</span>'
+        : field.confidence === Confidence.LOW || field.confidence === Confidence.MISSING
+          ? `<span class="badge warn">${field.value ? 'Unsure' : 'Missing'}</span>`
+          : '';
 
   const issues = field.issues
     .filter((issue) => issue.severity !== 'info')
@@ -1398,12 +1451,14 @@ function openHelp(page = 0) {
   show('help');
 }
 
-function renderHelp() {
+function renderHelp({ direction = null } = {}) {
   const pages = helpPages(platform);
   const page = pages[state.helpPage];
 
+  const body = $('help-body');
+
   $('help-title').textContent = page.title;
-  $('help-body').innerHTML = page.body;
+  body.innerHTML = page.body;
   $('help-dots').innerHTML = pages
     .map((_, index) => `<button class="dot ${index === state.helpPage ? 'on' : ''}" data-page="${index}" aria-label="Page ${index + 1}"></button>`)
     .join('');
@@ -1412,11 +1467,25 @@ function renderHelp() {
   $('help-next').disabled = state.helpPage === pages.length - 1;
 
   for (const dot of $('help-dots').querySelectorAll('[data-page]')) {
-    dot.addEventListener('click', () => { state.helpPage = Number(dot.dataset.page); renderHelp(); });
+    dot.addEventListener('click', () => {
+      const target = Number(dot.dataset.page);
+      const way = target > state.helpPage ? 'forward' : 'back';
+      state.helpPage = target;
+      renderHelp({ direction: way });
+    });
   }
 
   // Scrolled back to the top: a new page that begins halfway down reads as broken.
-  $('help-body').scrollTop = 0;
+  body.scrollTop = 0;
+
+  // The page slides in, so a change is felt as well as seen.
+  body.classList.remove('turning-forward', 'turning-back');
+  if (direction) {
+    // Reading offsetWidth forces the class removal to take effect, so the animation
+    // restarts rather than being ignored as already-applied.
+    void body.offsetWidth;
+    body.classList.add(direction === 'back' ? 'turning-back' : 'turning-forward');
+  }
 }
 
 /**
@@ -1460,7 +1529,7 @@ function wireHelpSwipe() {
     if (next < 0 || next >= pages.length) return;
 
     state.helpPage = next;
-    renderHelp();
+    renderHelp({ direction: dx < 0 ? 'forward' : 'back' });
   }, { passive: true });
 }
 
@@ -1479,7 +1548,34 @@ async function openSettings() {
   const body = $('settings-body');
   const scrollTop = body.scrollTop || body.parentElement?.scrollTop || 0;
 
+  // Ordered the way Apple orders Settings: what you change often at the top, what you
+  // rarely touch below it, information near the end, and anything destructive last —
+  // where it cannot be hit while reaching for something else.
   body.innerHTML = `
+    <section class="group">
+      <h2>Appearance</h2>
+      <div class="segmented" id="theme-segment" role="group" aria-label="Appearance">
+        <button data-theme="light" type="button">Light</button>
+        <button data-theme="auto" type="button">Auto</button>
+        <button data-theme="dark" type="button">Dark</button>
+      </div>
+    </section>
+
+    <section class="group">
+      <h2>While showing a code</h2>
+      <label class="switch-row">
+        <span class="option-text">
+          <strong>Keep the screen awake</strong>
+          <em>${wakelock.supported()
+            ? 'Stops the display dimming while you hold it out to be scanned.'
+            : 'Your browser does not offer this.'}</em>
+        </span>
+        <input type="checkbox" id="keep-awake" ${current.keepAwake ? 'checked' : ''}
+               ${wakelock.supported() ? '' : 'disabled'}>
+        <span class="track" aria-hidden="true"><span class="thumb"></span></span>
+      </label>
+    </section>
+
     <section class="group">
       <h2>After you travel</h2>
       <div class="options-list">
@@ -1511,36 +1607,13 @@ async function openSettings() {
       <h2>Backup</h2>
       <button class="row" id="export" type="button">
         <span>Export a backup</span>
-        <span class="row-note">${state.tickets.length} ticket${state.tickets.length === 1 ? '' : 's'}</span>
+        <span class="row-note">${state.tickets.length} pass${state.tickets.length === 1 ? '' : 'es'}</span>
       </button>
       <button class="row" id="import" type="button"><span>Restore from a backup</span></button>
       <p class="group-note">
-        A single readable file holding every ticket. Nothing here is locked to this app.
+        A single readable file holding everything you have saved. Nothing here is locked
+        to this app.
       </p>
-    </section>
-
-    <section class="group">
-      <h2>While showing a code</h2>
-      <label class="switch-row">
-        <span class="option-text">
-          <strong>Keep the screen awake</strong>
-          <em>${wakelock.supported()
-            ? 'Stops the display dimming while you hold it out to be scanned.'
-            : 'Your browser does not offer this.'}</em>
-        </span>
-        <input type="checkbox" id="keep-awake" ${current.keepAwake ? 'checked' : ''}
-               ${wakelock.supported() ? '' : 'disabled'}>
-        <span class="track" aria-hidden="true"><span class="thumb"></span></span>
-      </label>
-    </section>
-
-    <section class="group">
-      <h2>Appearance</h2>
-      <div class="segmented" id="theme-segment" role="group" aria-label="Appearance">
-        <button data-theme="light" type="button">Light</button>
-        <button data-theme="auto" type="button">Auto</button>
-        <button data-theme="dark" type="button">Dark</button>
-      </div>
     </section>
 
     <section class="group">
@@ -1556,15 +1629,6 @@ async function openSettings() {
     </section>
 
     <section class="group">
-      <h2>Everything</h2>
-      <button class="row danger" id="delete-all" type="button"><span>Delete every ticket</span></button>
-      <p class="group-note">
-        Removing this app from your home screen also deletes everything in it. There is no
-        copy anywhere else — that is the direct consequence of nothing being uploaded.
-      </p>
-    </section>
-
-    <section class="group">
       <h2>Version</h2>
       <div class="info-card">
         <p>You are running <strong>${escapeHtml(BUILD.version)}</strong>, from ${escapeHtml(BUILD.date)}.</p>
@@ -1572,15 +1636,23 @@ async function openSettings() {
       </div>
       <button class="row" id="check-updates" type="button"><span>Check for updates</span></button>
       <p class="group-note">
-        Updates arrive on their own and apply when you are not using a ticket. Your saved
-        tickets are never affected — they live on your device, separately from the app.
+        Updates arrive on their own and apply when you are not using a pass. What you have
+        saved is never affected — it lives on your device, separately from the app.
+      </p>
+    </section>
+
+    <section class="group">
+      <h2>Delete</h2>
+      <button class="row danger" id="delete-all" type="button"><span>Delete everything</span></button>
+      <p class="group-note warn-note">
+        Deleting the app deletes everything in it. Nothing is stored anywhere else.
       </p>
     </section>
 
     <div class="colophon">
       ${wordmarkSvg({ height: 26, colour: 'currentColor' })}
       <p>Everything happens on your device. No server, no account, nothing uploaded.</p>
-      <p class="credit">Vibe coded by Tejaswi · Built with <span class="heartbeat" aria-label="love">💓</span> and Microsoft Scout.</p>
+      <p class="credit">Vibe coded by Tejaswi · Built with <span class="heartbeat" aria-label="love">❤️</span> and Microsoft Scout.</p>
     </div>
   `;
 
@@ -1757,6 +1829,27 @@ function initTheme() {
  * says "this flight, in this direction". Trains and buses are not directional symbols in
  * the same way and are left upright.
  */
+/**
+ * The mark for a kind of pass.
+ *
+ * Every kind gets one. The route glyph only ever appeared between two endpoint codes, so
+ * a hotel or a cinema booking — which has no route — showed nothing at all, and the card
+ * gave no clue what it was until you read it.
+ *
+ * The glyphs come from artwork.js, drawn for the Wallet passes this app was originally
+ * going to produce. They were built to survive being shown at 29pt, which is exactly the
+ * constraint a card mark has, so there is no reason to draw a second, worse set.
+ */
+function kindGlyph(kind, transitType) {
+  if (transitType) return transitGlyph(transitType);
+  if (!kind) return '';
+
+  const glyph = glyphFor(kind);
+  if (!glyph) return '';
+
+  return `<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">${glyph}</svg>`;
+}
+
 function transitGlyph(transitType) {
   const paths = {
     PKTransitTypeAir: 'M12 1.6c.95 0 1.7.85 1.7 1.9v4.9l7.9 4.55v2.2l-7.9-2.35v4.35l2.4 1.75v1.75l-4.1-1.15-4.1 1.15V19.3l2.4-1.75v-4.35L2.4 15.55v-2.2l7.9-4.55V3.5c0-1.05.75-1.9 1.7-1.9z',
@@ -1867,8 +1960,8 @@ function wire() {
   $('open-help').addEventListener('click', () => openHelp(0));
   wireHelpSwipe();
   $('help-close').addEventListener('click', back);
-  $('help-prev').addEventListener('click', () => { state.helpPage--; renderHelp(); });
-  $('help-next').addEventListener('click', () => { state.helpPage++; renderHelp(); });
+  $('help-prev').addEventListener('click', () => { state.helpPage--; renderHelp({ direction: 'back' }); });
+  $('help-next').addEventListener('click', () => { state.helpPage++; renderHelp({ direction: 'forward' }); });
   $('open-settings').addEventListener('click', openSettings);
   $('settings-close').addEventListener('click', back);
 
