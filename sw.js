@@ -52,6 +52,7 @@ const ASSETS = [
   './js/errors.js',
   './js/haptics.js',
   './js/swipe.js',
+  './js/snapshot.js',
   './js/brand.js',
   './js/brand-identity.js',
   './js/build.js',

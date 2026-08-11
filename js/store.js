@@ -163,6 +163,15 @@ export function fromDraft(draft, { source = null, id = null } = {}) {
      */
     barcodeImage: draft.barcodeImage || null,
 
+    /**
+     * A picture of the page as the app read it.
+     *
+     * Set after this function returns, since it needs the ingested document rather than
+     * the draft. Declared here so the record's shape is complete in one place — and so
+     * that export, import and the storage estimate all see it.
+     */
+    snapshot: null,
+
     colours: draft.colours || null,
     logo: draft.logo || null,
 
@@ -236,6 +245,10 @@ export function toDraft(record) {
   }
 
   draft.barcode = record.barcode || null;
+  draft.barcodeImage = record.barcodeImage || null;
+  // Carried so an edit does not silently discard the picture of the page. There is no
+  // document behind an edit, so there is nothing to recapture from.
+  draft.snapshot = record.snapshot || null;
   draft.colours = record.colours || null;
   draft.logo = record.logo || null;
   draft.originName = record.originName || null;

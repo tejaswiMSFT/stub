@@ -1927,6 +1927,42 @@ kbd {
   animation: sheet-up 0.22s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
+/*
+ * The original page, as a picture.
+ *
+ * Taller than the other sheets, because the whole point is to read small print. The image
+ * scrolls inside a bounded panel rather than sizing the sheet to the page — a portrait A4
+ * scaled to fit a phone's width is unreadable, and scaled to be readable is taller than
+ * any screen.
+ */
+.original-panel { width: min(100% - 20px, 560px); }
+
+.original-scroll {
+  max-height: min(70vh, 640px);
+  overflow: auto;
+  background: var(--surface-solid);
+  -webkit-overflow-scrolling: touch;
+}
+
+.original-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  /* White, always. A ticket is printed on paper, and a dark surround behind a white page
+     is what makes it read as a document rather than as a screenshot of the app. */
+  background: #fff;
+}
+
+.original-note {
+  margin: 0;
+  padding: 11px 16px;
+  background: var(--surface-solid);
+  color: var(--label-2);
+  font-size: 12.5px;
+  line-height: 1.4;
+  text-align: center;
+}
+
 .action {
   border: 0;
   padding: 16px;

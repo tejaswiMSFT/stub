@@ -30,6 +30,7 @@ import * as resume from './resume.js';
 import * as updates from './update.js';
 import * as haptics from './haptics.js';
 import * as swipe from './swipe.js';
+import { captureSnapshot } from './snapshot.js';
 import { helpPages } from './help.js';
 import { markSvg, wordmarkSvg, svgUrl, brand } from './brand-identity.js';
 import { BUILD } from './build.js';
@@ -736,6 +737,7 @@ function openPassMenu() {
     <div class="action-backdrop" data-close="1"></div>
     <div class="action-panel" role="dialog" aria-label="Ticket options">
       <button class="action" data-act="edit" type="button">Edit details</button>
+      ${ticket.snapshot ? '<button class="action" data-act="original" type="button">View original</button>' : ''}
       <button class="action" data-act="sources" type="button">Metadata</button>
       <button class="action" data-act="export" type="button">Export this ticket</button>
       <button class="action danger" data-act="delete" type="button">Delete ticket</button>
@@ -761,6 +763,11 @@ function openPassMenu() {
 
     if (action === 'sources') {
       showSources(ticket);
+      return;
+    }
+
+    if (action === 'original') {
+      showOriginal(ticket);
       return;
     }
 
@@ -828,6 +835,46 @@ function showSources(ticket) {
         <p class="sources-note">Where each detail came from.</p>
         <dl class="detail-list subtle">${rows || '<div><dt>Nothing recorded</dt><dd></dd></div>'}</dl>
       </div>
+      <button class="action cancel" data-close="1" type="button">Done</button>
+    </div>`;
+
+  document.body.appendChild(sheet);
+  sheet.addEventListener('click', (event) => {
+    if (event.target.closest('[data-close]')) sheet.remove();
+  });
+}
+
+/**
+ * The page as the app read it.
+ *
+ * Deliberately called "original" in the UI though it is a rendering, not the file: from
+ * the user's side it is the ticket they added, and that is the honest description of what
+ * they are looking at. The note underneath says plainly that the file itself is not kept.
+ *
+ * Pinch-zoom is left to the browser rather than implemented here. Safari's own zoom on a
+ * plain image is better than anything hand-rolled, and the point of this screen is to
+ * read small print.
+ */
+function showOriginal(ticket) {
+  const shot = ticket.snapshot;
+  if (!shot?.image) {
+    toast('No picture was kept for this ticket.', { tone: 'bad' });
+    return;
+  }
+
+  const sheet = document.createElement('div');
+  sheet.className = 'action-sheet original';
+  sheet.innerHTML = `
+    <div class="action-backdrop" data-close="1"></div>
+    <div class="action-panel original-panel" role="dialog" aria-label="Original ticket">
+      <div class="original-scroll">
+        <img class="original-image" src="${escapeAttr(shot.image)}"
+             width="${shot.width}" height="${shot.height}"
+             alt="The ticket as it was read">
+      </div>
+      <p class="original-note">
+        A picture of the page, kept on your device. The file itself was not saved.
+      </p>
       <button class="action cancel" data-close="1" type="button">Done</button>
     </div>`;
 
@@ -1278,6 +1325,18 @@ async function handleSource(loader, description) {
     state.draft = draft;
     state.brand = ingested.barcodeCanvas ? await extractBrand(ingested.barcodeCanvas).catch(() => null) : null;
     state.seedColor = state.brand?.readable?.background || state.brand?.seedColor || null;
+
+    // The picture of the page, taken now rather than at save.
+    //
+    // It has to happen before the canvases are released below, and those are released
+    // for a reason that has not gone away: a rendered PDF is tens of megabytes and
+    // holding it is what gets a web app killed in the background. Encoding a JPEG here
+    // costs a moment on a document the user is already waiting for, and hands back a few
+    // hundred kilobytes that survive.
+    //
+    // Kept on the draft so that abandoning the review discards it with everything else.
+    draft.snapshot = await captureSnapshot(ingested).catch(() => null);
+
     renderReview();
     step('compose', 'done');
 
@@ -1676,6 +1735,15 @@ async function saveDraft() {
       id: state.editingId || null,
     });
     if (state.seedColor) record.colours = { seed: state.seedColor };
+
+    // A picture of the page, so a field that looks wrong can be checked against what the
+    // ticket actually said. Taken during ingest — the rendered canvas is released as soon
+    // as extraction finishes, so by this point there is nothing left to photograph.
+    //
+    // Editing keeps whatever the original had: reopening a saved ticket has no document
+    // behind it, and overwriting a good snapshot with null would silently lose it.
+    record.snapshot = state.draft.snapshot
+      || (state.editingId ? store.get(state.editingId)?.snapshot || null : null);
 
     await store.save(record);
     haptics.tap('success');
