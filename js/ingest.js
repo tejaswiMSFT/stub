@@ -761,7 +761,88 @@ async function looksLikePdf(file) {
   return String.fromCharCode(...header.subarray(0, 4)) === PDF_MAGIC;
 }
 
-export const MAX_FILE_BYTES = 25 * 1024 * 1024;
+/**
+ * Image formats we will decode, by their opening bytes.
+ *
+ * Sniffed rather than trusted from the extension or the MIME type, both of which are
+ * supplied by whoever made the file. A `.jpg` that is really a ZIP archive is the oldest
+ * trick there is.
+ *
+ * A closed list, and deliberately: everything that reaches this point is handed to the
+ * browser's image decoders, which are large C++ libraries with a long history of memory
+ * bugs. Anything not recognised here is refused rather than offered up to them, which
+ * closes a class of attack rather than any particular instance of it.
+ */
+const IMAGE_SIGNATURES = [
+  // PNG
+  { bytes: [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a], name: 'PNG' },
+  // JPEG — any variant, all of which begin with the same marker
+  { bytes: [0xff, 0xd8, 0xff], name: 'JPEG' },
+  // GIF
+  { bytes: [0x47, 0x49, 0x46, 0x38], name: 'GIF' },
+  // BMP
+  { bytes: [0x42, 0x4d], name: 'BMP' },
+];
+
+/**
+ * WebP, HEIC and AVIF, which are containers and need a second check.
+ *
+ * Each carries a four-byte tag at offset 8, after a length field, so the signature is
+ * not at the start of the file. HEIC matters especially: it is what an iPhone produces
+ * by default, and refusing it would refuse most photographs taken of a printed ticket.
+ */
+function looksLikeContainerImage(head) {
+  const tag = String.fromCharCode(...head.subarray(8, 12));
+
+  // RIFF....WEBP
+  if (String.fromCharCode(...head.subarray(0, 4)) === 'RIFF' && tag === 'WEBP') return 'WebP';
+
+  // ....ftypXXXX — ISO base media, which covers HEIC, HEIF and AVIF.
+  if (String.fromCharCode(...head.subarray(4, 8)) === 'ftyp') {
+    const brand = String.fromCharCode(...head.subarray(8, 12));
+    if (/^(?:heic|heix|hevc|hevx|mif1|msf1|avif|avis)$/i.test(brand)) return brand.toUpperCase();
+  }
+
+  return null;
+}
+
+/** The image format, or null if these bytes are not an image we will decode. */
+async function imageFormat(file) {
+  const head = new Uint8Array(await file.slice(0, 16).arrayBuffer());
+  if (head.length < 4) return null;
+
+  for (const signature of IMAGE_SIGNATURES) {
+    if (signature.bytes.every((byte, index) => head[index] === byte)) return signature.name;
+  }
+
+  return looksLikeContainerImage(head);
+}
+
+/**
+ * The largest file we will open.
+ *
+ * Not a courtesy limit — a guardrail. Every byte of an added file is attacker-controlled
+ * if the "ticket" was emailed by a stranger, and the work done on it is proportional to
+ * its size: a PDF is parsed, rendered to a canvas at decoding resolution, tiled, and
+ * possibly run through OCR. A large file is therefore a cheap way to exhaust a phone's
+ * memory and get the tab killed, which on this app means losing your place at a gate.
+ *
+ * Eight megabytes is generous against reality. A boarding pass PDF is tens of kilobytes;
+ * a hotel voucher a few hundred; a full-page phone screenshot around two megabytes at
+ * the worst. Nothing legitimate approaches this, and the previous twenty-five allowed a
+ * great deal of work to be demanded before anything was checked.
+ */
+export const MAX_FILE_BYTES = 8 * 1024 * 1024;
+
+/**
+ * The largest text-shaped file we will read.
+ *
+ * Much smaller, and separately, because a text file is decoded to a string in one go and
+ * then parsed — a hundred megabytes of newlines is a different kind of expensive from a
+ * hundred megabytes of JPEG. An email with a PDF attached is base64 and therefore about
+ * a third larger than what it carries, which this still comfortably allows.
+ */
+export const MAX_TEXT_BYTES = 4 * 1024 * 1024;
 
 const TEXTUAL_EXTENSION = /\.(eml|mht|mhtml|html?|txt|msg)$/i;
 const TEXTUAL_TYPE = /^(message\/|text\/|application\/(mbox|x-mimearchive))/i;
@@ -799,6 +880,12 @@ export async function ingest(file, options = {}) {
   if (await looksLikePdf(file)) {
     result = await ingestPdf(file, options);
   } else if (await looksTextual(file)) {
+    if (file.size > MAX_TEXT_BYTES) {
+      throw new IngestError('That message is too large to read.', {
+        hint: 'Save the ticket itself — the PDF or the image — and add that instead.',
+      });
+    }
+
     const text = await file.text();
     if (looksLikeMessage(text)) result = await ingestMessage(text, file, options);
     else if (looksLikeHtml(text)) {
@@ -808,8 +895,23 @@ export async function ingest(file, options = {}) {
     } else {
       throw new IngestError('That file contains no readable text.');
     }
-  } else {
+  } else if (await imageFormat(file)) {
     result = await ingestImage(file, options);
+  } else {
+    /*
+     * Anything else is refused, unopened.
+     *
+     * Everything above is recognised by its opening bytes, not by its name or its
+     * declared type — both of which come from whoever made the file. What is left is
+     * something we have no reader for, and the previous behaviour was to hand it to the
+     * browser's image decoders anyway and see what happened. Those decoders are large
+     * C++ libraries with a long history of memory-safety bugs, and feeding them a ZIP
+     * archive or an executable in the hope that it might be a JPEG is not a reasonable
+     * thing to do with a stranger's file.
+     */
+    throw new IngestError('That is not a ticket file.', {
+      hint: 'Add a PDF, a photo or a screenshot. Those are the only kinds we open.',
+    });
   }
 
   result.sizeBytes = file.size;

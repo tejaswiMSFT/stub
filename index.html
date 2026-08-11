@@ -2,6 +2,63 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+
+<!--
+  Content Security Policy.
+
+  This app reads documents written by strangers — a PDF someone emails you, an image
+  someone sends — and everything in one of those is attacker-controlled: the text, the
+  images, the barcode payload, the filename. Every value extracted is escaped before it
+  reaches the DOM, but escaping is code and code has bugs, and this is the layer that
+  holds when one is missed.
+
+  Read line by line:
+
+    default-src 'self'        nothing loads from anywhere but this origin. There is no
+                              analytics, no font CDN, no telemetry, and this makes that
+                              a rule the browser enforces rather than a promise.
+
+    connect-src 'self'        the app cannot phone home. If a bug ever tried to send a
+                              ticket somewhere, the request would fail — which matters
+                              more here than anywhere else, because "nothing leaves your
+                              device" is the entire product.
+
+    script-src 'self' 'wasm-unsafe-eval' 'unsafe-inline'
+                              WASM is required by the OCR engine and the barcode
+                              decoder. 'unsafe-inline' is needed only for the theme
+                              script below, which must run before first paint; it is a
+                              known weakening and the reason the other directives are
+                              tight.
+
+    img-src 'self' data: blob:
+                              rendered pages and decoded barcodes are drawn to canvases
+                              and read back as data or blob URLs. No remote images: a
+                              tracking pixel in a ticket cannot report that it was
+                              opened, or to whom.
+
+    object-src 'none'         no plugins, ever.
+    base-uri 'none'           an injected <base> cannot re-point every relative URL.
+    form-action 'none'        there are no forms, and an injected one cannot submit.
+    frame-ancestors 'none'    this page cannot be framed, so it cannot be clickjacked.
+
+  Mail bodies are rendered in a sandboxed iframe with a policy of their own — see
+  FRAME_CSP in js/email.js. This one governs the app.
+-->
+<meta http-equiv="Content-Security-Policy" content="
+  default-src 'self';
+  script-src 'self' 'wasm-unsafe-eval' 'unsafe-inline';
+  style-src 'self' 'unsafe-inline';
+  img-src 'self' data: blob:;
+  font-src 'self';
+  connect-src 'self';
+  worker-src 'self' blob:;
+  child-src 'self' blob:;
+  object-src 'none';
+  base-uri 'none';
+  form-action 'none';
+  frame-ancestors 'none';
+">
+
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <title>Stub — your tickets, on your phone</title>
 <meta name="description" content="Add a boarding pass, train ticket or booking. Show it at the gate. Works offline; everything stays on your device.">
