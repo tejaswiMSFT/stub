@@ -16,7 +16,7 @@
 
 // Bumping this invalidates every cached file. It must change whenever any asset does,
 // or returning users will keep the old app indefinitely.
-const VERSION = 'f4fba2a';
+const VERSION = '9e59b05';
 const CACHE = `ticket-${VERSION}`;
 
 /**
