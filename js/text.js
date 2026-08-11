@@ -487,8 +487,17 @@ const OTHER_LABELS = new RegExp([
   'record\\s*locator',
   'confirmation\\s*(?:number|code)',
   'reservation\\s*(?:number|code)',
+  'pnr(?:\\s*(?:no\\.?|number))?',
   'flight(?:\\s*(?:number|no\\.?|details?))?',
   'seat(?:\\s*(?:number|no\\.?))?',
+  // Every mode has a class and a seat; only rail has a berth. All three are captions
+  // wherever they appear, and leaving them out let a seat on a flight read "PNR", a
+  // seat on a bus read "Service No", and a class on a rail ticket read "BERTH".
+  'class(?:\\s*of\\s*travel)?',
+  'cabin',
+  'coach',
+  'berth(?:\\s*(?:no\\.?|number|type))?',
+  'service(?:\\s*(?:no\\.?|number))?',
   'sector',
   'baggage(?:\\s*allowance)?',
   'gate',
@@ -497,6 +506,8 @@ const OTHER_LABELS = new RegExp([
   'destination',
   'departure',
   'arrival',
+  'boarding\\s*(?:point|station|time)',
+  'dropping\\s*point',
   // Tax captions, so a value is never taken from the cell next to one.
   'gstin',
   'gst(?:\\s*(?:no\\.?|number|id))?',

@@ -158,6 +158,52 @@ test('a value is not confused with something that merely looks like one', async 
     assert.ok(!/AABCU/i.test(value), `read a tax number as a booking reference: ${value}`);
   });
 
+  await t.test('seat and class are read in every mode', async () => {
+    /*
+     * Class appears on air, rail and bus tickets; seat on all three and on cinema
+     * tickets too; berth only on rail. All are captions wherever they appear, and none
+     * was listed as one — so the search fell through to the row below and took the next
+     * caption as the value. A seat on a flight read "PNR", a seat on a bus read "Service
+     * No", and a class on a rail ticket read "BERTH".
+     *
+     * Three modes in one test because the fault was shared: it lived in the label
+     * vocabulary, not in any one adapter, and testing a single mode would have left the
+     * other two to fail quietly.
+     */
+    const flight = await read(page([
+      [40, [[40, 'BOARDING PASS']]],
+      [70, [[40, 'Flight'], [220, '6E 5306']]],
+      [90, [[40, 'From'], [220, 'BLR'], [420, 'To'], [520, 'IXE']]],
+      [110, [[40, 'Seat'], [220, '10F'], [420, 'Class'], [520, 'Economy']]],
+      [130, [[40, 'PNR'], [220, 'NC1FKG']]],
+    ]));
+
+    assert.equal(flight.value('seat'), '10F');
+    assert.equal(flight.value('cabin'), 'Economy');
+
+    const rail = await read(page([
+      [40, [[40, 'Electronic Reservation Slip']]],
+      [70, [[40, 'PNR'], [220, '1234567890']]],
+      [90, [[40, 'Train No.'], [220, '16540']]],
+      [110, [[40, 'From'], [220, 'MAJN'], [420, 'To'], [520, 'YPR']]],
+      [130, [[40, 'Class'], [220, '3E'], [420, 'Coach'], [520, 'M1']]],
+      [150, [[40, 'Berth'], [220, '17']]],
+    ]));
+
+    assert.equal(rail.value('seat'), '17');
+    assert.equal(rail.value('class'), '3E');
+
+    const bus = await read(page([
+      [40, [[40, 'KSRTC Airavat Club Class']]],
+      [70, [[40, 'Boarding Point'], [220, 'Mangaluru']]],
+      [90, [[40, 'Dropping Point'], [220, 'Bengaluru']]],
+      [110, [[40, 'Seat No'], [220, 'A1']]],
+      [130, [[40, 'Service No'], [220, '1234']]],
+    ]));
+
+    assert.equal(bus.value('seat'), 'A1');
+  });
+
   await t.test('a codeshare number is not the flight boarded', async () => {
     // A segment commonly shows both the operating and the marketing flight number. The
     // passenger boards the operating one.
