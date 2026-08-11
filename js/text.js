@@ -258,10 +258,15 @@ export function findValueForLabel(lines, labelPattern, options = {}) {
     // Only ever the column to the right. Falling back to the left finds the *previous*
     // label — "Class" would take its value from "Train No./Name" — and reading order is
     // not ambiguous enough to justify guessing backwards.
+    //
+    // A neighbour that is itself one of the captions this app looks for is refused.
+    // "Passenger Information | Sector | Seat | Baggage" is a header row, and taking the
+    // cell beside the heading reported the passenger as "Sector".
     const beside = () => {
       if (!sameLine) return null;
       const neighbour = columns[labelIndex + 1];
       if (!neighbour?.text || labelPattern.test(neighbour.text)) return null;
+      if (OTHER_LABELS.test(neighbour.text)) return null;
       return { value: neighbour.text.trim(), line, region: neighbour, relation: 'beside' };
     };
 
@@ -307,7 +312,16 @@ export function findValueForLabel(lines, labelPattern, options = {}) {
       // than reporting none — it looks like data.
       const hasContent = /[\p{L}\p{N}]/u.test(after);
 
-      if (after && hasContent && !cutMidLabel) {
+      /*
+       * Nor is the tail of the caption itself.
+       *
+       * "Passenger Information" matched as "Passenger" and left "Information", which was
+       * duly reported as the passenger's name. These are the words that finish a heading
+       * rather than begin a value, and none of them is ever a name, a code or a time.
+       */
+      const captionTail = /^(?:information|details?|summary|itinerary|name|no\.?|number|s)$/i.test(after);
+
+      if (after && hasContent && !cutMidLabel && !captionTail) {
         return { value: after, line, region: labelColumn, relation: 'beside' };
       }
     }
@@ -318,13 +332,32 @@ export function findValueForLabel(lines, labelPattern, options = {}) {
       if (found) return found;
     }
 
-    // ── 3. Directly beneath ──
+    /*
+     * ── 3. Directly beneath ──
+     *
+     * Before looking sideways, because a header row with its values stacked underneath
+     * is the commoner layout by some margin, and the cell to the right of a header is
+     * another header. Trying beside first read "PASSENGER | FLIGHT | FROM | TO" and
+     * reported the passenger as "FLIGHT".
+     */
     if (below) {
       const found = valueBelow(lines, index, labelColumn, labelPattern, maxBelowDistance);
       if (found) return found;
     }
 
-    // ── 4. The next column along ──
+    /*
+     * ── 4. Beside ──
+     *
+     * A great many tickets set a caption and its value side by side with no colon
+     * between them — "PASSENGER NAME    LARRY JOHNSON", "BOOKING REFERENCE    DDY37W".
+     * Gating this on a colon meant the search skipped the value entirely and took the
+     * next *caption* from the line below, so every field held the name of another field:
+     * the passenger was "BOOKING REFERENCE", the booking reference was "E-TICKET
+     * NUMBER", the seat was "BAGGAGE".
+     *
+     * Reached only when nothing was found below, which is why a caption here is still
+     * worth returning: by this point the alternative is a blank.
+     */
     if (!pairForm) {
       const found = beside();
       if (found) return found;
@@ -388,10 +421,98 @@ function valueBelow(lines, index, labelColumn, labelPattern, maxDistance) {
     // and utterly wrong. Without this the booking reference reads "Transaction".
     if (/[:：]\s*$/.test(best.text)) continue;
 
+    /*
+     * A caption beneath a caption is the same trap without the colon.
+     *
+     * Where a ticket stacks its captions — "PASSENGER NAME" over "BOOKING REFERENCE"
+     * over "E-TICKET NUMBER", each with its value out to the right — the cell directly
+     * below every label is another label, and taking it gave every field the name of
+     * the next one.
+     *
+     * The test is narrow on purpose: only a cell that matches one of the *other* labels
+     * this document is looking for. A general "does this read like a caption?" test was
+     * tried first and rejected far too much — "TEJASWI C" and "ECONOMY" are values that
+     * look exactly like captions, and losing them costs more than the trap does.
+     */
+    if (OTHER_LABELS.test(best.text) && !labelPattern.test(best.text)) continue;
+
     return { value: best.text.trim(), line: candidate, region: best, relation: 'below' };
   }
 
   return null;
+}
+
+/**
+ * The captions a ticket uses for the facts this app reads.
+ *
+ * Used to recognise a *label* found where a value was expected. Deliberately a closed
+ * list of things we know are captions, rather than a guess at what captions look like:
+ * plenty of real values — "TEJASWI C", "ECONOMY", "CONFIRMED" — are indistinguishable
+ * from a caption by shape alone, and rejecting those loses more than it saves.
+ *
+ * Vocabulary, not vendor tuning. Every entry is a word the travel industry uses; none
+ * belongs to a particular operator, and an operator changing its layout does not change
+ * what a passenger is called.
+ */
+const OTHER_LABELS = new RegExp([
+  'passenger(?:\\s*(?:name|information|details?))?',
+  'pax(?:\\s*(?:name|details?))?',
+  'booking\\s*(?:reference|ref|id)',
+  'e-?ticket\\s*number',
+  'record\\s*locator',
+  'confirmation\\s*(?:number|code)',
+  'reservation\\s*(?:number|code)',
+  'flight(?:\\s*(?:number|no\\.?|details?))?',
+  'seat(?:\\s*(?:number|no\\.?))?',
+  'sector',
+  'baggage(?:\\s*allowance)?',
+  'gate',
+  'terminal',
+  'origin',
+  'destination',
+  'departure',
+  'arrival',
+  'issued\\s*by',
+  'check-?in\\s*opens',
+  'coupon\\s*validity',
+  'travel\\s*information',
+  'fare\\s*(?:type|basis)',
+  'form\\s*of\\s*payment',
+  'add-?ons?',
+  'status',
+].map((word) => `^\\s*${word}\\s*:?\\s*$`).join('|'), 'i');
+
+/**
+ * Whether a cell reads as a caption rather than a value.
+ *
+ * The distinction matters because a caption sitting where a value should be is how a
+ * field ends up holding the name of another field. An Emirates receipt sets captions in
+ * full caps — "BOOKING REFERENCE", "E-TICKET NUMBER" — and so it turns out do some
+ * *values*, like "ECONOMY" or a passenger's name. Case alone cannot separate them.
+ *
+ * What does separate them is that captions are made of words and values usually are not.
+ * A booking reference has digits in it; a terminal is a number; a class is a code. Two
+ * or more plain alphabetic words with no digit anywhere is the shape of a label, and is
+ * exactly what "BOOKING REFERENCE" and "E-TICKET NUMBER" are.
+ *
+ * A single word is deliberately allowed through: "ECONOMY", "CONFIRMED" and most
+ * passenger surnames are single words, and rejecting those would lose more than it saved.
+ */
+export function looksLikeCaption(value) {
+  const text = String(value || '').trim();
+  if (!text) return true;
+
+  // A colon is unambiguous.
+  if (/[:：]\s*$/.test(text)) return true;
+
+  // Anything with a digit is data of some kind.
+  if (/\d/.test(text)) return false;
+
+  const words = text.split(/\s+/);
+  if (words.length < 2 || words.length > 4) return false;
+
+  // Every word plainly alphabetic, and the whole thing short enough to be a heading.
+  return text.length <= 30 && words.every((word) => /^[A-Za-z][A-Za-z'-]*$/.test(word));
 }
 
 /**

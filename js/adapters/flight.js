@@ -460,6 +460,15 @@ async function build(context) {
  * position beneath a passenger heading. Deliberately conservative, since a wrong name is
  * worse than a blank one the user is asked to fill.
  */
+/**
+ * Words that mark a line as a caption rather than a value.
+ *
+ * A line naming any field is furniture, wherever the word sits in it. Kept as a single
+ * list because a name is the one field with no reliable label — it is found by shape, so
+ * everything that is *not* a name has to be excluded by hand.
+ */
+const CAPTION_WORD = /\b(?:sector|seat|add-?ons?|status|information|details?|baggage|fare|origin|destination|departure|arrival|terminal|gate|class|cabin|flight|passenger|pax|booking|reference|ticket|from|to|date|time|type|gender|age|name)\b/i;
+
 function findPassengerNames(lines) {
   // Case-insensitive: tickets print "Mr", "MR" and "mr" with equal enthusiasm.
   const TITLE = /\b(?:MR|MRS|MS|MISS|MSTR|MASTER|DR|PROF)\.?\s+([A-Z][A-Za-z'’.-]*(?:\s+[A-Z][A-Za-z'’.-]*){0,3})/gi;
@@ -476,10 +485,39 @@ function findPassengerNames(lines) {
   const found = [];
   const seen = new Set();
 
+  /**
+   * Adds a name, unless we already have it.
+   *
+   * Containment, not equality. OCR reads the same passenger twice on a ticket that
+   * prints the name in two places — once in a summary and once beside a barcode — and
+   * picks up a stray word from the neighbouring column on one of them. "MD SHAUKAT ALAM"
+   * and "MD SHAUKAT ALAM Deana" then both survived an exact-match check, and a booking
+   * for four came out as a booking for six.
+   *
+   * The shorter reading wins. A name that is a prefix of another is the clean one; the
+   * extra word came from somewhere else on the page.
+   */
   const add = (value, region) => {
-    const key = value.toUpperCase();
-    if (!value || seen.has(key)) return;
+    if (!value) return;
     if (value.length < 2 || value.length > 40) return;
+
+    const key = value.toUpperCase();
+    if (seen.has(key)) return;
+
+    for (const existing of found) {
+      const other = existing.value.toUpperCase();
+      if (other === key) return;
+
+      // One is the beginning of the other, on a word boundary.
+      if (key.startsWith(`${other} `)) return;
+      if (other.startsWith(`${key} `)) {
+        existing.value = value;
+        existing.region = region;
+        seen.add(key);
+        return;
+      }
+    }
+
     seen.add(key);
     found.push({ value, region });
   };
@@ -498,10 +536,17 @@ function findPassengerNames(lines) {
 
     for (let next = index + 1; next < Math.min(index + 6, lines.length); next++) {
       const value = strip(lines[next].text);
+
       // A name is short, has no digits, and is not another caption.
       if (!value || value.length > 40 || /\d/.test(value)) continue;
-      if (/\b(sector|seat|add-?ons|status|information|details|baggage|fare)\b/i.test(value)) continue;
       if (value.split(/\s+/).length > 5) continue;
+
+      // Any caption word disqualifies the whole line, wherever it sits. Testing only for
+      // a few words allowed "ORIGIN BLR" through as a passenger, because neither word
+      // was on the list — and a line that names a field is a header no matter what else
+      // it carries.
+      if (CAPTION_WORD.test(value)) continue;
+
       add(value, lines[next]);
     }
 
@@ -860,18 +905,62 @@ function cleanSeat(raw) {
  * Everything found is low confidence by construction — nothing here is authoritative —
  * but a low-confidence value the user can correct is far more use than a blank form.
  */
+/**
+ * The IATA code inside a value, however it was written.
+ *
+ * Tickets state a place in at least four ways, and an app that only understands one of
+ * them is an app tuned to whoever printed the ticket it was tested against:
+ *
+ *   BLR
+ *   Bengaluru (BLR)
+ *   BLR - Bengaluru
+ *   Kempegowda International Airport, Bengaluru (BLR)
+ *
+ * A parenthesised three-letter code is taken first, since brackets are unambiguous.
+ * Otherwise the first standalone triple of capitals. Anything else — a city name with no
+ * code at all — returns nothing rather than a guess, because a wrong airport is worse
+ * than a blank one the user is asked to fill.
+ */
+function airportCode(raw) {
+  if (!raw) return '';
+
+  const value = String(raw).trim();
+
+  const bracketed = value.match(/\(\s*([A-Z]{3})\s*\)/);
+  if (bracketed) return bracketed[1];
+
+  // Standalone: bounded by a start, end, or non-letter on both sides, so "DELHI" does
+  // not yield "DEL" and "TERMINAL" does not yield "TER".
+  const standalone = value.toUpperCase().match(/(?:^|[^A-Z])([A-Z]{3})(?:[^A-Z]|$)/);
+  return standalone ? standalone[1] : '';
+}
+
 function buildFromTextOnly(draft, lines) {
   const text = toPlainText(lines);
   const upper = text.toUpperCase();
 
   const map = [
-    ['passenger', 'Passenger', [/\bpassenger\s*name\b/i, /\bname\s*of\s*passenger\b/i, /\btraveller\b/i], true, false],
+    // "Pax" is trade shorthand for a passenger and appears on tickets worldwide — bus,
+    // rail and air alike. Knowing the word is not vendor tuning; it is vocabulary, the
+    // same as knowing "PNR". The same goes for "Dep" and "Arr".
+    ['passenger', 'Passenger', [
+      /\bpassenger\s*(?:name|details?)?\b/i,
+      /\bpax\s*(?:name|details?)?\b/i,
+      /\bname\s*of\s*(?:the\s*)?passenger\b/i,
+      /\btraveller?\s*(?:name)?\b/i,
+      /\bguest\s*name\b/i,
+    ], true, false],
     ['flight', 'Flight', [/\bflight\s*(?:no\.?|number|#)\b/i, /\bflight\b/i], true, true],
-    ['pnr', 'Booking ref', [/\bPNR\s*\/?\s*booking\s*reference\b/i, /\b(?:pnr|booking\s*ref\w*|record\s*locator)\b/i], true, true],
+    ['pnr', 'Booking ref', [
+      /\bPNR\s*\/?\s*booking\s*reference\b/i,
+      /\b(?:pnr|booking\s*ref\w*|record\s*locator)\b/i,
+      /\bconfirmation\s*(?:no\.?|number|code)\b/i,
+      /\breservation\s*(?:no\.?|number|code)\b/i,
+    ], true, true],
     ['seat', 'Seat', [/\bseat\b/i], false, false],
     ['gate', 'Gate', [/\bgate\b/i], false, false],
     ['terminal', 'Terminal', [/\bterminal\b/i], false, false],
-    ['cabin', 'Class', [/\bfare\s*type\b/i, /\bclass\b/i], false, false],
+    ['cabin', 'Class', [/\bfare\s*type\b/i, /\bcabin\b/i, /\bclass\b/i], false, false],
   ];
 
   for (const [key, label, patterns, required, critical] of map) {
@@ -894,6 +983,22 @@ function buildFromTextOnly(draft, lines) {
     }
     if (key === 'seat') value = cleanSeat(value) || value;
 
+    /*
+     * A booking reference has a shape, and a fragment of its own label is not it.
+     *
+     * "PNR No." cannot be matched to its end — there is no word boundary between a full
+     * stop and a space — so the pattern stops at "PNR", leaving " No." as the remainder,
+     * and an agency-issued IndiGo ticket reported its booking reference as the word
+     * "No.". Every reference in use is at least four characters and contains a digit or
+     * is entirely capitals; none is punctuation with two letters attached.
+     */
+    if (key === 'pnr' && value) {
+      const plausible = value.length >= 4
+        && /[A-Z0-9]/.test(value)
+        && !/^[A-Za-z]{1,3}\.?$/.test(value);
+      if (!plausible) { value = ''; fromPage = false; }
+    }
+
     draft.set(key, new Field({
       key,
       label,
@@ -906,20 +1011,52 @@ function buildFromTextOnly(draft, lines) {
     }));
   }
 
-  // ── The route, from a printed sector ──
+  // ── The route ──
   //
-  // Itineraries print "BLR-IXE" far more reliably than they label an origin and a
-  // destination, and a labelled search for "From" on a page full of prose finds
-  // something unhelpful.
+  // Two ways, in order of reliability.
+  //
+  // A printed sector — "BLR-DEL" — is the stronger signal: itineraries carry it far more
+  // reliably than they label an origin and a destination, and it cannot be confused with
+  // prose.
+  //
+  // Failing that, labelled fields. This path had *none*, so a ticket that plainly said
+  // "From: BLR   To: DEL" produced no route at all unless a barcode supplied one. Every
+  // image and every text-only PDF lost its route, which is the single most important
+  // thing on a boarding pass.
   const sector = text.match(SECTOR);
-  if (sector) {
+  let from = sector?.[1] || '';
+  let to = sector?.[2] || '';
+  let routeRegion = null;
+
+  if (!from || !to) {
+    // "Origin" and "Destination" before the bare "From" and "To", which are common words
+    // — "from" appears in every line of small print on a ticket.
+    const originFound = findLabelled(lines, [
+      /\borigin(?:\s*(?:airport|city|station))?\b/i,
+      /\bdeparture\s*(?:airport|city|station)\b/i,
+      /\bfrom\b/i,
+    ]);
+    const destinationFound = findLabelled(lines, [
+      /\bdestination(?:\s*(?:airport|city|station))?\b/i,
+      /\barrival\s*(?:airport|city|station)\b/i,
+      /\bto\b/i,
+    ]);
+
+    from = from || airportCode(originFound?.value);
+    to = to || airportCode(destinationFound?.value);
+    routeRegion = originFound?.region || null;
+  }
+
+  if (from && to) {
     draft.set('origin', new Field({
-      key: 'origin', label: 'From', value: sector[1], source: Source.PDF_TEXT,
-      confidence: Confidence.MEDIUM, required: true, critical: true,
+      key: 'origin', label: 'From', value: from, source: Source.PDF_TEXT,
+      confidence: sector ? Confidence.MEDIUM : Confidence.LOW,
+      region: sector ? null : routeRegion, required: true, critical: true,
     }));
     draft.set('destination', new Field({
-      key: 'destination', label: 'To', value: sector[2], source: Source.PDF_TEXT,
-      confidence: Confidence.MEDIUM, required: true, critical: true,
+      key: 'destination', label: 'To', value: to, source: Source.PDF_TEXT,
+      confidence: sector ? Confidence.MEDIUM : Confidence.LOW,
+      required: true, critical: true,
     }));
   }
 
@@ -1000,7 +1137,19 @@ function buildFromTextOnly(draft, lines) {
   const passengerField = draft.get('passenger');
   const names = findPassengerNames(lines);
 
-  if (names.length && (!passengerField?.value || /\b(information|details|summary)\b/i.test(passengerField.value))) {
+  /*
+   * A name found by shape beats one found by label.
+   *
+   * This used to defer to the label search unless it had returned nothing or an obvious
+   * heading. That held only while the label search was poor: once it learned to look in
+   * the column beside a caption, it started returning the *header* of a passenger table
+   * — "Name", "Sector" — which passed the heading test and blocked the real name.
+   *
+   * A title is close to conclusive. "Mr SAMPLE R" is a person; a cell reading "Name" is
+   * furniture. So a shaped name wins outright, and the label result is kept only when
+   * nothing was found by shape at all.
+   */
+  if (names.length) {
     passengerField.value = names[0].value;
     passengerField.region = names[0].region;
     passengerField.confidence = Confidence.LOW;
