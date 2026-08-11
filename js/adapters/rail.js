@@ -180,8 +180,14 @@ const VOCAB = {
     providerLabel: 'Operator',
     serviceLabel: 'Train',
     servicePatterns: [
-      /\btrain\s*(?:no\.?|number|#)\b/i,
+      // "Train No. & Name" before the looser "Train No", because a pattern that matches
+      // less of a compound label leaves the rest behind and the value is read from the
+      // wrong cell. An ixigo-issued slip lays out "Train No. & Name : 15708/ASR KIR
+      // EXPRESS" beside "Date & Time of Booking", and matching only "Train No" returned
+      // the booking timestamp.
+      /\btrain\s*(?:no\.?|number|#)?\s*(?:&|and)\s*name\b/i,
       /\btrain\s*name\s*(?:&|and)?\s*(?:no\.?|number)?\b/i,
+      /\btrain\s*(?:no\.?|number|#)\b/i,
       /\btrain\b/i,
       /\bservice\s*(?:no\.?|number)\b/i,
     ],
@@ -448,12 +454,25 @@ async function build(context) {
     /\breservation\s*(?:no\.?|number|code)\b/i,
     /\btransaction\s*id\b/i,
   ]);
+
+  /*
+   * A reference has a shape, and a bare word is not it.
+   *
+   * When the value beside a label cannot be found, the search falls to the line below —
+   * which on an ixigo-issued slip is "Transaction ID: 3RJ4...", so the PNR was reported
+   * as the word "Transaction". Every booking reference in use is digits, or letters and
+   * digits mixed; none is a single dictionary word. Rejecting a candidate with no digit
+   * at all costs nothing and removes a whole class of confident nonsense.
+   */
+  const pnrValue = firstColumn(pnr?.value, 24).split(/\s/)[0];
+  const plausible = /\d/.test(pnrValue) && pnrValue.length >= 4;
+
   draft.set('pnr', new Field({
     key: 'pnr',
     label: mode === Mode.RAIL ? 'PNR' : 'Booking ref',
-    value: firstColumn(pnr?.value, 24).split(/\s/)[0],
-    source: pnr ? Source.PDF_TEXT : Source.INFERRED,
-    region: pnr?.region || null,
+    value: plausible ? pnrValue : '',
+    source: (pnr && plausible) ? Source.PDF_TEXT : Source.INFERRED,
+    region: plausible ? pnr?.region || null : null,
     required: true,
     critical: true,
   }));

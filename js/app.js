@@ -959,7 +959,7 @@ function renderPass(ticket) {
            <span class="code">${escapeHtml(f.origin)}</span>
            ${ticket.originName ? `<span class="place-name">${escapeHtml(ticket.originName)}</span>` : ''}
          </div>
-         <div class="pass-glyph">${transitGlyph(ticket.transitType)}</div>
+         <div class="pass-glyph">${transitGlyph(ticket.transitType, 30)}</div>
          <div class="endpoint right">
            <span class="code">${escapeHtml(f.destination)}</span>
            ${ticket.destinationName ? `<span class="place-name">${escapeHtml(ticket.destinationName)}</span>` : ''}
@@ -1308,9 +1308,10 @@ async function handleSource(loader, description) {
 
     if (!lines.length) {
       // Only when nothing else has already explained it. A kept barcode image raises its
-      // own warning, and saying the same thing twice in different words reads as a fault
-      // in the app rather than a fact about the ticket.
-      const alreadySaid = draft.warnings.some((w) => /printed text|kept exactly/i.test(w));
+      // own warning, and the generic adapter now explains the unreadable-image case in
+      // its own words; saying the same thing twice reads as a fault in the app rather
+      // than a fact about the ticket.
+      const alreadySaid = draft.warnings.some((w) => /printed text|kept exactly|photo or a\s+scan/i.test(w));
       if (!alreadySaid) {
         draft.warnings.push(barcodes.primary
           ? 'We read the barcode but not the printed text, so most details need filling in.'
@@ -2273,7 +2274,14 @@ function kindGlyph(kind, transitType) {
  * and is read as an arrow, so nose-right says "this flight, in this direction". Trains
  * and buses are not directional in the same way and stay upright.
  */
-function transitGlyph(transitType) {
+/**
+ * The mark between origin and destination.
+ *
+ * `size` because the same glyph appears on a list card beside 26px codes and on the pass
+ * beside 48px ones. Drawn at one fixed size for both, it looked deliberate on the card
+ * and lost on the pass — a train dwarfed by the station codes either side of it.
+ */
+function transitGlyph(transitType, size = 20) {
   const category = {
     PKTransitTypeAir: 'flight',
     PKTransitTypeTrain: 'rail',
@@ -2284,7 +2292,7 @@ function transitGlyph(transitType) {
 
   const rotate = category === 'flight' ? ' transform="rotate(90 12 12)"' : '';
 
-  return `<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
+  return `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="currentColor" aria-hidden="true">
     <g${rotate}>${glyphFor(category)}</g>
   </svg>`;
 }

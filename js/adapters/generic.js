@@ -21,14 +21,33 @@ import {
 } from './registry.js';
 
 /**
- * Accepts only when a barcode was read, and always with a low score.
+ * Accepts when a barcode was read, or when there was nothing to read at all.
  *
- * Low deliberately: every other adapter earns its score from evidence, and this one has
- * none beyond "there is a barcode here". It must never win against an adapter that
- * actually recognised the document.
+ * Two quite different situations, both ending here:
+ *
+ *   A barcode decoded but no adapter recognised the document. Common for cinema and
+ *   event tickets, whose QR holds a booking reference and whose layout we do not know.
+ *
+ *   The document had no text layer whatsoever — a screenshot, a photograph, a scan.
+ *   Refusing these was the single largest source of "this doesn't look like a ticket",
+ *   and it was the wrong answer: we had not read the document and *disagreed* with it,
+ *   we had not read it at all. Declining on no evidence is not a judgement, it is a
+ *   shrug, and the user is left holding a ticket the app will not take.
+ *
+ * The distinction that keeps the electricity bill out still holds. A bill has a text
+ * layer, gets read, matches no adapter, and is refused — as it should be. This only
+ * catches documents where there is nothing to disagree with.
+ *
+ * Low score deliberately: every other adapter earns its score from evidence, and this
+ * one has none. It must never win against an adapter that recognised the document.
  */
 function detect(context) {
-  return context.barcode?.text || context.barcode?.bytes?.length ? 5 : 0;
+  if (context.barcode?.text || context.barcode?.bytes?.length) return 5;
+
+  // Nothing legible on the page. Note this is `lines`, not the raw text: a scan produces
+  // a document with pages and images but no words, which is exactly this case.
+  const unreadable = !context.lines?.length;
+  return unreadable ? 3 : 0;
 }
 
 /**
@@ -97,17 +116,27 @@ function build(context) {
 
   const text = toPlainText(lines);
 
-  // The barcode is the entire reason this adapter accepts the document at all. Without
-  // this line the pass is a title and a reference with nothing to scan — which is worse
-  // than the refusal it replaced, because it looks like it worked.
+  // The barcode is the entire reason this adapter accepts a document that has one. Where
+  // there is none, the pass carries only what the user types and the picture of the page.
   draft.barcode = barcode || null;
 
-  draft.warnings.push(text.trim()
-    ? 'We recognised the barcode but not what this ticket is for. Please check every '
-      + 'detail and add anything missing.'
-    : 'We read the barcode from this image, but none of the printed text. The barcode '
-      + 'is the part that gets scanned, so the pass will work — but please fill in the '
-      + 'details yourself and keep the original.');
+  const hasCode = Boolean(barcode?.text || barcode?.bytes?.length);
+
+  draft.warnings.push(
+    hasCode && text.trim()
+      ? 'We recognised the barcode but not what this ticket is for. Please check every '
+        + 'detail and add anything missing.'
+      : hasCode
+        ? 'We read the barcode from this image, but none of the printed text. The barcode '
+          + 'is the part that gets scanned, so the pass will work — but please fill in the '
+          + 'details yourself and keep the original.'
+        // No code and no text: an image or a scan. Saying so plainly matters, because the
+        // pass is a picture and a set of typed details, and someone who expected a
+        // scannable code should find that out now rather than at a barrier.
+        : 'We could not read any text or barcode from this — it looks like a photo or a '
+          + 'scan. The picture is kept so you can still show it, but nothing on it can be '
+          + 'scanned from the pass. Add the details yourself, and keep the original.',
+  );
 
   return draft;
 }

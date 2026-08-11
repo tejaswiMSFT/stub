@@ -269,6 +269,31 @@ export function findValueForLabel(lines, labelPattern, options = {}) {
     if (sameLine) {
       const match = labelColumn.text.match(labelPattern);
       const rest = labelColumn.text.slice(match.index + match[0].length);
+
+      /*
+       * A colon settles it: whatever follows is the value.
+       *
+       * This has to come before the punctuation guard below, because the two layouts
+       * look identical up to that colon. "Train No. / Name : 16575 / GOMTESHWARA EXP"
+       * and "PNR No. : 2364927203" both leave a remainder starting with a full stop —
+       * the pattern cannot end on "No." since there is no word boundary between a stop
+       * and a space, so it backtracks to "No" every time. Guessing from the punctuation
+       * alone got one of them wrong whichever way it was written; the colon says plainly
+       * where the label ends.
+       *
+       * Only a colon that terminates the *label* counts. What comes before it must be
+       * label material — punctuation and words — because a value can contain a colon of
+       * its own: "Departure  22:40" leaves "  22:40", and splitting on that colon
+       * reported a departure time of "40".
+       */
+      const colon = rest.indexOf(':');
+      if (colon !== -1 && !/\d/.test(rest.slice(0, colon))) {
+        const value = rest.slice(colon + 1).trim();
+        if (/[\p{L}\p{N}]/u.test(value)) {
+          return { value, line, region: labelColumn, relation: 'beside' };
+        }
+      }
+
       const after = rest.replace(/^[\s:—–*†‡#-]+/, '').trim();
 
       // A remainder beginning with punctuation means the pattern cut a compound label
