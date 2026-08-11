@@ -100,6 +100,64 @@ test('a value is not confused with something that merely looks like one', async 
     assert.match(draft.value('flight') || draft.value('service') || '', /6E\s*5306/i);
   });
 
+  await t.test('a tax identifier is not a booking reference', async () => {
+    // Any ticket that doubles as an invoice prints these in the same grid as the booking
+    // reference, holding values of exactly the same shape — a GSTIN is 15 alphanumeric
+    // characters, a VAT number and a TIN are in the same range.
+    //
+    // Every variant, not just the one that was reported: the document that prints GSTIN
+    // prints CGST and SGST beside it, and a guard against only the first guards nothing.
+    //
+    // Laid out as label-above-value, which is the layout this reads correctly today. The
+    // side-by-side form is covered by the standalone case below, which asserts only that
+    // the tax number is refused — the reference itself is not always found there, for the
+    // separate reason recorded at the end of this file.
+    const draft = await read(page([
+      [40, [[40, 'TAX INVOICE']]],
+      [70, [[40, 'GSTIN'], [220, '07AABCU9603R1ZM']]],
+      [90, [[40, 'PAN No'], [220, 'AABCU9603R']]],
+      [110, [[40, 'CGST'], [220, '9%'], [400, 'SGST'], [520, '9%']]],
+      [130, [[40, 'VAT Reg No'], [220, 'GB123456789']]],
+      [150, [[40, 'TIN'], [220, '29070102345']]],
+      [190, [[40, 'Booking Reference']]],
+      [210, [[40, 'Q7XK2M']]],
+      [240, [[40, 'Flight']]],
+      [260, [[40, '6E 2134']]],
+      [290, [[40, 'From'], [220, 'To']]],
+      [310, [[40, 'BLR'], [220, 'DEL']]],
+    ]));
+
+    assert.equal(draft.value('pnr'), 'Q7XK2M');
+    assert.equal(draft.value('origin'), 'BLR');
+    assert.equal(draft.value('destination'), 'DEL');
+  });
+
+  await t.test('a tax identifier is not a booking reference, even standing alone', async () => {
+    // The harder case: no other reference on the page at all. Reading the GSTIN here
+    // would look like a success and be quoted at a desk.
+    //
+    // Note this document is currently *refused* — a tax invoice with one flight line
+    // does not score highly enough to be recognised — which is the correct answer for a
+    // receipt and would be the wrong one for a ticket that happens to carry tax details.
+    // Asserted as "does not report a tax number as a reference", which holds either way,
+    // rather than asserting a refusal that ought to change.
+    let value = '';
+    try {
+      const draft = await read(page([
+        [40, [[40, 'TAX INVOICE']]],
+        [70, [[40, 'GST No'], [220, '07AABCU9603R1ZM']]],
+        [100, [[40, 'Flight'], [220, '6E 2134']]],
+        [120, [[40, 'From'], [220, 'BLR'], [420, 'To'], [520, 'DEL']]],
+        [140, [[40, 'Passenger Name'], [220, 'TEJASWI C']]],
+      ]));
+      value = draft.value('pnr') || '';
+    } catch {
+      // Refused outright, which cannot report a tax number as anything.
+    }
+
+    assert.ok(!/AABCU/i.test(value), `read a tax number as a booking reference: ${value}`);
+  });
+
   await t.test('a codeshare number is not the flight boarded', async () => {
     // A segment commonly shows both the operating and the marketing flight number. The
     // passenger boards the operating one.

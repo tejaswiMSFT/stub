@@ -247,6 +247,16 @@ export function findValueForLabel(lines, labelPattern, options = {}) {
 
     const labelColumn = columns[labelIndex];
 
+    /*
+     * A tax identifier is never what we were looking for.
+     *
+     * On any ticket that doubles as an invoice, "GSTIN", "VAT No" and "TIN" sit in the
+     * same grid as the booking reference and hold values of exactly the same shape. A
+     * label that carries one of them, or a cell that does, belongs to the tax section —
+     * and a pass quoting a tax number where a PNR should be would be rejected at a desk.
+     */
+    if (TAX_IDENTIFIER.test(labelColumn.text)) continue;
+
     // A label ending in a colon announces its own value, and that value sits beside it.
     // Table headers do not carry colons, so this cleanly separates the two layouts an
     // Indian rail ticket can use: a header row with values stacked beneath, and a grid
@@ -443,6 +453,21 @@ function valueBelow(lines, index, labelColumn, labelPattern, maxDistance) {
 }
 
 /**
+ * Tax and registration identifiers.
+ *
+ * These sit beside the booking reference on any ticket that doubles as an invoice, and
+ * they look exactly like one: alphanumeric, the right sort of length, printed against a
+ * caption. An Indian GSTIN is 15 characters; a VAT number, a TIN and a PAN are all in
+ * the same range.
+ *
+ * They are never a booking reference, and a pass carrying a tax number where a PNR
+ * belongs would be quoted at a desk and rejected. Listed as a family rather than one
+ * example, because the same document that prints GSTIN prints CGST, SGST and IGST
+ * alongside it, and a guard against only the first is a guard against nothing.
+ */
+export const TAX_IDENTIFIER = /\b(?:GSTIN|GST(?:\s*(?:no\.?|number|id))?|[CSIU]GST|VAT(?:\s*(?:no\.?|number|reg\w*))?|TIN(?:\s*(?:no\.?|number))?|PAN(?:\s*(?:no\.?|number))?|TAX\s*(?:id|no\.?|number|invoice|registration)|HSN|SAC|CIN|IEC)\b/i;
+
+/**
  * The captions a ticket uses for the facts this app reads.
  *
  * Used to recognise a *label* found where a value was expected. Deliberately a closed
@@ -472,6 +497,16 @@ const OTHER_LABELS = new RegExp([
   'destination',
   'departure',
   'arrival',
+  // Tax captions, so a value is never taken from the cell next to one.
+  'gstin',
+  'gst(?:\\s*(?:no\\.?|number|id))?',
+  '[csiu]gst',
+  'vat(?:\\s*(?:no\\.?|number))?',
+  'tin(?:\\s*(?:no\\.?|number))?',
+  'pan(?:\\s*(?:no\\.?|number))?',
+  'tax\\s*(?:id|no\\.?|number|invoice)',
+  'hsn',
+  'sac',
   'issued\\s*by',
   'check-?in\\s*opens',
   'coupon\\s*validity',
