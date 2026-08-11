@@ -70,6 +70,28 @@ function detect(context) {
   if (/\bECONOMY\b|\bBUSINESS\s*CLASS\b|\bPREMIUM\s*ECONOMY\b/.test(text)) score += 10;
   if (/\bAVIATION\b|\bAIRFARE\b|\bFLIGHT\s*SUMMARY\b/.test(text)) score += 15;
 
+  /*
+   * Two airport codes in brackets, on a page that says nothing about rail or road.
+   *
+   * "Kuching (KCH)" and "Kuala Lumpur (KUL)" is how a great many itineraries write a
+   * route, and none of the tests above sees it: there is no hyphen so SECTOR misses, the
+   * word "airport" may not appear, and the flight number sits under the logo with no
+   * caption. An AirAsia e-ticket scored 35 against a threshold of 40 and was refused
+   * outright — a real ticket, told it did not look like one.
+   *
+   * The exclusion is essential and was missing at first. An IRCTC slip writes its
+   * stations exactly the same way — "MANGALURU JN (MAJN)", "YESVANTPUR JN (YPR)" — so
+   * without it every Indian rail ticket scored as a flight, and 27 tests failed at once.
+   * A bracketed triple is only an airport code where nothing else claims the document.
+   */
+  const bracketed = text.match(/\(\s*[A-Z]{3}\s*\)/g);
+  const otherMode = /\bTRAIN\b|\bRAILWAY\b|\bIRCTC\b|\bPNR\s*NO\b|\bCOACH\b|\bBERTH\b|\bPLATFORM\b|\bBUS\b|\bBOARDING\s*POINT\b/.test(text);
+  if (bracketed && bracketed.length >= 2 && !otherMode) score += 25;
+
+  // Phrases that belong to an air itinerary and to no other document.
+  if (/\bDEPARTURE\s*FLIGHT\b|\bRETURN\s*FLIGHT\b|\bONWARD\s*FLIGHT\b/.test(text)) score += 20;
+  if (/\bSUBCLASS\b|\bFARE\s*BASIS\b|\bBAGGAGE\s*ALLOWANCE\b/.test(text)) score += 10;
+
   return score >= 40 ? Math.min(score, 90) : 0;
 }
 
