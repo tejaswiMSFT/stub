@@ -39,10 +39,13 @@
     object-src 'none'         no plugins, ever.
     base-uri 'none'           an injected <base> cannot re-point every relative URL.
     form-action 'none'        there are no forms, and an injected one cannot submit.
-    frame-ancestors 'none'    this page cannot be framed, so it cannot be clickjacked.
 
-  Mail bodies are rendered in a sandboxed iframe with a policy of their own — see
-  FRAME_CSP in js/email.js. This one governs the app.
+  frame-ancestors is deliberately absent: a browser ignores it when it arrives in a
+  <meta> tag rather than a header, and a directive that does nothing but log a warning
+  is worse than none — it reads as protection that is not there. GitHub Pages does not
+  let us set headers, so being framed is not defended against here. It matters little:
+  there is nothing to clickjack, since every destructive action needs a deliberate
+  gesture and the app holds no session anyone could ride.
 -->
 <meta http-equiv="Content-Security-Policy" content="
   default-src 'self';
@@ -56,7 +59,6 @@
   object-src 'none';
   base-uri 'none';
   form-action 'none';
-  frame-ancestors 'none';
 ">
 
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">

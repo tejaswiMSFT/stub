@@ -120,6 +120,29 @@ export function classify(context) {
   if (RAIL_CLASSES.test(upper) && /\bCLASS\b/.test(upper)) rail += 15;
   if (/\bTRAIN\b/.test(upper)) rail += 10;
 
+  /*
+   * Rail vocabulary in the languages rail tickets are actually printed in.
+   *
+   * A Deutsche Bahn ticket was refused outright — "this doesn't look like a ticket" —
+   * while carrying the words Fahrkarte, Wagen, Liegeplatz and Abteilwagen, and an Aztec
+   * code plainly on its face. Every signal above is English, so a European rail ticket
+   * scored zero on a document that says "railway ticket" four times in German.
+   *
+   * These are the words that appear on the ticket itself, not a translation exercise:
+   * German, French, Italian, Spanish and Dutch cover the operators most likely to be
+   * met by someone whose ticket this app is meant to hold. Nothing here is
+   * operator-specific — DB may reprint its tickets tomorrow, but a Wagen will still be
+   * a Wagen.
+   */
+  if (/\bFAHRKARTE\b|\bFAHRSCHEIN\b|\bZUGBINDUNG\b|\bREISEVERBINDUNG\b/.test(upper)) rail += 40;
+  if (/\bWAGEN\b|\bABTEIL\w*\b|\bLIEGEPL\w+\b|\bSITZPLATZ\b|\bGLEIS\b/.test(upper)) rail += 25;
+  if (/\bBILLET\b|\bVOITURE\b|\bQUAI\b|\bTRAJET\b/.test(upper)) rail += 25;
+  if (/\bBIGLIETTO\b|\bCARROZZA\b|\bBINARIO\b/.test(upper)) rail += 25;
+  if (/\bBILLETE\b|\bCOCHE\b|\bAND[EÉ]N\b|\bVAG[OÓ]N\b/.test(upper)) rail += 25;
+  if (/\bTREINKAARTJE\b|\bSPOOR\b|\bRIJTUIG\b/.test(upper)) rail += 25;
+  if (/\bBAHN\b|\bZUG\b|\bTRENO\b|\bTREN\b|\bTREIN\b/.test(upper)) rail += 15;
+  if (/\bONLINE-?TICKET\b/.test(upper) && /\bBAHN\b|\bZUG\b/.test(upper)) rail += 20;
+
   // ── Bus-specific vocabulary ──
   if (/\bBUS\b/.test(upper)) bus += 25;
   if (/\bBOARDING\s*(?:POINT|PLACE|AT)\b/.test(upper)) bus += 30;
