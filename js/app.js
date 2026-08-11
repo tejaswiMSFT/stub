@@ -1261,13 +1261,17 @@ function openAdd() {
 const STEPS = [
   ['read', 'Reading the file'],
   ['barcode', 'Finding the barcode'],
+  // Hidden unless it happens. A PDF with a text layer never reaches this, and listing a
+  // step that will be skipped invites the user to wonder what went wrong with it.
+  ['ocr', 'Reading the text from the picture'],
   ['identify', 'Working out what kind of ticket this is'],
   ['compose', 'Putting it together'],
 ];
 
 async function handleSource(loader, description) {
   try {
-    $('steps').innerHTML = STEPS.map(([id, label]) => `<li data-step="${id}">${escapeHtml(label)}</li>`).join('');
+    $('steps').innerHTML = STEPS.map(([id, label]) =>
+      `<li data-step="${id}"${id === 'ocr' ? ' hidden' : ''}>${escapeHtml(label)}</li>`).join('');
     $('working-detail').textContent = description || 'This happens on your device.';
     show('working');
 
@@ -1281,7 +1285,40 @@ async function handleSource(loader, description) {
 
     let lines = [];
     if (ingested.textItems?.length) lines = buildLines(ingested.textItems);
-    else if (ingested.ocrWords?.length) lines = linesFromOcr(ingested.ocrWords, { scale: ingested.displayScale || 1 });
+
+    /*
+     * Nothing to read. Try looking at it.
+     *
+     * Only here, and only for this case. The engine and its model are about 5.5 MB, and
+     * a PDF with a text layer — which most tickets are — must never pay for them. The
+     * import sits inside the branch for exactly that reason: a screenshot is the minority
+     * case, and it is the only one that waits.
+     *
+     * Failure is not an error. If the engine cannot start, cannot finish, or reads
+     * nothing, the pass is built from the barcode and whatever the user types, which is
+     * precisely where things stood before this existed.
+     */
+    if (!lines.length && ingested.displayCanvas?.width) {
+      step('ocr', 'active');
+
+      const { readWords } = await import('./ocr.js');
+      const words = await readWords(ingested.displayCanvas, {
+        onProgress: (fraction) => step('ocr', 'active', `Reading the text — ${Math.round(fraction * 100)}%`),
+      });
+
+      if (words?.length) {
+        ingested.ocrWords = words;
+        // Positions are already in the display canvas's coordinates, so no further
+        // scaling is wanted here — passing displayScale again would move every word.
+        lines = linesFromOcr(words, { scale: 1 });
+      }
+
+      step('ocr', 'done', 'Reading the text from the picture');
+    }
+
+    if (!lines.length && ingested.ocrWords?.length) {
+      lines = linesFromOcr(ingested.ocrWords, { scale: ingested.displayScale || 1 });
+    }
 
     step('identify', 'active');
     const draft = await extract({ lines, barcode: barcodes.primary, ingested });
@@ -1390,9 +1427,15 @@ function releaseCanvases(ingested) {
   }
 }
 
-function step(id, status) {
+function step(id, status, label = null) {
   const item = document.querySelector(`[data-step="${id}"]`);
   if (!item) return;
+
+  // A step can say what it is doing as well as that it is doing it. OCR is the slow one
+  // and the only one worth a percentage — silence for half a minute reads as a hang.
+  if (label) item.textContent = label;
+
+  item.hidden = false;
   item.classList.toggle('active', status === 'active');
   if (status === 'done') { item.classList.remove('active'); item.classList.add('done'); }
 }

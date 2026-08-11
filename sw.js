@@ -53,6 +53,12 @@ const ASSETS = [
   './js/haptics.js',
   './js/swipe.js',
   './js/snapshot.js',
+  // The OCR *module* is tiny and always cached. The engine it loads — about 5.5 MB of
+  // WebAssembly and language data under vendor/tesseract/ — deliberately is not: most
+  // tickets are PDFs with a text layer and must never pay for it on first open. It is
+  // fetched the first time a picture needs reading and cached by the runtime handler
+  // below, so it works offline from then on.
+  './js/ocr.js',
   './js/brand.js',
   './js/brand-identity.js',
   './js/build.js',
