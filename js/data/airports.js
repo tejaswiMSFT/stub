@@ -356,6 +356,60 @@ IXB|Bagdogra|Bagdogra|54
 ATQ|Amritsar|Sri Guru Ram Dass Jee International|54
 CJB|Coimbatore|Coimbatore International|54
 VTZ|Visakhapatnam|Visakhapatnam|54
+IXE|Mangaluru|Mangalore International|54
+IXM|Madurai|Madurai|54
+IXR|Ranchi|Birsa Munda|54
+IXJ|Jammu|Jammu|54
+IXL|Leh|Kushok Bakula Rimpochee|54
+IXZ|Port Blair|Veer Savarkar International|54
+IXU|Aurangabad|Aurangabad|54
+IXD|Prayagraj|Prayagraj|54
+IXS|Silchar|Silchar|54
+IXA|Agartala|Maharaja Bir Bikram|54
+TIR|Tirupati|Tirupati|54
+TRZ|Tiruchirappalli|Tiruchirappalli International|54
+HBX|Hubballi|Hubli|54
+RAJ|Rajkot|Rajkot|54
+BDQ|Vadodara|Vadodara|54
+STV|Surat|Surat|54
+JDH|Jodhpur|Jodhpur|54
+UDR|Udaipur|Maharana Pratap|54
+DED|Dehradun|Jolly Grant|54
+IMF|Imphal|Bir Tikendrajit International|54
+DIB|Dibrugarh|Dibrugarh|54
+JRH|Jorhat|Jorhat|54
+RPR|Raipur|Swami Vivekananda|54
+BHO|Bhopal|Raja Bhoj|54
+JLR|Jabalpur|Jabalpur|54
+GWL|Gwalior|Gwalior|54
+KNU|Kanpur|Kanpur|54
+GOP|Gorakhpur|Gorakhpur|54
+BHU|Bhavnagar|Bhavnagar|54
+JGA|Jamnagar|Jamnagar|54
+KLH|Kolhapur|Kolhapur|54
+NDC|Nanded|Nanded|54
+SAG|Shirdi|Shirdi|54
+BEP|Bellary|Bellary|54
+MYQ|Mysuru|Mysore|54
+CNN|Kannur|Kannur International|54
+CCJ|Kozhikode|Calicut International|54
+TCR|Tuticorin|Tuticorin|54
+SXV|Salem|Salem|54
+PNY|Puducherry|Puducherry|54
+VGA|Vijayawada|Vijayawada|54
+RJA|Rajahmundry|Rajahmundry|54
+CDP|Kadapa|Kadapa|54
+KJB|Kurnool|Kurnool|54
+JRG|Jharsuguda|Jharsuguda|54
+DHM|Dharamshala|Gaggal|54
+SLV|Shimla|Shimla|54
+KUU|Kullu|Bhuntar|54
+PGH|Pantnagar|Pantnagar|54
+BKB|Bikaner|Nal|54
+KQH|Ajmer|Kishangarh|54
+HSS|Hisar|Hisar|54
+LUH|Ludhiana|Sahnewal|54
+BUP|Bathinda|Bathinda|54
 KHI|Karachi|Jinnah International|53
 LHE|Lahore|Allama Iqbal International|53
 ISB|Islamabad|Islamabad International|53

@@ -90,6 +90,9 @@ export function attach(root, { onArchive, onDelete } = {}) {
     let offset = 0;
     let armed = null;      // which side has passed the commit point, for the haptic
 
+    const archivePanel = row.querySelector('.swipe-action.archive');
+    const deletePanel = row.querySelector('.swipe-action.delete');
+
     row.classList.remove('settling');
 
     const move = (moveEvent) => {
@@ -104,6 +107,8 @@ export function attach(root, { onArchive, onDelete } = {}) {
         axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
         if (axis === 'y') { finish(false); return; }
 
+        row.classList.add('dragging');
+
         // The card is ours now. Without capture, a finger leaving the card mid-drag
         // silently strands it half-open.
         try { card.setPointerCapture(moveEvent.pointerId); } catch { /* not fatal */ }
@@ -115,6 +120,11 @@ export function attach(root, { onArchive, onDelete } = {}) {
         : Math.sign(dx) * (COMMIT + (Math.abs(dx) - COMMIT) * RESIST);
 
       card.style.setProperty('--swipe', `${offset.toFixed(1)}px`);
+
+      // Only the panel the gesture is heading towards is shown. Revealing both would say
+      // the card is about to do two things at once.
+      archivePanel?.classList.toggle('armed', offset > 0);
+      deletePanel?.classList.toggle('armed', offset < 0);
 
       // One tick as the threshold is crossed, in either direction, the way a switch
       // clicks — it tells the user the release will do something before they let go.
@@ -132,6 +142,7 @@ export function attach(root, { onArchive, onDelete } = {}) {
 
       if (!release || axis !== 'x') {
         card.style.removeProperty('--swipe');
+        row.classList.remove('dragging');
         return;
       }
 
@@ -143,6 +154,9 @@ export function attach(root, { onArchive, onDelete } = {}) {
 
       if (!commit) {
         card.style.setProperty('--swipe', '0px');
+        // Let the card get home before the colour goes, or the panel disappears from
+        // under a card still sliding over it.
+        setTimeout(() => row.classList.remove('dragging'), 280);
         return;
       }
 
@@ -150,20 +164,26 @@ export function attach(root, { onArchive, onDelete } = {}) {
       const action = offset > 0 ? onArchive : onDelete;
       const id = card.dataset.ticket;
 
-      // Send the card the rest of the way out before the row collapses, so the two read
-      // as one movement rather than a jump followed by a fold.
+      // The card leaves first and the row folds behind it, as one movement rather than a
+      // jump followed by a fold. Both start now, not after the write returns: waiting on
+      // IndexedDB left the card frozen mid-swipe for as long as the write took, which is
+      // exactly the "no animation, it just says deleted" this was reported as.
       card.style.setProperty('--swipe', `${offset > 0 ? row.offsetWidth : -row.offsetWidth}px`);
 
+      row.style.height = `${row.offsetHeight}px`;
+      // Forces the height to be applied before it is changed, or there is nothing to
+      // animate from and the row vanishes instantly.
+      void row.offsetHeight;
+      row.classList.add('leaving');
+
       Promise.resolve(action?.(id)).then((ok) => {
+        // The write failed, so the pass is still there and must look it.
         if (ok === false) {
+          row.classList.remove('leaving');
+          row.style.removeProperty('height');
           card.style.setProperty('--swipe', '0px');
-          return;
+          setTimeout(() => row.classList.remove('dragging'), 280);
         }
-        row.style.height = `${row.offsetHeight}px`;
-        // Forces the height to be applied before it is changed, or there is nothing to
-        // animate from and the row vanishes instantly.
-        void row.offsetHeight;
-        row.classList.add('leaving');
       });
     };
 

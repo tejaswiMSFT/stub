@@ -97,11 +97,25 @@ function buildRouteFields(draft, leg, lines) {
     critical: true,
   }));
 
+  /*
+   * An unknown code is our gap, not the ticket's fault.
+   *
+   * The reference table is deliberately small — a complete airport database is megabytes,
+   * and this loads in a browser at a gate — so codes will be missing, and IXE was:
+   * Mangaluru, a real airport, read correctly from the barcode. Flagging it as a problem
+   * with the ticket asked the user to check something that was already right, and did it
+   * in the warning colour used for genuine faults.
+   *
+   * A code from the barcode is the airline's own record of where this flight goes. All we
+   * can honestly say is that we have nothing to add.
+   */
   if (from) origin.note = from.city ? `${from.city}${from.name ? ` — ${from.name}` : ''}` : from.name;
-  else origin.warn('This airport code is not one we recognise.', 'unknown-airport');
+  else if (origin.source !== Source.BARCODE) origin.warn('This airport code is not one we recognise.', 'unknown-airport');
+  else origin.note = 'We do not hold a name for this airport.';
 
   if (to) destination.note = to.city ? `${to.city}${to.name ? ` — ${to.name}` : ''}` : to.name;
-  else destination.warn('This airport code is not one we recognise.', 'unknown-airport');
+  else if (destination.source !== Source.BARCODE) destination.warn('This airport code is not one we recognise.', 'unknown-airport');
+  else destination.note = 'We do not hold a name for this airport.';
 
   // The PDF usually prints the codes too; agreement confirms we read the right record.
   const printed = toPlainText(lines).toUpperCase();

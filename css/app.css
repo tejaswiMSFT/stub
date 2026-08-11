@@ -467,9 +467,24 @@ p { margin: 0; }
   -webkit-tap-highlight-color: transparent;
 }
 
+/*
+ * Press feedback, as a scale factor rather than a whole transform.
+ *
+ * `.card.pressing { transform: scale(...) }` replaced the card's transform outright, and
+ * a card is "pressing" for the whole of a drag — so the swipe's translation was thrown
+ * away on every pointer move and the card never left its place. Composing through a
+ * custom property lets a card be both pressed and dragged, which is exactly what happens
+ * when a finger goes down and then moves.
+ */
 .card.pressing {
-  transform: scale(0.968);
+  --press: 0.968;
   filter: brightness(0.97);
+}
+
+/* Not while swiping: the card is following a finger, not being pressed. */
+.swipe.dragging > .card.pressing {
+  --press: 1;
+  filter: none;
 }
 
 .action.pressing,
@@ -541,7 +556,20 @@ p { margin: 0; }
   color: #fff;
   /* Behind the card, which is the whole illusion. */
   z-index: 0;
+
+  /*
+   * Hidden until a swipe is actually under way.
+   *
+   * The card is not opaque during its entrance animation, so on every load both panels
+   * showed straight through it — a red and green flash across the list before the cards
+   * faded in. Revealing them only while dragging also means the panel that appears is
+   * the one the gesture is heading towards, rather than both at once.
+   */
+  opacity: 0;
+  transition: opacity 0.12s ease;
 }
+
+.swipe.dragging .swipe-action.armed { opacity: 1; }
 
 .swipe-action.archive { left: 0; justify-content: flex-start; background: var(--green); }
 .swipe-action.delete { right: 0; justify-content: flex-end; background: var(--red); }
@@ -550,20 +578,22 @@ p { margin: 0; }
   position: relative;
   z-index: 1;
   width: 100%;
-  /* Set from script during a drag; the transition is added only on release, so the card
-     tracks the finger exactly while it is down and eases home when it is let go. */
-  transform: translateX(var(--swipe, 0px));
+  /* The translation itself lives in the shared `.card` transform, so that the press
+     scale can compose with it rather than overwrite it. */
 }
 
 .swipe.settling > .card { transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1); }
 
 /* Committed: the card leaves, then the row collapses so the list closes the gap. */
 .swipe.leaving {
-  transition: height 0.24s ease, opacity 0.24s ease, margin 0.24s ease;
+  transition: height 0.26s ease, opacity 0.26s ease, margin 0.26s ease;
   height: 0 !important;
   opacity: 0;
   margin-bottom: 0 !important;
 }
+
+/* The card is still travelling while the row folds, so it needs its own transition. */
+.swipe.leaving > .card { transition: transform 0.26s cubic-bezier(0.4, 0, 1, 1); }
 
 @media (prefers-reduced-motion: reduce) {
   .swipe.settling > .card { transition: none; }
@@ -639,13 +669,34 @@ p { margin: 0; }
   to { opacity: 1; transform: none; }
 }
 
-.card { animation: card-in 0.42s cubic-bezier(0.2, 0.9, 0.3, 1) both; }
-.card:nth-child(2) { animation-delay: 0.045s; }
-.card:nth-child(3) { animation-delay: 0.09s; }
-.card:nth-child(4) { animation-delay: 0.13s; }
-.card:nth-child(n+5) { animation-delay: 0.16s; }
+/*
+ * The entrance animation belongs to the wrapper, not to the card.
+ *
+ * It animates `transform`, and a CSS animation outranks a normal declaration — with
+ * `both` fill it holds `transform: none` indefinitely after finishing. On the card that
+ * silently defeated the swipe's own `translateX` for good: the card never moved a pixel,
+ * while the gesture itself worked, so a swipe deleted a pass with no animation at all.
+ *
+ * The stagger has to move with it for a second reason. The card is no longer the first
+ * child of anything — two action panels precede it — so `.card:nth-child(2)` and friends
+ * matched the same position on every row and every card took the same delay.
+ */
+.card { animation: none; }
+.swipe { animation: card-in 0.42s cubic-bezier(0.2, 0.9, 0.3, 1) both; }
+.swipe:nth-child(2) { animation-delay: 0.045s; }
+.swipe:nth-child(3) { animation-delay: 0.09s; }
+.swipe:nth-child(4) { animation-delay: 0.13s; }
+.swipe:nth-child(n+5) { animation-delay: 0.16s; }
+
+/*
+ * The entrance animation has to be dropped before a row can leave, for the same reason
+ * it had to be taken off the card: `both` holds its final opacity, and an animation beats
+ * a transition, so a row would collapse without ever fading.
+ */
+.swipe.leaving { animation: none; }
 
 @media (prefers-reduced-motion: reduce) {
+  .swipe { animation: none; }
   .card { animation: none; }
   .card.pressing,
   .primary.pressing,
@@ -792,7 +843,19 @@ p { margin: 0; }
   border-radius: var(--radius-lg);
   padding: 16px 18px;
   margin-bottom: 12px;
-  background: var(--card-bg, #1d3557);
+  /*
+   * A pass is lit, not painted.
+   *
+   * A single flat fill is much of the difference between this and a Wallet card: a real
+   * one is printed stock catching light, so the colour lifts toward the top-left corner
+   * and deepens away from it. `deep` and `lift` were already being computed for the pass
+   * artwork and simply never reached the card, which is why every one of these read as a
+   * coloured rectangle.
+   */
+  background:
+    radial-gradient(125% 100% at 14% -8%,
+      color-mix(in srgb, var(--card-lift, transparent) 40%, transparent) 0%, transparent 62%),
+    linear-gradient(158deg, var(--card-bg, #1d3557) 0%, var(--card-deep, #16283f) 100%);
   color: var(--card-fg, #fff);
   font: inherit;
   cursor: pointer;
@@ -800,7 +863,35 @@ p { margin: 0; }
      them with a flatter version. */
 }
 
-.card:active { transform: scale(0.985); }
+/*
+ * The press. Written as a scale factor rather than a whole transform, so it can be
+ * composed with the swipe's translation instead of replacing it.
+ *
+ * `.card:active { transform: scale(...) }` is more specific than `.swipe > .card`, and a
+ * card is active for the entire duration of a drag — so the press silently won and the
+ * card stayed put while the gesture ran to completion underneath it. A swipe deleted a
+ * pass having never moved a pixel.
+ */
+.card {
+  --press: 1;
+  transform: translateX(var(--swipe, 0px)) scale(var(--press));
+}
+
+/*
+ * The press eases; the drag must not.
+ *
+ * A transition on `transform` would apply to the swipe too, so the card would lag a
+ * frame or two behind the finger and feel loose. During a drag the transition is dropped
+ * and the card tracks the pointer exactly; `.settling` puts it back for the journey home.
+ */
+.card { transition: transform 0.34s cubic-bezier(0.2, 0.9, 0.3, 1), filter 0.2s ease; }
+.swipe.dragging > .card { transition: filter 0.2s ease; }
+
+.card:active { --press: 0.985; }
+
+/* Not while swiping: the card is following a finger, not being pressed. */
+.swipe.dragging > .card:active { --press: 1; }
+
 .card.large { padding: 20px; }
 .card.dim { opacity: 0.55; }
 
@@ -937,7 +1028,11 @@ p { margin: 0; }
 .pass-card {
   border-radius: var(--radius-lg);
   padding: 22px 20px;
-  background: var(--card-bg, #1d3557);
+  /* Same lighting as the card it was opened from — it is the same object, larger. */
+  background:
+    radial-gradient(125% 100% at 14% -8%,
+      color-mix(in srgb, var(--card-lift, transparent) 40%, transparent) 0%, transparent 62%),
+    linear-gradient(158deg, var(--card-bg, #1d3557) 0%, var(--card-deep, #16283f) 100%);
   color: var(--card-fg, #fff);
   box-shadow: var(--shadow);
 }
@@ -1602,6 +1697,15 @@ kbd {
 }
 
 .fact-label { font-size: 13px; color: var(--label-2); }
+
+/* The note under a fact list, separated from it the way the update line is. */
+.storage-note {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--separator);
+  font-size: 13px;
+  line-height: 1.45;
+}
 
 .fact-value {
   font-size: 14px;

@@ -689,7 +689,7 @@ function cardMarkup(ticket, { large = false, dim = false } = {}) {
 
   return `
     <button class="card ${large ? 'large' : ''} ${dim ? 'dim' : ''}" data-ticket="${escapeAttr(ticket.id)}"
-            style="--card-bg:${colours.backgroundColor};--card-fg:${colours.foregroundColor};--card-label:${colours.labelColor}">
+            style="--card-bg:${colours.backgroundColor};--card-fg:${colours.foregroundColor};--card-label:${colours.labelColor};--card-deep:${palette.deep};--card-lift:${palette.lift}">
       <div class="card-head">
         <span class="card-provider">${escapeHtml(f.provider || '')}</span>
         ${(ticket.barcode || ticket.barcodeImage) ? '<span class="card-chip">Scannable</span>' : ''}
@@ -968,7 +968,7 @@ function renderPass(ticket) {
     .map(([key, value]) => [ticket.provenance?.[key]?.label || key, value]);
 
   $('pass-scroll').innerHTML = `
-    <div class="pass-card" style="--card-bg:${colours.backgroundColor};--card-fg:${colours.foregroundColor};--card-label:${colours.labelColor}">
+    <div class="pass-card" style="--card-bg:${colours.backgroundColor};--card-fg:${colours.foregroundColor};--card-label:${colours.labelColor};--card-deep:${palette.deep};--card-lift:${palette.lift}">
       ${passArtwork(ticket, palette)}
       ${primary}
       <div class="pass-grid">
@@ -1811,8 +1811,7 @@ const SETTINGS_ICONS = {
   scan: '<path d="M4 8V5.5A1.5 1.5 0 0 1 5.5 4H8M16 4h2.5A1.5 1.5 0 0 1 20 5.5V8'
     + 'M20 16v2.5a1.5 1.5 0 0 1-1.5 1.5H16M8 20H5.5A1.5 1.5 0 0 1 4 18.5V16M7 12h10"/>',
   retention: '<circle cx="12" cy="12" r="8"/><path d="M12 7.5V12l3 1.8"/>',
-  backup: '<path d="M12 15V4M8.5 11.5 12 15l3.5-3.5M4.5 16v2.5A1.5 1.5 0 0 0 6 20h12a1.5 1.5 0 0 0 1.5-1.5V16"/>',
-  storage: '<ellipse cx="12" cy="6.5" rx="7" ry="2.6"/><path d="M5 6.5v11c0 1.4 3.1 2.6 7 2.6s7-1.2 7-2.6v-11M5 12c0 1.4 3.1 2.6 7 2.6s7-1.2 7-2.6"/>',
+  backup: '<path d="M12 15V4M8.5 11.5 12 15l3.5-3.5M4.5 16v2.5A1.5 1.5 0 0 0 6 20h12a1.5 1.5 0 0 0 1.5-1.5V16"/>',  storage: '<ellipse cx="12" cy="6.5" rx="7" ry="2.6"/><path d="M5 6.5v11c0 1.4 3.1 2.6 7 2.6s7-1.2 7-2.6v-11M5 12c0 1.4 3.1 2.6 7 2.6s7-1.2 7-2.6"/>',
   version: '<path d="M12 2.6 20 6.4v5.2c0 4.3-3.2 8.2-8 9.8-4.8-1.6-8-5.5-8-9.8V6.4z"/>'
     + '<path d="m9.2 12 2 2 3.6-3.8"/>',
   erase: '<path d="M4.5 7h15M9.5 7V5.2A1.2 1.2 0 0 1 10.7 4h2.6a1.2 1.2 0 0 1 1.2 1.2V7'
@@ -1886,7 +1885,7 @@ async function openSettings() {
     </section>
 
     <section class="group">
-      <h2>${settingsIcon('retention')}After you travel</h2>
+      <h2>${settingsIcon('storage')}Data retention</h2>
       <div class="options-list">
         ${Object.values(prefs.RETENTION).map((option) => `
           <button class="option ${current.retention === option.id ? 'on' : ''}" data-retention="${option.id}" type="button">
@@ -1902,14 +1901,36 @@ async function openSettings() {
             </span>
           </button>`).join('')}
       </div>
-      <p class="group-note">
-        ${escapeHtml(prefs.retentionSummary(past.length))}
-        You can change this whenever you like — switching back to <em>Keep them</em> stops
-        any further deletion at once, though anything already removed is gone.
-      </p>
+      <!--
+        No summary line here. It restated whichever option was already ticked — "1 past
+        ticket kept" directly under a selected row reading "Nothing is ever deleted
+        automatically" — which is the same fact told twice, once redundantly.
+      -->
       ${current.retention !== 'keep' ? `<p class="group-note warn-note">
-        Automatic deletion cannot be undone. Export a backup if you might want these later.
+        Automatic deletion cannot be undone, so export a backup if you might want these later.
       </p>` : ''}
+
+      <!--
+        How much space is being used belongs with the rules about what is kept: they are
+        the same subject, and reading one without the other tells you half the story. It
+        was a section of its own, which put a heading between a policy and its consequence.
+      -->
+      <div class="info-card">
+        <div class="fact-row">
+          <span class="fact-label">Saved</span>
+          <span class="fact-value">${state.tickets.length - past.length} upcoming · ${past.length} past</span>
+        </div>
+        ${estimate ? `
+          <div class="fact-row">
+            <span class="fact-label">Used</span>
+            <span class="fact-value">${formatBytes(estimate.usage)} of ${formatBytes(estimate.quota)}</span>
+          </div>` : ''}
+        <p class="${persisted ? 'storage-note' : 'storage-note warn-note'}">
+          ${persisted
+            ? 'Your browser has agreed to keep this data.'
+            : 'Your browser has not promised to keep this data, so it could be cleared if space runs short. Keep a backup.'}
+        </p>
+      </div>
     </section>
 
     <section class="group">
@@ -1923,18 +1944,6 @@ async function openSettings() {
         A single readable file holding everything you have saved. Nothing here is locked
         to this app.
       </p>
-    </section>
-
-    <section class="group">
-      <h2>${settingsIcon('storage')}Storage</h2>
-      <div class="info-card">
-        ${estimate ? `<p>Using ${formatBytes(estimate.usage)} of about ${formatBytes(estimate.quota)} available.</p>` : ''}
-        <p class="${persisted ? '' : 'warn-note'}">
-          ${persisted
-            ? 'Your browser has agreed to keep this data.'
-            : 'Your browser has not promised to keep this data, so it could be cleared if space runs short. Keep a backup.'}
-        </p>
-      </div>
     </section>
 
     <section class="group">
