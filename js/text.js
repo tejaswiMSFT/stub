@@ -343,13 +343,38 @@ export function findValueForLabel(lines, labelPattern, options = {}) {
     }
 
     /*
-     * ── 3. Directly beneath ──
+     * ── 3. Beside, when nothing below lines up ──
      *
-     * Before looking sideways, because a header row with its values stacked underneath
-     * is the commoner layout by some margin, and the cell to the right of a header is
-     * another header. Trying beside first read "PASSENGER | FLIGHT | FROM | TO" and
-     * reported the passenger as "FLIGHT".
+     * Two layouts, and the order matters because each is wrong for the other:
+     *
+     *   PASSENGER NAME | LARRY JOHNSON     the value is beside
+     *   Sector | Seat | 6E Add-ons         the values are below
+     *
+     * Deciding by looking at the neighbour alone is not enough — an operator writes
+     * "6E Add-ons" as a column heading, and no list of caption words will reliably
+     * contain it. What does separate them is whether a *value* sits beneath this label.
+     * A header row has one; a label with its value beside it has the next caption
+     * underneath, or nothing at all.
+     *
+     * So the search below runs first, and its answer is taken only when it found
+     * something that is not itself a caption. Emirates stacks "PASSENGER NAME",
+     * "BOOKING REFERENCE" and "ISSUED BY / DATE" in one column with the values out to
+     * the right, so what sits below each label is the next label — rejected here, and
+     * the search falls through to the value beside, which is where it was all along.
      */
+    if (below) {
+      const found = valueBelow(lines, index, labelColumn, labelPattern, maxBelowDistance);
+      if (found && !OTHER_LABELS.test(found.value)) return found;
+    }
+
+    // ── 4. Beside ──
+    const alongside = beside();
+    if (alongside) return alongside;
+
+    // ── 5. Below, even if it looks like a caption ──
+    //
+    // Last resort: nothing sat beside the label either, so a caption is still more use
+    // than a blank the user cannot explain.
     if (below) {
       const found = valueBelow(lines, index, labelColumn, labelPattern, maxBelowDistance);
       if (found) return found;
@@ -518,9 +543,13 @@ const OTHER_LABELS = new RegExp([
   'tax\\s*(?:id|no\\.?|number|invoice)',
   'hsn',
   'sac',
-  'issued\\s*by',
+  'issued\\s*by(?:\\s*[/&]\\s*date)?',
   'check-?in\\s*opens',
   'coupon\\s*validity',
+  'departure\\s*[/&]\\s*arrive',
+  'airport\\s*[/&]\\s*terminal',
+  'baggage\\s*allowance',
+  'allowance(?:\\s*\\d+\\s*kgs?)?',
   'travel\\s*information',
   'fare\\s*(?:type|basis)',
   'form\\s*of\\s*payment',

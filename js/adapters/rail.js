@@ -894,13 +894,24 @@ function buildRailExtras(draft, lines, text, table) {
   // is the honest thing to do.
   const fromTable = parsed?.status;
 
-  // The prose fallback scans the whole document, which includes column headings. The
-  // IRCTC email heads its berth column "Seat / Berth / WL No", and reading a status of
-  // "WL" from it would tell a confirmed passenger they are waitlisted — alarming, and
-  // completely wrong. A bare "WL" is only a status when a number follows it.
+  /*
+   * The prose fallback scans the whole document, which includes column headings and body
+   * text. Two words in that list are dangerous enough to need their own rule.
+   *
+   * "WL" — the IRCTC email heads its berth column "Seat / Berth / WL No", and reading a
+   * status from it would tell a confirmed passenger they are waitlisted. A bare WL is
+   * only a status when a number follows it.
+   *
+   * "CAN" — worse, because it is three letters that occur inside ordinary words and on
+   * this very ticket: "Ambala Cant Jn" is the boarding station, and OCR reading a
+   * printed page does not always keep "Cant" in one piece. A confirmed passenger was
+   * shown a status of CAN, which anyone would read as cancelled — the single most
+   * alarming thing this app could get wrong. Cancellation is now recognised only from
+   * the whole word, which no station name contains.
+   */
   const prose = text
     .replace(/\b(?:seat|berth|coach)\s*\/[^\n]*/gi, ' ')
-    .match(/\b(CNF|CONFIRMED|RAC\s*\d*|WL\s*\d+|WAITLIST(?:ED)?|CAN|TQWL\s*\d*|PQWL\s*\d*|RLWL\s*\d*|GNWL\s*\d*)\b/i);
+    .match(/\b(CNF|CONFIRMED|RAC\s*\d*|WL\s*\d+|WAITLIST(?:ED)?|CANCELLED|CANCELED|TQWL\s*\d*|PQWL\s*\d*|RLWL\s*\d*|GNWL\s*\d*)\b/i);
 
   const status = fromTable ? [fromTable, fromTable] : prose;
 

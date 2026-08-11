@@ -204,6 +204,68 @@ test('a value is not confused with something that merely looks like one', async 
     assert.equal(bus.value('seat'), 'A1');
   });
 
+  await t.test('stacked captions with values to the right', async () => {
+    /*
+     * The layout that broke every field at once.
+     *
+     * An Emirates receipt sets its captions in one column — PASSENGER NAME, BOOKING
+     * REFERENCE, E-TICKET NUMBER, ISSUED BY / DATE — with the values out to the right.
+     * What sits directly *below* each caption is therefore the next caption, and the
+     * search looked below first: the passenger read "ISSUED BY / DATE", the booking
+     * reference read "E-TICKET NUMBER", the seat read "ALLOWANCE 30 KGS".
+     *
+     * The same page then uses the opposite layout for its flight table — captions across
+     * a header row with values beneath — so an app that simply reversed the order would
+     * trade one broken ticket for another. Both are asserted here for that reason.
+     */
+    const draft = await read([
+      ...page([
+        [60, [[755, 'e-Ticket Receipt & Itinerary']]],
+        [80, [[755, 'Emirates']]],
+        [283, [[755, 'PASSENGER NAME'], [900, 'LARRY JOHNSON']]],
+        [300, [[755, 'BOOKING REFERENCE'], [900, 'DDY37W']]],
+        [317, [[755, 'E-TICKET NUMBER'], [900, '138 3012574759']]],
+        [334, [[755, 'ISSUED BY / DATE'], [900, 'DUBAI EMIRATES IBE']]],
+        [370, [[755, 'TRAVEL INFORMATION']]],
+        [390, [[755, 'FLIGHT'], [860, 'DEPARTURE/ARRIVE'], [990, 'AIRPORT/TERMINAL'], [1130, 'CLASS']]],
+        [408, [[755, 'EK 241'], [860, '26 OCT 21'], [990, 'HAMAD INTL (DOH)'], [1130, 'ECONOMY']]],
+        [422, [[755, 'CONFIRMED'], [860, '1427'], [990, 'TERMINAL 2']]],
+      ]),
+    ]);
+
+    // Read from the stacked half, where the value is beside its caption.
+    assert.equal(draft.value('passenger'), 'LARRY JOHNSON');
+    assert.equal(draft.value('pnr'), 'DDY37W');
+
+    // Read from the table half, where the value is beneath its caption.
+    assert.match(draft.value('flight') || '', /EK\s*241/i);
+    assert.equal(draft.value('cabin'), 'ECONOMY');
+  });
+
+  await t.test('a station name is not a cancellation', async () => {
+    /*
+     * The most alarming thing this app has got wrong.
+     *
+     * A confirmed IRCTC ticket showed a status of CAN, which anyone would read as
+     * cancelled. "CAN" was in the list of status codes, and it is three letters that
+     * occur inside ordinary words — including on that very ticket, whose boarding
+     * station is "Ambala Cant Jn". Cancellation is now recognised only from the whole
+     * word, which no station name contains.
+     */
+    const draft = await read(page([
+      [40, [[40, 'Electronic Reservation Slip']]],
+      [60, [[40, 'PNR No. : 2364927203'], [340, 'Train No. & Name : 15708/ASR KIR EXPRESS']]],
+      [80, [[40, 'From: Ambala Cant Jn (UMB)'], [340, 'To : Deoria Sadar (DEOS)']]],
+      [100, [[40, 'Boarding: Ambala Cant Jn (UMB)'], [340, 'Date of Journey: 2019-10-11']]],
+      [140, [[40, 'Passenger Details']]],
+      [160, [[40, 'S No.'], [110, 'Name'], [340, 'Age'], [400, 'Sex'], [500, 'Booking Status'], [640, 'Current Status']]],
+      [180, [[40, '1'], [110, 'RAMPRATAP YADAV'], [340, '27'], [400, 'Male (M)'], [500, 'CNF/S9/65/LB'], [640, 'CNF/S9/65/LB']]],
+    ]));
+
+    assert.equal(draft.value('status'), 'CNF');
+    assert.equal(draft.value('passenger'), 'RAMPRATAP YADAV');
+  });
+
   await t.test('a codeshare number is not the flight boarded', async () => {
     // A segment commonly shows both the operating and the marketing flight number. The
     // passenger boards the operating one.
