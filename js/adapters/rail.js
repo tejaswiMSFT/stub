@@ -488,17 +488,34 @@ async function build(context) {
   const passengerFromTable = table?.rows?.[0]?.name || null;
 
   const passenger = findLabelled(lines, [
-    /\bpassenger\s*(?:name|details)?\b/i,
-    /\btraveller\s*name\b/i,
+    // "Passenger Name" and "Passenger Details" before the bare word, so the more specific
+    // caption wins where both are present.
+    /\bpassenger\s*(?:name|details)\b/i,
+    /\bpax\s*(?:name|details?)?\b/i,
+    /\btraveller?\s*name\b/i,
     /\bname\s*of\s*(?:the\s*)?passenger\b/i,
+    // Bare "Passenger" last, and never where it introduces something else about the
+    // passenger rather than the passenger: an ixigo slip prints "Passenger Mobile No :
+    // 9794998703", which matched and put a phone number on the pass as a person's name.
+    /\bpassenger\b(?!\s*(?:mobile|phone|contact|email|e-?mail|address|count|type|no\b|nos\b|number))/i,
   ]);
+
+  /*
+   * A name is not a number.
+   *
+   * The last guard, and the one that would have caught the phone number whatever the
+   * label had been. Names do not contain digits; every value on a ticket that does is
+   * something else — a mobile, a count, an age.
+   */
+  const labelledName = firstColumn(passenger?.value, 40);
+  const plausibleName = labelledName && !/\d/.test(labelledName) ? labelledName : '';
 
   const passengerField = draft.set('passenger', new Field({
     key: 'passenger',
     label: 'Passenger',
-    value: passengerFromTable || firstColumn(passenger?.value, 40),
-    source: (passengerFromTable || passenger) ? Source.PDF_TEXT : Source.INFERRED,
-    region: table?.rows?.[0]?.line || passenger?.region || null,
+    value: passengerFromTable || plausibleName,
+    source: (passengerFromTable || plausibleName) ? Source.PDF_TEXT : Source.INFERRED,
+    region: table?.rows?.[0]?.line || (plausibleName ? passenger?.region : null) || null,
     critical: true,
   }));
 
@@ -731,9 +748,12 @@ function buildSeating(draft, lines, vocab, mode) {
  */
 export function readPassengerTable(lines) {
   const table = readTable(lines, {
-    name: /^#?\s*name\b/i,
+    name: /^#?\s*(?:s\s*no\.?\s*)?name\b/i,
     age: /\bage\b/i,
-    gender: /\bgender\b/i,
+    // "Sex" as well as "Gender": IRCTC prints the former, and a heading the reader does
+    // not recognise is one fewer column towards the minimum needed to call something a
+    // table at all — which is how a real passenger table went unread.
+    gender: /\b(?:gender|sex)\b/i,
     booking: /\bbooking\s*status\b/i,
     current: /\bcurrent\s*status\b/i,
     // Anchored, so a plain "Status" heading does not also claim the booking and current

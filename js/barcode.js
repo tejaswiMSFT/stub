@@ -287,7 +287,22 @@ export async function readBarcodesFromSource(ingested, options = {}) {
   for (const candidate of candidates) {
     searched++;
     options.onProgress?.({ phase: 'barcode-candidate', index: searched, of: candidates.length });
-    const { barcodes } = await readBarcodes(candidate.canvas, options);
+
+    // A candidate may be drawn on demand rather than held. Nine upscaled tiles of a page
+    // at decoding resolution is far too much memory to keep at once on a phone, and the
+    // first one usually answers — so a tile is painted when it is reached and released
+    // as soon as it has been read.
+    const drawn = candidate.canvas ? { canvas: candidate.canvas } : candidate.draw?.();
+    if (!drawn?.canvas) continue;
+
+    const { barcodes } = await readBarcodes(drawn.canvas, options);
+
+    if (!candidate.canvas && drawn.canvas) {
+      // Freeing the backing store immediately, rather than waiting on the collector,
+      // is what keeps a nine-tile sweep from being the thing that gets the tab killed.
+      drawn.canvas.width = 0;
+      drawn.canvas.height = 0;
+    }
 
     for (const barcode of barcodes) {
       const key = `${barcode.format}:${barcode.latin1}`;

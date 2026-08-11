@@ -21,7 +21,25 @@ import { airport } from '../data/airports.js';
 const IATA_CODE = /^[A-Z]{3}$/;
 
 /** An airline flight designator: two-character carrier code then one to four digits. */
-const FLIGHT_NUMBER = /\b([A-Z]{2}|[A-Z]\d|\d[A-Z])\s?(\d{1,4})\b/;
+/**
+ * A flight number: an airline code and up to four digits.
+ *
+ * The hyphen is optional but significant. "AK-5233" is unambiguous; a bare "ID 7" is a
+ * fragment of "identification" followed by a stray digit, and taking the first match on
+ * a whole page found exactly that on an AirAsia ticket.
+ *
+ * `[A-Z]\d` and `\d[A-Z]` cover 6E, 9W and the like, which is why the pattern cannot
+ * simply demand two letters.
+ */
+const FLIGHT_NUMBER = /\b([A-Z]{2}|[A-Z]\d|\d[A-Z])[\s-]?(\d{2,4})\b/;
+
+/**
+ * The same, but only where the carrier code is followed immediately by digits.
+ *
+ * Tried first, because a code written tight against its number — "AK-5233", "6E5306" —
+ * is what a flight number looks like, and prose almost never produces it.
+ */
+const FLIGHT_NUMBER_TIGHT = /\b([A-Z]{2}|[A-Z]\d|\d[A-Z])-?(\d{3,4})\b/;
 
 /** A route printed as a code pair, as itineraries almost always do: "BLR-IXE". */
 const SECTOR = /\b([A-Z]{3})\s*[-–—>]\s*([A-Z]{3})\b/;
@@ -396,9 +414,11 @@ async function build(context) {
   // would recognise as an airline name.
   const provider = findProvider(lines);
   const operated = operatingCarrier(lines);
-  const looksLikeHeading = provider?.value
-    && (/\b(information|details|summary|itinerary|booking|reference)\b/i.test(provider.value)
-      || looksLikeSalutation(provider.value));
+
+  /*
+   * A document title is not a brand. See `looksLikeDocumentTitle`.
+   */
+  const looksLikeHeading = looksLikeDocumentTitle(provider?.value);
 
   const fromText = looksLikeHeading ? '' : expandCarrierCode(provider?.value);
 
@@ -935,6 +955,27 @@ function airportCode(raw) {
   return standalone ? standalone[1] : '';
 }
 
+/**
+ * Whether the most prominent text on a page is the document's own title.
+ *
+ * `findProvider` takes the largest, boldest text as the operator's name, which works
+ * because a ticket leads with its brand — except when it leads with what it *is*. An
+ * AirAsia itinerary sets "E-Ticket" across the top and reported that as the airline,
+ * while the word "AirAsia" sat directly beneath the logo.
+ *
+ * Shared by both build paths. It existed twice, in two slightly different versions, so
+ * the barcode path knew about "booking" and "reference" and the text-only path did not —
+ * and a fix applied to one silently missed the other.
+ */
+function looksLikeDocumentTitle(value) {
+  if (!value) return false;
+
+  return /\b(information|details|summary|itinerary|booking|reference)\b/i.test(value)
+    || /^\s*e-?\s*(?:ticket|boarding|receipt)\b/i.test(value)
+    || /\b(?:boarding\s*pass|e-?ticket|itinerary\s*receipt|travel\s*document|reservation\s*slip|electronic\s*ticket|departure\s*flight)\b/i.test(value)
+    || looksLikeSalutation(value);
+}
+
 function buildFromTextOnly(draft, lines) {
   const text = toPlainText(lines);
   const upper = text.toUpperCase();
@@ -944,11 +985,15 @@ function buildFromTextOnly(draft, lines) {
     // rail and air alike. Knowing the word is not vendor tuning; it is vocabulary, the
     // same as knowing "PNR". The same goes for "Dep" and "Arr".
     ['passenger', 'Passenger', [
-      /\bpassenger\s*(?:name|details?)?\b/i,
+      /\bpassenger\s*(?:name|details?)\b/i,
       /\bpax\s*(?:name|details?)?\b/i,
       /\bname\s*of\s*(?:the\s*)?passenger\b/i,
       /\btraveller?\s*(?:name)?\b/i,
       /\bguest\s*name\b/i,
+      // Bare "Passenger" last, and never where it introduces something else about the
+      // passenger rather than the passenger — "Passenger Mobile No" put a phone number
+      // on a pass as a person's name.
+      /\bpassenger\b(?!\s*(?:mobile|phone|contact|email|e-?mail|address|count|type|no\b|nos\b|number))/i,
     ], true, false],
     ['flight', 'Flight', [/\bflight\s*(?:no\.?|number|#)\b/i, /\bflight\b/i], true, true],
     ['pnr', 'Booking ref', [
@@ -960,7 +1005,16 @@ function buildFromTextOnly(draft, lines) {
     ['seat', 'Seat', [/\bseat\b/i], false, false],
     ['gate', 'Gate', [/\bgate\b/i], false, false],
     ['terminal', 'Terminal', [/\bterminal\b/i], false, false],
-    ['cabin', 'Class', [/\bfare\s*type\b/i, /\bcabin\b/i, /\bclass\b/i], false, false],
+    ['cabin', 'Class', [
+      /\bfare\s*type\b/i,
+      /\bcabin\b/i,
+      /\bclass\s*of\s*travel\b/i,
+      // "Subclass" as well as "Class". An AirAsia ticket prints "Subclass Z ( Economy )"
+      // and nothing else about the cabin, so a pattern anchored on the word alone read
+      // no class at all.
+      /\bsub-?class\b/i,
+      /\bclass\b/i,
+    ], false, false],
   ];
 
   for (const [key, label, patterns, required, critical] of map) {
@@ -982,6 +1036,11 @@ function buildFromTextOnly(draft, lines) {
       }
     }
     if (key === 'seat') value = cleanSeat(value) || value;
+
+    // A name is not a number. Whatever the label said, a value containing a digit is
+    // something else about the passenger — a mobile, a count, an age — and never the
+    // person.
+    if (key === 'passenger' && /\d/.test(value)) { value = ''; fromPage = false; }
 
     /*
      * A booking reference has a shape, and a fragment of its own label is not it.
@@ -1061,9 +1120,14 @@ function buildFromTextOnly(draft, lines) {
   }
 
   // ── Flight number, if the label search missed it ──
+  //
+  // The tight form first — a carrier code hard against three or four digits, which is
+  // what a flight number looks like and what prose almost never produces. Falling
+  // straight to the loose pattern took the first plausible pair anywhere on the page,
+  // and on an AirAsia ticket that was "ID 7", carved out of "identification".
   const flightField = draft.get('flight');
   if (!flightField?.value || !/\d/.test(flightField.value)) {
-    const match = upper.match(FLIGHT_NUMBER);
+    const match = upper.match(FLIGHT_NUMBER_TIGHT) || upper.match(FLIGHT_NUMBER);
     if (match) {
       flightField.value = `${match[1]} ${match[2]}`;
       flightField.confidence = Confidence.LOW;
@@ -1182,9 +1246,7 @@ function buildFromTextOnly(draft, lines) {
   const provider = findProvider(lines);
   const carrier = draft.value('flight').match(/^([A-Z0-9]{2})\b/i)?.[1];
   const operated = operatingCarrier(lines);
-  const looksLikeHeading = provider?.value
-    && (/\b(information|details|summary|itinerary)\b/i.test(provider.value)
-      || looksLikeSalutation(provider.value));
+  const looksLikeHeading = looksLikeDocumentTitle(provider?.value);
 
   const named = airlineName(carrier);
   const value = operated?.value || (looksLikeHeading ? '' : provider?.value) || named || '';

@@ -21,6 +21,7 @@
 
 import { IngestError } from './errors.js';
 import { createCanvas as makeCanvas } from './canvas.js';
+import { tileCandidates } from './tile.js';
 import {
   parseMessage,
   providerFromSender,
@@ -373,10 +374,16 @@ async function ingestPdf(file, { onProgress } = {}) {
   // The page's own images first, at the resolution they were embedded, then the whole
   // page as a fallback. A barcode is a small part of an A4 sheet, and decoding it from a
   // full-page render throws away most of the detail that makes it readable.
+  //
+  // Tiles last. Several airlines draw a barcode with vector operators rather than
+  // placing it as an image, so it appears in neither list — an IndiGo itinerary printing
+  // four plainly visible barcodes was reported as carrying none. Cutting the page up is
+  // the only way to reach those, and it is tried only once the cheaper paths have failed.
   const embedded = await extractPageImages(primary.page).catch(() => []);
   const barcodeCandidates = [
     ...embedded,
     { canvas: rendered.canvas, scale: rendered.scale, region: null },
+    ...tileCandidates(rendered.canvas),
   ];
 
   return {
@@ -503,6 +510,13 @@ async function ingestImage(file, { onProgress } = {}) {
     textAssessment: { characters: 0, density: 0, hasText: false, partial: false },
     barcodeCanvas: canvas,
     barcodeScale: scale,
+    // A screenshot has no embedded images — it *is* one image — so the whole picture is
+    // the only candidate unless it is cut up. A QR occupying a corner of a phone
+    // screenshot is exactly the case a full-frame decode loses.
+    barcodeCandidates: [
+      { canvas, scale, region: null },
+      ...tileCandidates(canvas),
+    ],
     displayCanvas: canvas,
     displayScale: scale,
     otherPages: [],

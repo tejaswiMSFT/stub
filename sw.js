@@ -59,6 +59,7 @@ const ASSETS = [
   // fetched the first time a picture needs reading and cached by the runtime handler
   // below, so it works offline from then on.
   './js/ocr.js',
+  './js/tile.js',
   './js/brand.js',
   './js/brand-identity.js',
   './js/build.js',
