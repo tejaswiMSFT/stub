@@ -531,6 +531,13 @@ const OTHER_LABELS = new RegExp([
   'destination',
   'departure',
   'arrival',
+  // "From" and "To" are ordinary words, and listing them was tried once before and
+  // reverted because it broke pair rows. It is safe now only because this list is
+  // consulted where a *caption* is suspected — below a label, or as a whole cell —
+  // rather than to veto a neighbour outright. Without them, "BOOKING REFERENCE"
+  // stacked above "FROM" read its value as the word FROM.
+  'from',
+  'to',
   'boarding\\s*(?:point|station|time)',
   'dropping\\s*point',
   // Tax captions, so a value is never taken from the cell next to one.
