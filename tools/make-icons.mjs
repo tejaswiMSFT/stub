@@ -37,7 +37,7 @@ const browser = await chromium.launch();
 const page = await browser.newPage();
 
 for (const target of TARGETS) {
-  const svg = markSvg({ size: target.size, variant: 'app', bleed: target.bleed });
+  const svg = markSvg({ size: target.size, variant: 'app', bleed: target.bleed, full: true });
 
   await page.setViewportSize({ width: target.size, height: target.size });
   await page.setContent(

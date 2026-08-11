@@ -5,26 +5,34 @@
  * and the favicon in the tab are all the same drawing rather than three drifting copies.
  * Everything is generated; there are no binary design assets to keep in step.
  *
- * The mark is a wallet of tickets: four cards fanned to the right, the front one a
- * ticket with notches and a perforation. Several decisions here were arrived at the hard
- * way and should not be quietly undone:
+ * The mark is a fanned hand of tickets, tilted, the front one carrying a QR code.
+ * Several decisions here were arrived at the hard way and should not be quietly undone:
  *
- *   Solid colours, never translucent. Layering semi-transparent whites piles into an
- *   out-of-focus mush at small sizes — Apple, Google and Samsung all use flat opaque
- *   colour, which is exactly why their icons stay crisp.
+ *   The stack is tilted, and the cards fan. Axis-aligned and merely offset, the mark read
+ *   as a stack of cards seen flat — correct but inert. The tilt is what gives it life.
+ *
+ *   Cards fan about a point near the lower-left, not about the centre. Rotated about the
+ *   middle they splay at *both* ends and poke out as wedges; a real hand of cards pivots
+ *   where it is held.
+ *
+ *   The front ticket carries a QR. Scanning is what this app does, and no earlier version
+ *   of the mark said so. It is drawn as three ringed eyes, because that is what the eye
+ *   actually recognises — filled squares merge into blobs and read as a window.
+ *
+ *   Below 48px the composition is abandoned for a single ticket. Four rotated cards plus
+ *   a code is far too much information for 24 pixels, and a rotated notch fights the pixel
+ *   grid at every angle. Same identity, drawn for its size, which is what Apple does.
  *
  *   Notches sit opposite one another, near one end. Placed mid-edge, the shape reads as
  *   a bag or a basket rather than a ticket. Their position is what makes it legible.
  *
- *   No torn edge. A jagged tear was the original idea and looks unsettling rather than
- *   charming once shrunk — the notches carry the meaning perfectly well alone.
+ *   Warm behind cool. Amber, pink and green sit behind the blue because warm behind cool
+ *   is the sharpest separation available, and it shows through the notches — which is what
+ *   makes them read at all. A cool colour there bleeds into the front card.
  *
- *   Amber sits immediately behind the blue. Warm behind cool is the sharpest separation
- *   available, and it shows through the notches, which is what makes them read. A cool
- *   colour there (teal, indigo) bleeds into the front card and the edge disappears.
- *
- *   Four cards, no more. Every extra card steals contrast and space from the ticket's
- *   own details, and past four they compress into a stripe.
+ *   Gradients, but soft ones. A hard specular streak with a bevelled edge and a dark
+ *   outline is skeuomorphism, and dates a mark instantly. A single soft diagonal across
+ *   each face is dimensional without being varnished.
  */
 
 export const brand = {
@@ -35,14 +43,129 @@ export const brand = {
     // The front ticket, and the app's primary colour throughout.
     ink: '#0a84ff',
     // The cards behind, front to back.
-    cards: ['#40c8e0', '#ff375f', '#ff9f0a'],
+    cards: ['#ff9f0a', '#ff375f', '#00c78c'],
     ground: '#1c1c1e',
     paper: '#ffffff',
   },
 };
 
-/** Card order back-to-front, with the ticket last. */
-const STACK = ['#ff375f', '#40c8e0', '#ff9f0a', brand.colour.ink];
+/**
+ * The cards behind the front ticket, nearest first.
+ *
+ * `lift` is how far each is nudged up, as a fraction of the card's height, so the fan
+ * opens upward as well as around.
+ */
+const FAN = [
+  { id: 'b', from: '#ffc247', to: '#ff9500', lift: 0.035, step: 1 },
+  { id: 'c', from: '#ff6482', to: '#ff2d55', lift: 0.07, step: 2 },
+  { id: 'd', from: '#5ce0b0', to: '#00c78c', lift: 0.105, step: 3 },
+];
+
+/**
+ * Which card shows through the notches.
+ *
+ * The notches cut the front ticket, so whatever sits directly behind is what appears in
+ * them. That has to be the amber: warm behind cool is the sharpest separation available
+ * and is what makes the notches read as cut rather than as smudges. The green is furthest
+ * back for the same reason — it is closest in temperature to the blue.
+ */
+
+/** How far apart the cards fan, in degrees. */
+const SPREAD = 7.5;
+
+/** The tilt of the whole stack. */
+const TILT = -13;
+
+/**
+ * Below this the full composition is abandoned for a single flat ticket.
+ *
+ * Chosen by rendering both at every size that matters and looking: four rotated cards
+ * and a QR simply cannot survive 24 pixels, and pretending otherwise produces a smudge.
+ */
+const SIMPLIFY_BELOW = 44;
+
+/**
+ * A QR mark: three ringed eyes and a few loose modules.
+ *
+ * The rings are the whole trick. A QR is recognised by its finder patterns — a square
+ * ring with a gap around it — and drawing them as solid squares instead merges them with
+ * their neighbours into four dark blobs that read as a window, not a code.
+ *
+ * The loose modules are dropped when small, where they only fill in the gaps that make
+ * the eyes legible.
+ */
+function qrGlyph(x, y, size, fill, { detail = true } = {}) {
+  const u = size / 7;
+  const e = u / 2;
+
+  const ring = (ex, ey) => `<rect x="${(ex).toFixed(2)}" y="${(ey).toFixed(2)}"
+    width="${(u * 3).toFixed(2)}" height="${(u * 3).toFixed(2)}" rx="${(u * 0.4).toFixed(2)}"
+    fill="none" stroke="${fill}" stroke-width="${u.toFixed(2)}"/>`;
+
+  // Modules are placed, not scattered, and the lower-right quadrant is filled rather than
+  // dotted. Two earlier arrangements each left a single module hanging below the
+  // top-right eye, and a ring with one dot under it reads unmistakably as a question
+  // mark — which is a poor thing for a ticket app's icon to say.
+  const cells = detail
+    ? [
+      [4, 4], [6, 4], [4, 6], [6, 6], [5, 5],
+      [3, 1], [3, 3], [3, 5], [1, 3], [5, 3],
+    ]
+    : [];
+
+  return `<g>
+    ${ring(x + e, y + e)}${ring(x + u * 4 + e, y + e)}${ring(x + e, y + u * 4 + e)}
+    ${cells.map(([cx, cy]) => `<rect x="${(x + cx * u).toFixed(2)}" y="${(y + cy * u).toFixed(2)}"
+      width="${u.toFixed(2)}" height="${u.toFixed(2)}" rx="${(u * 0.18).toFixed(2)}" fill="${fill}"/>`).join('')}
+  </g>`;
+}
+
+/**
+ * One ticket, as a masked shape.
+ *
+ * The notches and perforation are *cut* rather than drawn over, so they show whatever
+ * lies beneath. That is what makes a stack read as separate pieces of card rather than as
+ * one shape with a pattern on it.
+ *
+ * `cut` is off for the cards behind. Cutting every layer at a different angle piled four
+ * sets of notches on top of one another and turned the top edge into confetti — and none
+ * of it was legible anyway, since only slivers of those cards are visible. Only the front
+ * ticket needs to look torn.
+ */
+function ticketShape({ id, x, y, w, h, r, tear, fill, rotate, cx, cy, cut = true }) {
+  const nx = x + w * tear;
+  const nr = h * 0.13;
+  const dw = w * 0.035;
+  const dh = h * 0.11;
+
+  const dashes = [0.17, 0.39, 0.61, 0.83]
+    .map((t) => `<rect x="${(nx - dw / 2).toFixed(2)}" y="${(y + h * t - dh / 2).toFixed(2)}"
+      width="${dw.toFixed(2)}" height="${dh.toFixed(2)}" rx="${(dw / 2).toFixed(2)}" fill="#000"/>`)
+    .join('');
+
+  if (!cut) {
+    return {
+      mask: '',
+      body: `<g transform="rotate(${rotate.toFixed(2)} ${cx.toFixed(1)} ${cy.toFixed(1)})">
+        <rect x="${x.toFixed(2)}" y="${y.toFixed(2)}" width="${w.toFixed(2)}" height="${h.toFixed(2)}"
+              rx="${r.toFixed(2)}" fill="${fill}"/>
+      </g>`,
+    };
+  }
+
+  return {
+    mask: `<mask id="m${id}">
+      <rect x="${(x - w).toFixed(1)}" y="${(y - h).toFixed(1)}" width="${(w * 3).toFixed(1)}" height="${(h * 3).toFixed(1)}" fill="#000"/>
+      <rect x="${x.toFixed(2)}" y="${y.toFixed(2)}" width="${w.toFixed(2)}" height="${h.toFixed(2)}" rx="${r.toFixed(2)}" fill="#fff"/>
+      <circle cx="${nx.toFixed(2)}" cy="${y.toFixed(2)}" r="${nr.toFixed(2)}" fill="#000"/>
+      <circle cx="${nx.toFixed(2)}" cy="${(y + h).toFixed(2)}" r="${nr.toFixed(2)}" fill="#000"/>
+      ${dashes}
+    </mask>`,
+    body: `<g transform="rotate(${rotate.toFixed(2)} ${cx.toFixed(1)} ${cy.toFixed(1)})" mask="url(#m${id})">
+      <rect x="${x.toFixed(2)}" y="${y.toFixed(2)}" width="${w.toFixed(2)}" height="${h.toFixed(2)}" fill="${fill}"/>
+    </g>`,
+  };
+}
 
 /**
  * The mark.
@@ -54,61 +177,135 @@ const STACK = ['#ff375f', '#40c8e0', '#ff9f0a', brand.colour.ink];
  * `bleed` is the margin left around it. Maskable icons need much more, because Android
  * crops to whatever shape a launcher prefers and a mark drawn near the edge loses its
  * corners to a circular mask.
+ *
+ * `full` forces the complete composition regardless of size — needed when rendering an
+ * icon file at a small pixel size that will be *displayed* large.
  */
-export function markSvg({ size = 512, variant = 'app', bleed = 0.155, colour = null, ground = null } = {}) {
+export function markSvg({
+  size = 512, variant = 'app', bleed = 0.155, colour = null, ground = null, full = null,
+} = {}) {
   // Ids must be unique per instance: several marks commonly share one page, and
   // duplicate ids make every later mask resolve to the first, so only the first draws.
   const uid = `s${Math.random().toString(36).slice(2, 9)}`;
 
   const plain = variant === 'plain';
-  const p = size * bleed;
-  const w = (size - p * 2) * (plain ? 1 : 0.84);
-  const h = w * 0.7;
+  const detailed = full ?? (!plain && size >= SIMPLIFY_BELOW);
+
+  if (!detailed) return simpleMark({ uid, size, plain, bleed, colour, ground });
+
+  // Cards are drawn large within the tile: the earlier mark sat small inside its own
+  // square while every neighbouring app icon filled close to its edges, which made it
+  // look timid on a home screen.
+  //
+  // Bleed still has to be honoured, though, because a maskable icon is cropped to
+  // whatever shape an Android launcher prefers — usually a circle — and a composition
+  // drawn to the edges loses its corners entirely.
+  const spanRatio = Math.min(0.84, 1 - bleed * 2);
+  const w = size * spanRatio;
+  const h = w * 0.66;
   const r = size * 0.05;
-  const x = plain ? (size - w) / 2 : p;
+  const x = (size - w) / 2;
+  const y = (size - h) / 2;
+  const cx = size / 2;
+  const cy = size / 2;
+  const tear = 0.58;
+
+  // Drawn furthest first, so nearer cards paint over further ones. `FAN` is written
+  // nearest-first because that is how it reads as a list; painting it in that order put
+  // the *green* — the backmost card — on top of the amber, which is why the wrong colour
+  // was showing through the notches.
+  const behind = [...FAN].reverse().map((card, i) => ticketShape({
+    id: `${uid}${i}`,
+    x,
+    y: y - h * card.lift,
+    w,
+    h,
+    r,
+    tear,
+    fill: `url(#${uid}${card.id})`,
+    // Taken from the card rather than from its index, which flipped when the draw order
+    // was reversed and quietly turned the fan inside out.
+    rotate: TILT + SPREAD * card.step,
+    cx,
+    cy,
+    cut: false,
+  }));
+
+  const front = ticketShape({
+    id: `${uid}f`, x, y, w, h, r, tear, fill: `url(#${uid}a)`, rotate: TILT, cx, cy,
+  });
+
+  // The code sits centred in the larger panel, left of the tear, and turns with the
+  // ticket — it is printed on the card, so it rotates with it.
+  const panel = w * tear;
+  const codeSize = Math.min(h * 0.66, panel * 0.62);
+  const codeX = x + (panel - codeSize) / 2;
+  const codeY = y + (h - codeSize) / 2;
+
+  const gradients = [
+    `<linearGradient id="${uid}a" x1="0" y1="0" x2="0.55" y2="1">
+      <stop offset="0%" stop-color="#4aa8ff"/><stop offset="52%" stop-color="#0a84ff"/>
+      <stop offset="100%" stop-color="#0060df"/></linearGradient>`,
+    ...FAN.map((c) => `<linearGradient id="${uid}${c.id}" x1="0" y1="0" x2="0.5" y2="1">
+      <stop offset="0%" stop-color="${c.from}"/><stop offset="100%" stop-color="${c.to}"/></linearGradient>`),
+    `<linearGradient id="${uid}t" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2c2c30"/><stop offset="100%" stop-color="#0e0e10"/></linearGradient>`,
+  ].join('');
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" role="img" aria-label="${brand.name}">
+  <defs>
+    ${gradients}
+    ${behind.map((t) => t.mask).join('')}
+    ${front.mask}
+  </defs>
+  ${plain ? '' : `<rect width="${size}" height="${size}" rx="${(size * 0.225).toFixed(1)}" fill="${ground ? `"${ground}"` : `url(#${uid}t)`}"/>`}
+  ${behind.map((t) => t.body).join('')}
+  ${front.body}
+  <g transform="rotate(${TILT} ${cx.toFixed(1)} ${cy.toFixed(1)})">
+    ${qrGlyph(codeX, codeY, codeSize, 'rgba(0,22,50,0.82)', { detail: size >= 64 })}
+  </g>
+</svg>`;
+}
+
+/**
+ * The small drawing: one ticket, flat, no code.
+ *
+ * Used below 44px and for the inline variant. At those sizes the fan is a smudge and the
+ * QR's eyes close up, so this keeps only what still reads — the silhouette, the notches
+ * and the perforation.
+ */
+function simpleMark({ uid, size, plain, bleed, colour, ground }) {
+  const p = size * bleed;
+  const w = (size - p * 2) * (plain ? 1 : 0.88);
+  const h = w * 0.66;
+  const r = size * 0.055;
+  const x = plain ? (size - w) / 2 : (size - w) / 2;
   const y = (size - h) / 2;
 
-  const gap = size * 0.028;
-  const front = plain ? (colour || 'currentColor') : STACK[STACK.length - 1];
-
-  const behind = plain ? '' : STACK.slice(0, -1).map((fill, i) => {
-    const depth = STACK.length - 1 - i;
-    return `<rect x="${(x + gap * depth).toFixed(1)}" y="${y.toFixed(1)}"
-      width="${w.toFixed(1)}" height="${h.toFixed(1)}" rx="${r.toFixed(1)}" fill="${fill}"/>`;
-  }).join('');
-
-  // The stub line: notches opposite one another, with the perforation between them.
-  //
-  // The notch depth was arrived at by rendering the mark at the sizes it is actually
-  // used and looking at it. Too shallow and it vanishes, leaving a plain rounded
-  // rectangle that reads as a capsule; too deep — as it briefly was — and the two
-  // notches meet the perforation and the whole thing reads as a bowtie. A fifth of the
-  // height was the bowtie; an eighth keeps the tear line legible without pinching the
-  // card's waist.
-  // The tear sits at 0.62 rather than nearer the end. Further right it collided with the
-  // edges of the cards stacked behind, and since the notches cut through every layer the
-  // right third became a band of competing colour rather than a stub.
   const nx = x + w * 0.62;
-  const nr = h * 0.12;
-  const dw = Math.max(size * 0.02, w * 0.04);
+  const nr = h * 0.13;
+  const dw = Math.max(size * 0.02, w * 0.042);
   const dh = h * 0.12;
+
   const dashes = [0.18, 0.41, 0.64, 0.87]
-    .map((t) => `<rect x="${(nx - dw / 2).toFixed(1)}" y="${(y + h * t - dh / 2).toFixed(1)}"
-        width="${dw.toFixed(1)}" height="${dh.toFixed(1)}" rx="${(dw / 2).toFixed(1)}" fill="#000"/>`)
+    .map((t) => `<rect x="${(nx - dw / 2).toFixed(2)}" y="${(y + h * t - dh / 2).toFixed(2)}"
+      width="${dw.toFixed(2)}" height="${dh.toFixed(2)}" rx="${(dw / 2).toFixed(2)}" fill="#000"/>`)
     .join('');
+
+  const front = plain ? (colour || 'currentColor') : brand.colour.ink;
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" role="img" aria-label="${brand.name}">
   <defs>
     <mask id="${uid}">
       <rect width="${size}" height="${size}" fill="#000"/>
-      <rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" rx="${r.toFixed(1)}" fill="#fff"/>
-      <circle cx="${nx.toFixed(1)}" cy="${y.toFixed(1)}" r="${nr.toFixed(1)}" fill="#000"/>
-      <circle cx="${nx.toFixed(1)}" cy="${(y + h).toFixed(1)}" r="${nr.toFixed(1)}" fill="#000"/>
+      <rect x="${x.toFixed(2)}" y="${y.toFixed(2)}" width="${w.toFixed(2)}" height="${h.toFixed(2)}" rx="${r.toFixed(2)}" fill="#fff"/>
+      <circle cx="${nx.toFixed(2)}" cy="${y.toFixed(2)}" r="${nr.toFixed(2)}" fill="#000"/>
+      <circle cx="${nx.toFixed(2)}" cy="${(y + h).toFixed(2)}" r="${nr.toFixed(2)}" fill="#000"/>
       ${dashes}
     </mask>
   </defs>
   ${plain ? '' : `<rect width="${size}" height="${size}" rx="${(size * 0.225).toFixed(1)}" fill="${ground || brand.colour.ground}"/>`}
-  ${behind}
+  ${plain ? '' : `<rect x="${(x + size * 0.022).toFixed(2)}" y="${y.toFixed(2)}" width="${w.toFixed(2)}" height="${h.toFixed(2)}" rx="${r.toFixed(2)}" fill="${brand.colour.cards[0]}"/>`}
   <rect width="${size}" height="${size}" fill="${front}" mask="url(#${uid})"/>
 </svg>`;
 }
@@ -130,7 +327,16 @@ export function wordmarkSvg({ height = 40, colour = 'currentColor', variant = 'a
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${width.toFixed(0)}" height="${height}"
      viewBox="0 0 ${width.toFixed(0)} ${height}" role="img" aria-label="${brand.name}">
   <g transform="translate(0, ${((height - markSize) / 2).toFixed(1)})">
-    ${markSvg({ size: markSize, variant, bleed: variant === 'plain' ? 0.02 : 0.06, colour })}
+    ${markSvg({
+    size: markSize,
+    variant,
+    bleed: variant === 'plain' ? 0.02 : 0.06,
+    colour,
+    // The wordmark is a display asset — it appears on the landing page and in Settings
+    // at a size where the full composition reads — so it is forced rather than left to
+    // the size threshold, which is meant for chrome.
+    full: variant !== 'plain',
+  })}
   </g>
   <text x="${(markSize + gap).toFixed(1)}" y="${(height * 0.72).toFixed(1)}"
         font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif"

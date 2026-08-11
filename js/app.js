@@ -194,7 +194,7 @@ function announceUpdate() {
 
   setTimeout(() => {
     toast('Stub was updated.', {
-      detail: `Now on version ${BUILD.version}. Your tickets are exactly as you left them.`,
+      detail: `Now on ${BUILD.version}. Your tickets are exactly as you left them.`,
       tone: 'good',
     });
   }, 900);

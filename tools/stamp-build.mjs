@@ -32,7 +32,11 @@ const readable = date.toLocaleDateString('en-GB', { day: 'numeric', month: 'shor
 
 // Human-meaningful and monotonic: the number of commits, then the commit itself for
 // anyone who needs to find the exact code.
-const version = `${count} (${commit})`;
+//
+// The "v" is not decoration. Shown bare, "25 (7ac6230)" reads as a quantity of something
+// — 25 of what? — and this number is the first thing anyone quotes when reporting a
+// problem. A version has to announce that it is one.
+const version = `v${count} (${commit})`;
 
 const buildFile = new URL('../js/build.js', import.meta.url);
 await writeFile(buildFile, `/**
