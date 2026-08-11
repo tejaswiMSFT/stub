@@ -272,6 +272,15 @@ export async function readBarcodes(canvas, options = {}) {
  * are tried in order and the search stops as soon as something convincing appears,
  * rather than grinding through a masthead and six social icons on a phone.
  */
+/**
+ * How long the whole barcode search may take.
+ *
+ * Twelve seconds is long enough to try the page and several tiles on a phone, and short
+ * enough that someone at a gate does not think the app has hung. The alternative was
+ * measured at 159 seconds.
+ */
+const BARCODE_BUDGET_MS = 12000;
+
 export async function readBarcodesFromSource(ingested, options = {}) {
   const candidates = ingested?.barcodeCandidates?.length
     ? ingested.barcodeCandidates
@@ -284,7 +293,25 @@ export async function readBarcodesFromSource(ingested, options = {}) {
   const all = new Map();
   let searched = 0;
 
+  /*
+   * A budget, because the search must not be able to run away.
+   *
+   * Measured, not guessed: a 3072×4080 phone photograph of a cinema ticket spent **two
+   * and a half minutes** here, ninety-five per cent of the whole ingest, while OCR — the
+   * stage everyone assumes is slow — took six seconds. Nine tiles of a very large image
+   * is simply a great deal of work, and no amount of it helps if the code is not there.
+   *
+   * The cheap candidates come first, so a budget mostly ends a search that was going to
+   * fail anyway. A ticket whose barcode is found in the first attempt never notices this.
+   */
+  const budget = options.budgetMs ?? BARCODE_BUDGET_MS;
+  const started = Date.now();
+
   for (const candidate of candidates) {
+    // Always try the first candidate, however slow the device: giving up before looking
+    // once would be worse than the delay.
+    if (searched > 0 && Date.now() - started > budget) break;
+
     searched++;
     options.onProgress?.({ phase: 'barcode-candidate', index: searched, of: candidates.length });
 

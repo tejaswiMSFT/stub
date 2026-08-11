@@ -89,15 +89,38 @@ export function tilePage(canvas, { grid = GRID, overlap = OVERLAP } = {}) {
 }
 
 /**
- * Draws one tile, upscaled.
+ * The largest tile we will hand a decoder, in pixels on the longest edge.
  *
- * The upscale is the point of the exercise. A decoder works from the pixels it is given,
- * and a tile drawn at its native size carries exactly the detail the full page did —
- * cutting alone gains nothing. Doubling gives the binariser more to work with on a code
- * that was marginal, which is the case tiling exists to rescue.
+ * A phone photograph is enormous — 3072×4080 is ordinary — and a ninth of that is still
+ * 1400px, which doubled becomes 2800. Nine of those took **two and a half minutes** on a
+ * desktop before this cap existed, and on a phone it would simply never finish. The
+ * decoder gains nothing from that size: a barcode legible at 1200px across is legible,
+ * and one that is not was already lost.
+ */
+const MAX_TILE_EDGE = 1200;
+
+/**
+ * Draws one tile at a size worth decoding.
+ *
+ * The upscale is the point of the exercise: a decoder works from the pixels it is given,
+ * and a tile drawn at its native size carries exactly the detail the full page did, so
+ * cutting alone gains nothing. But upscaling is only useful up to a point, and past it
+ * the cost is quadratic while the benefit is zero — which is how a 3 MB photograph took
+ * longer to search than a person would ever wait.
+ *
+ * So the scale is whatever gets the tile *towards* a decodable size, never past the cap.
+ * A small tile from a modest image is still doubled; a huge tile from a phone camera is
+ * brought down instead.
  */
 export function drawTile(source, tile, { scale = 2 } = {}) {
-  const canvas = createCanvas(Math.round(tile.width * scale), Math.round(tile.height * scale));
+  const longest = Math.max(tile.width, tile.height);
+  const wanted = longest * scale;
+  const effective = wanted > MAX_TILE_EDGE ? MAX_TILE_EDGE / longest : scale;
+
+  const width = Math.max(1, Math.round(tile.width * effective));
+  const height = Math.max(1, Math.round(tile.height * effective));
+
+  const canvas = createCanvas(width, height);
   const context = canvas.getContext('2d', { willReadFrequently: true });
   if (!context) return null;
 
@@ -109,7 +132,7 @@ export function drawTile(source, tile, { scale = 2 } = {}) {
     0, 0, canvas.width, canvas.height,
   );
 
-  return { canvas, scale };
+  return { canvas, scale: effective };
 }
 
 /**

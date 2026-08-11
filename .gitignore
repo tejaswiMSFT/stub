@@ -35,3 +35,5 @@ probe-*.png
 Thumbs.db
 .vscode/
 .idea/
+_samples/
+_movies/
