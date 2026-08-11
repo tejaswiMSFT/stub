@@ -19,9 +19,10 @@
  *   of the mark said so. It is drawn as three ringed eyes, because that is what the eye
  *   actually recognises — filled squares merge into blobs and read as a window.
  *
- *   Below 48px the composition is abandoned for a single ticket. Four rotated cards plus
- *   a code is far too much information for 24 pixels, and a rotated notch fights the pixel
- *   grid at every angle. Same identity, drawn for its size, which is what Apple does.
+ *   Below 26px the composition is abandoned for a single ticket. The threshold was
+ *   originally 44, on the assumption that a tilted fan could not survive smaller; putting
+ *   both side by side at every size disproved it, and left the browser tab showing the
+ *   real mark while the app's own bar showed a plain one.
  *
  *   Notches sit opposite one another, near one end. Placed mid-edge, the shape reads as
  *   a bag or a basket rather than a ticket. Their position is what makes it legible.
@@ -79,10 +80,15 @@ const TILT = -13;
 /**
  * Below this the full composition is abandoned for a single flat ticket.
  *
- * Chosen by rendering both at every size that matters and looking: four rotated cards
- * and a QR simply cannot survive 24 pixels, and pretending otherwise produces a smudge.
+ * Set at 44 on the assumption that four rotated cards could not survive smaller. Rendering
+ * both side by side at every size from 28 up disproved that: at the 3× density every
+ * phone has, the fan and the code still read at 28px, and the simplified drawing is
+ * merely blander rather than clearer. It was also visibly inconsistent — the browser tab
+ * showed the real mark while the app's own bar showed the plain one, on the same screen.
+ *
+ * 24 is kept as a floor because at that size the tilt genuinely does turn to porridge.
  */
-const SIMPLIFY_BELOW = 44;
+const SIMPLIFY_BELOW = 26;
 
 /**
  * A QR mark: three ringed eyes and a few loose modules.

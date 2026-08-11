@@ -569,7 +569,7 @@ function renderHome() {
 
   // The mark beside the name. Drawn once and left alone.
   const mark = $('home-mark');
-  if (mark && !mark.childElementCount) mark.innerHTML = markSvg({ size: 30 });
+  if (mark && !mark.childElementCount) mark.innerHTML = markSvg({ size: 32 });
 
   if (!state.tickets.length) {
     // No button here. A "+" already sits in the bar above, and offering two controls for
