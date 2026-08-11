@@ -501,6 +501,76 @@ p { margin: 0; }
  * bottom is what makes a rectangle read as one lying on a surface.
  */
 /*
+ * Swipe to archive or delete.
+ *
+ * The card sits in a wrapper that holds two action panels behind it, one either side.
+ * The card itself is translated; the panels never move, so the card reads as sliding
+ * off to reveal what is underneath — the same model as Mail, and the reason it feels
+ * physical rather than like two views cross-fading.
+ *
+ * The wrapper is what carries the shadow and the radius during a swipe. The card clips
+ * its own corners, so without this the panels would show as hard rectangles poking out
+ * from behind a rounded card.
+ */
+.swipe {
+  position: relative;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  touch-action: pan-y;
+}
+
+/*
+ * The gap between cards belongs to the wrapper once a card is wrapped, not to the card.
+ * Left on the card, a row collapsing after a swipe would close its own height but leave
+ * its margin behind, so the list would shuffle up and stop 12px short.
+ */
+.swipe { margin-bottom: 12px; }
+.swipe > .card { margin-bottom: 0; }
+
+.swipe-action {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 50%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 22px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  /* Behind the card, which is the whole illusion. */
+  z-index: 0;
+}
+
+.swipe-action.archive { left: 0; justify-content: flex-start; background: var(--green); }
+.swipe-action.delete { right: 0; justify-content: flex-end; background: var(--red); }
+
+.swipe > .card {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  /* Set from script during a drag; the transition is added only on release, so the card
+     tracks the finger exactly while it is down and eases home when it is let go. */
+  transform: translateX(var(--swipe, 0px));
+}
+
+.swipe.settling > .card { transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1); }
+
+/* Committed: the card leaves, then the row collapses so the list closes the gap. */
+.swipe.leaving {
+  transition: height 0.24s ease, opacity 0.24s ease, margin 0.24s ease;
+  height: 0 !important;
+  opacity: 0;
+  margin-bottom: 0 !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .swipe.settling > .card { transition: none; }
+  .swipe.leaving { transition: none; }
+}
+
+/*
  * Depth on the cards.
  *
  * A pass is a physical object in the user's mind, and three things make a rectangle read
@@ -759,17 +829,26 @@ p { margin: 0; }
 
 .card-route { display: flex; align-items: center; gap: 12px; }
 .card-route .place { font-size: clamp(21px, 5.8vw, 26px); font-weight: 600; letter-spacing: -0.02em; }
-.card.large .card-route .place { font-size: clamp(26px, 7.4vw, 32px); }
-/* Same reasoning as the pass: a title is not a three-letter code. */
-.card-route .place.single {
+.card.large .card-route .place:not(.single) { font-size: clamp(26px, 7.4vw, 32px); }
+
+/*
+ * A title is not a three-letter code, and must not be set like one.
+ *
+ * This needs the `.card.large` prefix rather than reading as a standalone rule: the
+ * large-card size above is four classes deep, so a plainer selector here lost to it on
+ * specificity and every film title on the featured card was set at 32px regardless.
+ */
+.card-route .place.single,
+.card.large .card-route .place.single {
   font-size: clamp(15px, 4.4vw, 21px);
-  line-height: 1.2;
+  line-height: 1.25;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   overflow-wrap: anywhere;
 }
+.card.large .card-route .place.single { font-size: clamp(17px, 5vw, 23px); }
 .card-route .arrow { opacity: 0.7; display: flex; }
 .plain-arrow { font-size: 18px; }
 
@@ -1405,7 +1484,29 @@ kbd {
 /* settings */
 
 .group { margin-bottom: 26px; }
-.group h2 { font-size: 13px; font-weight: 600; color: var(--label-2); padding: 0 4px; margin-bottom: 8px; }
+/*
+ * Settings headings.
+ *
+ * Uppercased and tracked out, the way a grouped list is set on iOS, with a small icon
+ * ahead of the text. The icon is a landmark for the eye when scrolling past several
+ * sections — which is why it sits on the heading and not on every row beneath it.
+ */
+.group h2 {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--label-2);
+  padding: 0 4px;
+  margin-bottom: 8px;
+}
+
+.group-icon { flex: none; opacity: 0.85; }
+.group-icon.danger { color: var(--red); opacity: 1; }
+
 .group-note { font-size: 13px; color: var(--label-2); padding: 0 4px; margin-top: 9px; line-height: 1.45; }
 .group-note.warn-note { color: var(--orange); }
 .warn-note { color: var(--orange); }
@@ -1484,6 +1585,96 @@ kbd {
   color: var(--label-2);
   line-height: 1.5;
 }
+
+/*
+ * A label and its value on one line, for facts rather than prose.
+ *
+ * The build number was a sentence — "You are running 21 (7ba5bfd), from 11 Aug 2026" —
+ * which has to be read to be understood. Anyone opening this section wants to find a
+ * value and quote it, so it is set as a value.
+ */
+.fact-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  padding: 3px 0;
+}
+
+.fact-label { font-size: 13px; color: var(--label-2); }
+
+.fact-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--label);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* The update line. Its icon carries the state; the colour confirms it. */
+.update-state {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--separator);
+  font-size: 13.5px;
+  font-weight: 500;
+}
+
+.update-state .update-icon { display: flex; flex: none; }
+.update-state.current { color: var(--green); }
+.update-state.ready { color: var(--blue); }
+.update-state.checking { color: var(--label-2); }
+.update-state.checking .update-icon { animation: pulse 1.4s ease-in-out infinite; }
+
+@keyframes pulse { 50% { opacity: 0.35; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .update-state.checking .update-icon { animation: none; }
+}
+
+/*
+ * Picking what kind of ticket this is.
+ *
+ * A grid of glyphs rather than a dropdown: the artwork the choice selects is the thing
+ * being chosen, so showing it is both the clearest label and an honest preview.
+ */
+.kind-picker {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.kind-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 14px 6px;
+  background: var(--surface-solid);
+  border: 1.5px solid transparent;
+  border-radius: var(--radius);
+  color: var(--label-2);
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.12s ease;
+}
+
+.kind-option .kind-glyph { display: flex; opacity: 0.7; transition: opacity 0.18s ease; }
+.kind-option:active { transform: scale(0.96); }
+
+.kind-option.on {
+  border-color: var(--blue);
+  color: var(--label);
+  background: color-mix(in srgb, var(--blue) 12%, var(--surface-solid));
+}
+
+.kind-option.on .kind-glyph { opacity: 1; color: var(--blue); }
+
 
 .info-card p + p { margin-top: 7px; }
 
@@ -1670,8 +1861,17 @@ kbd {
  * reported, which is worse than the bug it describes.
  */
 .toast.tappable { cursor: pointer; }
+
+/*
+ * What tapping will do, in the toast's own words.
+ *
+ * This used to be a hard-coded "Tap to dismiss", which was wrong for every toast that
+ * offered an action: the delete toast read "Tap to undo" and "TAP TO DISMISS" one line
+ * apart, telling the user two different things about the same tap. The caller now
+ * supplies the verb and it is set here.
+ */
 .toast.tappable::after {
-  content: 'Tap to dismiss';
+  content: attr(data-action);
   margin-top: 4px;
   font-size: 11px;
   letter-spacing: 0.02em;

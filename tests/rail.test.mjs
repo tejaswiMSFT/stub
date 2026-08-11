@@ -243,6 +243,38 @@ test('building a draft', async (t) => {
     assert.equal(draft.value('departureTime'), '22:40');
   });
 
+  /*
+   * The seat number and the berth position are two different facts and must be labelled
+   * as such. Both were called "Berth" — one holding "17" and one holding "Lower" — so a
+   * pass showed the word twice, against values of different kinds, with nothing to say
+   * which was which.
+   */
+  await t.test('calls the number a seat and the position a berth', async () => {
+    const draft = await railAdapter.build(contextFrom([
+      'IRCTC Electronic Reservation Slip',
+      'Train No.  16540',
+      'From  MAJN - Mangaluru Jn',
+      'To  YPR - Yesvantpur Jn',
+      'Date of Journey  13 Sep 2026',
+      'Departure  07:00',
+      'Coach  M1',
+      'Berth  17',
+      'Berth Position  Lower',
+      'PNR  4861644049',
+    ]));
+
+    assert.equal(draft.get('seat').label, 'Seat');
+    assert.equal(draft.value('seat'), '17');
+
+    if (draft.value('berthPosition')) {
+      assert.equal(draft.get('berthPosition').label, 'Berth');
+    }
+
+    // Whatever else changes, no two shown fields may share a label.
+    const labels = draft.list().filter((f) => f.value).map((f) => f.label);
+    assert.equal(new Set(labels).size, labels.length, `duplicate labels: ${labels.join(', ')}`);
+  });
+
   await t.test('produces a bus pass with the bus transit type', async () => {
     const draft = await railAdapter.build(contextFrom([
       'KSRTC Airavat Club Class',

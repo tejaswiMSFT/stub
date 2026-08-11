@@ -29,6 +29,7 @@ import * as wakelock from './wakelock.js';
 import * as resume from './resume.js';
 import * as updates from './update.js';
 import * as haptics from './haptics.js';
+import * as swipe from './swipe.js';
 import { helpPages } from './help.js';
 import { markSvg, wordmarkSvg, svgUrl, brand } from './brand-identity.js';
 import { BUILD } from './build.js';
@@ -309,8 +310,9 @@ async function registerServiceWorker() {
 
     onUpdateReady: () => {
       toast('An update is ready.', {
-        detail: 'Tap to restart. Your tickets are kept.',
+        detail: 'Your tickets are kept exactly as they are.',
         tone: 'good',
+        action: 'Tap to restart',
         onTap: () => updates.apply(),
       });
     },
@@ -489,6 +491,77 @@ async function copyLink() {
 
 // ────────────────────────────── home ──────────────────────────────
 
+/**
+ * Archives a ticket, or restores one already archived.
+ *
+ * Archiving only moves a pass into Past — nothing is discarded — so it needs no
+ * confirmation and no undo beyond swiping the other way.
+ */
+async function archiveTicket(id) {
+  const ticket = state.tickets.find((t) => t.id === id);
+  if (!ticket) return false;
+
+  const archiving = !ticket.archived;
+
+  try {
+    await store.save({ ...ticket, archived: archiving });
+  } catch {
+    toast('That could not be saved.', { tone: 'bad' });
+    return false;
+  }
+
+  state.tickets = await store.all();
+  haptics.tap('select');
+  toast(archiving ? 'Moved to Past.' : 'Restored.');
+
+  // After the row has finished leaving, so the list does not redraw underneath it.
+  setTimeout(renderHome, 260);
+  return true;
+}
+
+/**
+ * Deletes a ticket, with a way back.
+ *
+ * The ⋯ menu asks first, because there the user chose "Delete" from a list and a
+ * confirmation is the natural second half of that choice. A swipe is different: it is one
+ * quick movement, often one-handed, and interrupting it with a modal would defeat the
+ * point of the gesture. So this deletes immediately and offers Undo instead, which is
+ * both faster when meant and kinder when not.
+ *
+ * The record is kept in memory until the toast goes, and restored wholesale — including
+ * its barcode and its id — so an undone delete is genuinely the same pass and not a copy
+ * that lost something on the way.
+ */
+async function deleteTicketWithUndo(id) {
+  const ticket = state.tickets.find((t) => t.id === id);
+  if (!ticket) return false;
+
+  try {
+    await store.remove(id);
+  } catch {
+    toast('That could not be deleted.', { tone: 'bad' });
+    return false;
+  }
+
+  state.tickets = await store.all();
+  haptics.tap('warn');
+
+  toast('Deleted.', {
+    detail: 'That pass has been removed from this device.',
+    action: 'Tap to undo',
+    timeout: 7000,
+    onTap: async () => {
+      await store.save(ticket);
+      state.tickets = await store.all();
+      renderHome();
+      toast('Restored.');
+    },
+  });
+
+  setTimeout(renderHome, 260);
+  return true;
+}
+
 function renderHome() {
   const body = $('home-body');
   const { upcoming, past } = store.partition(state.tickets);
@@ -538,6 +611,18 @@ function renderHome() {
       Your browser has not guaranteed to keep this data. Export a backup from Settings to be safe.
     </p>` : ''}
   `;
+
+  // Each card is wrapped after the fact rather than in `cardMarkup`, because the same
+  // markup is used on the pass screen and in the review preview, where a swipe would be
+  // meaningless.
+  for (const card of body.querySelectorAll('.card[data-ticket]')) {
+    const ticket = state.tickets.find((t) => t.id === card.dataset.ticket);
+    const parent = card.parentNode;
+    const after = card.nextSibling;
+    parent.insertBefore(swipe.wrap(card, {
+      archiveLabel: ticket?.archived ? 'Restore' : 'Archive',
+    }), after);
+  }
 
   for (const element of body.querySelectorAll('[data-ticket]')) {
     element.addEventListener('click', () => openPass(element.dataset.ticket));
@@ -591,6 +676,13 @@ function cardMarkup(ticket, { large = false, dim = false } = {}) {
       f.departureTime,
     ]).filter(Boolean).join(' · ');
 
+  // Falling back to the booking reference is not filler. A pass we could only read the
+  // barcode from — a screenshotted cinema ticket, typically — has no service, date or
+  // time to show, and the card was left as a title floating in an empty rectangle. The
+  // reference is the one fact we do hold, and it is the thing a person is actually asked
+  // to quote at a counter, so it earns the line.
+  const summary = escapeHtml(detail || f.reference || '');
+
   const seat = ticket.kind === 'lodging'
     ? (f.room ? escapeHtml(f.room) : '')
     : (f.seat ? `${f.coach ? `${escapeHtml(f.coach)} · ` : ''}${escapeHtml(f.seat)}` : '');
@@ -603,10 +695,10 @@ function cardMarkup(ticket, { large = false, dim = false } = {}) {
         ${(ticket.barcode || ticket.barcodeImage) ? '<span class="card-chip">Scannable</span>' : ''}
       </div>
       ${route}
-      <div class="card-foot">
-        <span class="card-detail">${escapeHtml(detail)}</span>
+      ${(summary || seat) ? `<div class="card-foot">
+        <span class="card-detail">${summary}</span>
         ${seat ? `<span class="card-seat">${seat}</span>` : ''}
-      </div>
+      </div>` : ''}
     </button>`;
 }
 
@@ -951,8 +1043,16 @@ function renderPass(ticket) {
   });
 }
 
-function seatLabel(ticket) {
-  if (ticket.kind === 'rail') return ticket.fields?.berthPosition ? 'Berth' : 'Seat';
+/**
+ * What to call the seat.
+ *
+ * On an Indian rail ticket "M1 / 17 / LOWER" the 17 is the seat number and LOWER is the
+ * kind of berth it is. This returned "Berth" for the number whenever a position had also
+ * been read, which produced two fields both headed BERTH — one holding a number, one
+ * holding a word. That is not a distinction anyone should have to work out at a train
+ * door. The number is a seat; the position is the berth.
+ */
+function seatLabel() {
   return 'Seat';
 }
 
@@ -1253,8 +1353,9 @@ function fail(error) {
     toast(error.message, { detail: error.hint || '', tone: 'bad' });
   } else {
     toast('Something went wrong reading that file.', {
-      detail: 'This is a bug, not something you did. Tap to copy the details for the developer.',
+      detail: 'This is a bug, not something you did.',
       tone: 'bad',
+      action: 'Tap to copy the details',
       onTap: () => copyDiagnostics(error),
     });
   }
@@ -1293,6 +1394,61 @@ async function copyDiagnostics(error) {
 
 // ────────────────────────────── review ──────────────────────────────
 
+/**
+ * The kinds a user can pick from when we could not work it out ourselves.
+ *
+ * Offered only for a `generic` draft — one where a barcode was read but nothing else,
+ * which in practice means a screenshotted cinema or event ticket. There is no OCR, so the
+ * app genuinely cannot know what it is looking at, and guessing would be worse than
+ * asking.
+ *
+ * The choice is not cosmetic. `kind` decides the colour, the glyph, the icon and the
+ * wording throughout, all of which already existed and none of which could ever be
+ * reached while every unrecognised ticket stayed `generic`.
+ */
+const PICKABLE_KINDS = [
+  ['movie', 'Film'],
+  ['concert', 'Concert'],
+  ['theatre', 'Theatre'],
+  ['sport', 'Sport'],
+  ['conference', 'Conference'],
+  ['event', 'Something else'],
+];
+
+/** What the big line on the pass should be called, once we know what kind it is. */
+const TITLE_LABELS = {
+  movie: 'Film',
+  concert: 'Artist',
+  theatre: 'Production',
+  sport: 'Fixture',
+  conference: 'Event',
+  event: 'Title',
+};
+
+function kindPickerMarkup(draft) {
+  // Only where we admitted we did not know. A flight that was read confidently must not
+  // invite the user to relabel it as a film.
+  if (draft.type !== 'generic' && !PICKABLE_KINDS.some(([id]) => id === draft.type)) return '';
+
+  return `
+    <section class="review-group">
+      <h2>What kind of ticket is this?</h2>
+      <p class="group-note">
+        We read the code but not the page, so this is yours to tell us. It sets the
+        artwork and how the pass is described.
+      </p>
+      <div class="kind-picker">
+        ${PICKABLE_KINDS.map(([id, label]) => `
+          <button class="kind-option ${draft.type === id ? 'on' : ''}" data-kind="${id}" type="button">
+            <span class="kind-glyph" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">${glyphFor(id)}</svg>
+            </span>
+            <span>${label}</span>
+          </button>`).join('')}
+      </div>
+    </section>`;
+}
+
 function renderReview() {
   const draft = state.draft;
   const needing = draft.fieldsNeedingReview;
@@ -1318,6 +1474,8 @@ function renderReview() {
         </svg>
         Everything read cleanly.
       </div>`}
+
+    ${kindPickerMarkup(draft)}
 
     ${passengersMarkup(draft)}
 
@@ -1436,6 +1594,26 @@ function wireReview() {
     button.addEventListener('click', () => {
       haptics.tap('select');
       state.draft.get(button.dataset.confirm)?.confirm();
+      renderReview();
+    });
+  }
+
+  // ── What kind of ticket ──
+  for (const button of document.querySelectorAll('[data-kind]')) {
+    button.addEventListener('click', () => {
+      haptics.tap('select');
+      const kind = button.dataset.kind;
+      state.draft.type = kind;
+
+      // The title's prompt should ask for the right thing. "Title" is what we say when we
+      // do not know; once the user has told us it is a film, asking for the film's name
+      // is both clearer and a small acknowledgement that they were listened to.
+      const title = state.draft.get('title');
+      if (title) {
+        title.label = TITLE_LABELS[kind] || 'Title';
+        title.note = title.value ? title.note : `Please add the ${(TITLE_LABELS[kind] || 'title').toLowerCase()}.`;
+      }
+
       renderReview();
     });
   }
@@ -1621,6 +1799,42 @@ function wireHelpSwipe() {
 
 // ────────────────────────────── settings ──────────────────────────────
 
+/**
+ * The small mark beside each settings heading.
+ *
+ * Line icons on a 24-grid, matching the rest of the app. Deliberately only on headings:
+ * an icon on every row reads as decoration and makes a settings list look like a toy,
+ * while a marked heading gives the eye a landmark when scanning for a section.
+ */
+const SETTINGS_ICONS = {
+  theme: '<circle cx="12" cy="12" r="8.2"/><path d="M12 3.8a8.2 8.2 0 0 1 0 16.4z" fill="currentColor" stroke="none"/>',
+  scan: '<path d="M4 8V5.5A1.5 1.5 0 0 1 5.5 4H8M16 4h2.5A1.5 1.5 0 0 1 20 5.5V8'
+    + 'M20 16v2.5a1.5 1.5 0 0 1-1.5 1.5H16M8 20H5.5A1.5 1.5 0 0 1 4 18.5V16M7 12h10"/>',
+  retention: '<circle cx="12" cy="12" r="8"/><path d="M12 7.5V12l3 1.8"/>',
+  backup: '<path d="M12 15V4M8.5 11.5 12 15l3.5-3.5M4.5 16v2.5A1.5 1.5 0 0 0 6 20h12a1.5 1.5 0 0 0 1.5-1.5V16"/>',
+  storage: '<ellipse cx="12" cy="6.5" rx="7" ry="2.6"/><path d="M5 6.5v11c0 1.4 3.1 2.6 7 2.6s7-1.2 7-2.6v-11M5 12c0 1.4 3.1 2.6 7 2.6s7-1.2 7-2.6"/>',
+  version: '<path d="M12 2.6 20 6.4v5.2c0 4.3-3.2 8.2-8 9.8-4.8-1.6-8-5.5-8-9.8V6.4z"/>'
+    + '<path d="m9.2 12 2 2 3.6-3.8"/>',
+  erase: '<path d="M4.5 7h15M9.5 7V5.2A1.2 1.2 0 0 1 10.7 4h2.6a1.2 1.2 0 0 1 1.2 1.2V7'
+    + 'M6.5 7l1 12.1A1 1 0 0 0 8.5 20h7a1 1 0 0 0 1-.9L17.5 7M10.5 11v5M13.5 11v5"/>',
+};
+
+function settingsIcon(name) {
+  const path = SETTINGS_ICONS[name];
+  if (!path) return '';
+
+  return `<svg class="group-icon ${name === 'erase' ? 'danger' : ''}" viewBox="0 0 24 24"
+    width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7"
+    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${path}</svg>`;
+}
+
+/** Icons for the three states the update line can be in. */
+const UPDATE_ICONS = {
+  checking: '<circle cx="12" cy="12" r="8"/><path d="M12 7.5V12l3 1.8"/>',
+  current: '<path d="m4.5 12.4 5 5L19.5 7"/>',
+  ready: '<path d="M12 4v11M8 11l4 4 4-4M5 19h14"/>',
+};
+
 async function openSettings() {
   const estimate = await store.storageEstimate();
   const current = prefs.settings();
@@ -1637,10 +1851,14 @@ async function openSettings() {
   // Ordered the way Apple orders Settings: what you change often at the top, what you
   // rarely touch below it, information near the end, and anything destructive last —
   // where it cannot be hit while reaching for something else.
+  //
+  // Headings carry a small icon; individual rows do not. A glyph on every button turns a
+  // settings list into a toy, but a marked heading gives the eye something to land on
+  // when scanning for a section, which is how this screen is actually used.
   body.innerHTML = `
     <section class="group">
-      <h2>Appearance</h2>
-      <div class="segmented" id="theme-segment" role="group" aria-label="Appearance">
+      <h2>${settingsIcon('theme')}Theme</h2>
+      <div class="segmented" id="theme-segment" role="group" aria-label="Theme">
         <button data-theme="light" type="button">Light</button>
         <button data-theme="auto" type="button">Auto</button>
         <button data-theme="dark" type="button">Dark</button>
@@ -1648,7 +1866,7 @@ async function openSettings() {
     </section>
 
     <section class="group">
-      <h2>While showing a code</h2>
+      <h2>${settingsIcon('scan')}While showing a code</h2>
       <label class="switch-row">
         <span class="option-text">
           <strong>Keep the screen awake</strong>
@@ -1668,7 +1886,7 @@ async function openSettings() {
     </section>
 
     <section class="group">
-      <h2>After you travel</h2>
+      <h2>${settingsIcon('retention')}After you travel</h2>
       <div class="options-list">
         ${Object.values(prefs.RETENTION).map((option) => `
           <button class="option ${current.retention === option.id ? 'on' : ''}" data-retention="${option.id}" type="button">
@@ -1695,7 +1913,7 @@ async function openSettings() {
     </section>
 
     <section class="group">
-      <h2>Backup</h2>
+      <h2>${settingsIcon('backup')}Backup</h2>
       <button class="row" id="export" type="button">
         <span>Export a backup</span>
         <span class="row-note">${state.tickets.length} pass${state.tickets.length === 1 ? '' : 'es'}</span>
@@ -1708,7 +1926,7 @@ async function openSettings() {
     </section>
 
     <section class="group">
-      <h2>Storage</h2>
+      <h2>${settingsIcon('storage')}Storage</h2>
       <div class="info-card">
         ${estimate ? `<p>Using ${formatBytes(estimate.usage)} of about ${formatBytes(estimate.quota)} available.</p>` : ''}
         <p class="${persisted ? '' : 'warn-note'}">
@@ -1720,10 +1938,25 @@ async function openSettings() {
     </section>
 
     <section class="group">
-      <h2>Version</h2>
+      <h2>${settingsIcon('version')}Version</h2>
       <div class="info-card">
-        <p>You are running <strong>${escapeHtml(BUILD.version)}</strong>, from ${escapeHtml(BUILD.date)}.</p>
-        <p id="update-state" class="group-note">Checking for updates…</p>
+        <!--
+          A version is a fact to be looked up, not a sentence to be read. Set as a label
+          and a value it can be found at a glance and quoted accurately, which is the only
+          reason anyone opens this section.
+        -->
+        <div class="fact-row">
+          <span class="fact-label">Build</span>
+          <span class="fact-value">${escapeHtml(BUILD.version)}</span>
+        </div>
+        <div class="fact-row">
+          <span class="fact-label">Released</span>
+          <span class="fact-value">${escapeHtml(BUILD.date)}</span>
+        </div>
+        <p id="update-state" class="update-state checking">
+          <span class="update-icon" aria-hidden="true"></span>
+          <span class="update-text">Checking for updates…</span>
+        </p>
       </div>
       <button class="row" id="check-updates" type="button"><span>Check for updates</span></button>
       <p class="group-note">
@@ -1733,10 +1966,11 @@ async function openSettings() {
     </section>
 
     <section class="group">
-      <h2>Delete</h2>
-      <button class="row danger" id="delete-all" type="button"><span>Delete everything</span></button>
+      <h2>${settingsIcon('erase')}Erase</h2>
+      <button class="row danger" id="delete-all" type="button"><span>Erase all data</span></button>
       <p class="group-note warn-note">
-        Deleting the app deletes everything in it. Nothing is stored anywhere else.
+        Everything you have saved is removed from this device. Nothing is stored anywhere
+        else, so this cannot be undone.
       </p>
     </section>
 
@@ -1765,16 +1999,27 @@ async function openSettings() {
   // Shown plainly so that "are you on the latest?" can be answered by looking, rather
   // than by asking someone to try again and hoping their cache cooperated.
   const updateState = $('update-state');
-  const setState = (text) => { if (updateState) updateState.textContent = text; };
+
+  // The state carries its own icon, because a green tick is read before any sentence is,
+  // and "am I up to date?" is the only question this line exists to answer.
+  const setState = (state, text) => {
+    if (!updateState) return;
+    updateState.className = `update-state ${state}`;
+    updateState.innerHTML = `
+      <span class="update-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+             stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${UPDATE_ICONS[state]}</svg>
+      </span>
+      <span class="update-text">${escapeHtml(text)}</span>`;
+  };
 
   if (updates.isPending()) {
-    setState('An update is ready — tap below to restart.');
+    setState('ready', 'An update is ready — tap below to restart.');
   } else {
-    setState('Checking…');
+    setState('checking', 'Checking…');
     updates.check({ force: true }).then((found) => {
-      setState(found
-        ? 'An update is ready — tap below to restart.'
-        : 'This is the latest version.');
+      if (found) setState('ready', 'An update is ready — tap below to restart.');
+      else setState('current', "You're on the latest version.");
     });
   }
 
@@ -1784,11 +2029,10 @@ async function openSettings() {
       return;
     }
 
-    setState('Checking…');
+    setState('checking', 'Checking…');
     const found = await updates.check({ force: true });
-    setState(found
-      ? 'An update is ready — tap again to restart.'
-      : 'This is the latest version.');
+    if (found) setState('ready', 'An update is ready — tap again to restart.');
+    else setState('current', "You're on the latest version.");
   });
 
   $('keep-awake').addEventListener('change', (event) => {
@@ -1990,9 +2234,10 @@ let toastTimer = null;
  * vanished mid-read — which is how a real bug report came back as "it said undefined is
  * not a function and then the message chopped off".
  */
-function toast(message, { detail = '', tone = 'good', onTap = null } = {}) {
+function toast(message, { detail = '', tone = 'good', onTap = null, action = 'Tap to dismiss', timeout = null } = {}) {
   const element = $('toast');
   element.className = `toast ${tone}${onTap ? ' tappable' : ''}`;
+  if (onTap) element.dataset.action = action; else delete element.dataset.action;
   element.innerHTML = `<strong>${escapeHtml(message)}</strong>${detail ? `<span>${escapeHtml(detail)}</span>` : ''}`;
   element.hidden = false;
 
@@ -2002,9 +2247,11 @@ function toast(message, { detail = '', tone = 'good', onTap = null } = {}) {
 
   clearTimeout(toastTimer);
 
-  // Anything the user can act on waits for them.
-  if (onTap) return;
-  toastTimer = setTimeout(() => { element.hidden = true; }, detail ? 6500 : 2800);
+  // Anything the user can act on waits for them — unless it was given a deadline, which
+  // an undoable action needs: "Tap to undo" cannot sit on screen indefinitely, and the
+  // moment it leaves is the moment the deletion becomes real.
+  if (onTap && timeout == null) return;
+  toastTimer = setTimeout(() => { element.hidden = true; }, timeout ?? (detail ? 6500 : 2800));
 }
 
 function escapeHtml(value) {
@@ -2017,6 +2264,13 @@ const escapeAttr = escapeHtml;
 // ────────────────────────────── wiring ──────────────────────────────
 
 function wire() {
+  // Bound to the container rather than to each card, so it survives every redraw of the
+  // list without accumulating a listener per render.
+  swipe.attach($('home-body'), {
+    onArchive: archiveTicket,
+    onDelete: deleteTicketWithUndo,
+  });
+
   // Android offers a real install button; iOS never fires this, hence the instructions.
   window.addEventListener('beforeinstallprompt', (event) => {
     event.preventDefault();

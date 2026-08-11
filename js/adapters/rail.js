@@ -187,8 +187,11 @@ const VOCAB = {
     ],
     originPatterns: [/\bfrom\b/i, /\bboarding\s*station\b/i, /\bsource\s*station\b/i, /\borigin\b/i, /\bdeparture\s*station\b/i],
     destinationPatterns: [/\bto\b/i, /\bdestination\s*station\b/i, /\bdestination\b/i, /\barrival\s*station\b/i, /\balighting\s*(?:at|station)\b/i],
-    seatLabel: 'Berth',
-    seatLabelPlural: 'Berths',
+    // "Seat", not "Berth": the number is the seat, and the berth is whether it is lower,
+    // middle or upper — which is carried separately in `berthPosition`. Calling both
+    // "Berth" left the pass showing that word twice against two different kinds of value.
+    seatLabel: 'Seat',
+    seatLabelPlural: 'Seats',
     seatPatterns: [/\bberth\s*(?:no\.?|number)?\b/i, /\bseat\s*(?:no\.?|number)?\b/i, /\bcoach\s*(?:&|and)?\s*berth\b/i],
     transitType: 'PKTransitTypeTrain',
     typeName: 'train',
@@ -688,7 +691,7 @@ function buildSeating(draft, lines, vocab, mode) {
   if (mode === Mode.RAIL && coachBerth?.position) {
     draft.set('berthPosition', new Field({
       key: 'berthPosition',
-      label: 'Berth type',
+      label: 'Berth',
       value: coachBerth.positionName || coachBerth.position,
       source: Source.PDF_TEXT,
     }));
@@ -811,13 +814,13 @@ function buildRailExtras(draft, lines, text, table) {
 
   if (berth && !draft.value('seat')) {
     draft.set('seat', new Field({
-      key: 'seat', label: 'Berth', value: berth, source: Source.PDF_TEXT, critical: true,
+      key: 'seat', label: 'Seat', value: berth, source: Source.PDF_TEXT, critical: true,
     }));
   }
 
   if (parsed?.positionName && !draft.value('berthPosition')) {
     draft.set('berthPosition', new Field({
-      key: 'berthPosition', label: 'Berth type', value: parsed.positionName, source: Source.PDF_TEXT,
+      key: 'berthPosition', label: 'Berth', value: parsed.positionName, source: Source.PDF_TEXT,
     }));
   }
 
