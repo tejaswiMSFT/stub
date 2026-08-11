@@ -495,7 +495,7 @@ function renderHome() {
 
   // The mark beside the name. Drawn once and left alone.
   const mark = $('home-mark');
-  if (mark && !mark.childElementCount) mark.innerHTML = markSvg({ size: 27 });
+  if (mark && !mark.childElementCount) mark.innerHTML = markSvg({ size: 30 });
 
   if (!state.tickets.length) {
     // No button here. A "+" already sits in the bar above, and offering two controls for
@@ -546,7 +546,7 @@ function renderHome() {
 
 /** Says how soon, in the terms a person would use rather than a formatted timestamp. */
 function nextLabel(ticket) {
-  if (ticket.departsAt == null) return 'Next';
+  if (ticket.departsAt == null) return 'Upcoming';
 
   const diff = ticket.departsAt - Date.now();
   const hours = diff / 3600000;
@@ -558,7 +558,7 @@ function nextLabel(ticket) {
   const days = Math.round(hours / 24);
   if (days === 1) return 'Tomorrow';
   if (days < 7) return `In ${days} days`;
-  return 'Next';
+  return 'Upcoming';
 }
 
 function cardMarkup(ticket, { large = false, dim = false } = {}) {
@@ -2086,6 +2086,18 @@ function wire() {
   const file = $('file');
 
   dropzone.addEventListener('click', () => file.click());
+  // Escape closes whatever is on top. Expected on a desktop, and a keyboard is the only
+  // way out for anyone not using a pointer.
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape') return;
+
+    const sheet = document.querySelector('.action-sheet');
+    if (sheet) { sheet.remove(); return; }
+
+    if (!$('screen-scan').hidden) { closeScan(); return; }
+    if (!$('screen-help').hidden || !$('screen-settings').hidden) back();
+  });
+
   dropzone.addEventListener('keydown', (event) => {
     if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); file.click(); }
   });

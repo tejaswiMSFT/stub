@@ -63,12 +63,12 @@ export function markSvg({ size = 512, variant = 'app', bleed = 0.155, colour = n
   const plain = variant === 'plain';
   const p = size * bleed;
   const w = (size - p * 2) * (plain ? 1 : 0.84);
-  const h = w * 0.66;
+  const h = w * 0.7;
   const r = size * 0.05;
   const x = plain ? (size - w) / 2 : p;
   const y = (size - h) / 2;
 
-  const gap = size * 0.034;
+  const gap = size * 0.028;
   const front = plain ? (colour || 'currentColor') : STACK[STACK.length - 1];
 
   const behind = plain ? '' : STACK.slice(0, -1).map((fill, i) => {
@@ -78,11 +78,21 @@ export function markSvg({ size = 512, variant = 'app', bleed = 0.155, colour = n
   }).join('');
 
   // The stub line: notches opposite one another, with the perforation between them.
-  const nx = x + w * 0.68;
-  const nr = h * 0.16;
-  const dw = size * 0.022;
+  //
+  // The notch depth was arrived at by rendering the mark at the sizes it is actually
+  // used and looking at it. Too shallow and it vanishes, leaving a plain rounded
+  // rectangle that reads as a capsule; too deep — as it briefly was — and the two
+  // notches meet the perforation and the whole thing reads as a bowtie. A fifth of the
+  // height was the bowtie; an eighth keeps the tear line legible without pinching the
+  // card's waist.
+  // The tear sits at 0.62 rather than nearer the end. Further right it collided with the
+  // edges of the cards stacked behind, and since the notches cut through every layer the
+  // right third became a band of competing colour rather than a stub.
+  const nx = x + w * 0.62;
+  const nr = h * 0.12;
+  const dw = Math.max(size * 0.02, w * 0.04);
   const dh = h * 0.12;
-  const dashes = [0.125, 0.375, 0.625, 0.875]
+  const dashes = [0.18, 0.41, 0.64, 0.87]
     .map((t) => `<rect x="${(nx - dw / 2).toFixed(1)}" y="${(y + h * t - dh / 2).toFixed(1)}"
         width="${dw.toFixed(1)}" height="${dh.toFixed(1)}" rx="${(dw / 2).toFixed(1)}" fill="#000"/>`)
     .join('');

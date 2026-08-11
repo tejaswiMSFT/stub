@@ -287,8 +287,8 @@ p { margin: 0; }
 
 .bar-mark {
   display: flex;
-  width: 27px;
-  height: 27px;
+  width: 30px;
+  height: 30px;
 }
 
 .bar-mark svg { width: 100%; height: 100%; border-radius: 7px; }
@@ -758,8 +758,8 @@ p { margin: 0; }
 }
 
 .card-route { display: flex; align-items: center; gap: 12px; }
-.card-route .place { font-size: 27px; font-weight: 600; letter-spacing: -0.02em; }
-.card.large .card-route .place { font-size: 34px; }
+.card-route .place { font-size: clamp(21px, 5.8vw, 26px); font-weight: 600; letter-spacing: -0.02em; }
+.card.large .card-route .place { font-size: clamp(26px, 7.4vw, 32px); }
 /* Same reasoning as the pass: a title is not a three-letter code. */
 .card-route .place.single {
   font-size: clamp(15px, 4.4vw, 21px);
@@ -866,7 +866,21 @@ p { margin: 0; }
 .pass-route { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
 .endpoint { min-width: 0; }
 .endpoint.right { text-align: right; }
-.endpoint .code { display: block; font-size: 38px; font-weight: 600; letter-spacing: -0.025em; }
+/*
+ * The route, sized to the card rather than the screen.
+ *
+ * 38px was fixed, which is right on a phone and badly out of proportion in a 620px
+ * column on a desktop — the codes dwarfed everything around them and the hierarchy read
+ * as broken. Scaling with the viewport is no better, since the card does not grow with
+ * it. Clamped values keep the same relationship at both ends.
+ */
+.endpoint .code {
+  display: block;
+  font-size: clamp(26px, 7.4vw, 34px);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.05;
+}
 
 /*
  * A single heading — a film, a hotel — rather than an airport code.
@@ -1035,6 +1049,21 @@ p { margin: 0; }
 }
 
 .scan.controls .scan-close { opacity: 1; pointer-events: auto; transform: none; }
+
+/*
+ * Always visible where there is a mouse.
+ *
+ * Hiding the way out until the screen is tapped suits a phone, where the gesture is
+ * natural and the clutter is worth avoiding. With a mouse there is no tap, so the button
+ * simply never appeared and the only exit was the keyboard — the code opened and there
+ * was no way back.
+ */
+@media (hover: hover) and (pointer: fine) {
+  .scan-close { opacity: 1; pointer-events: auto; transform: none; }
+}
+
+/* Keyboard focus must always reveal it, whatever the pointer. */
+.scan-close:focus-visible { opacity: 1; pointer-events: auto; transform: none; }
 
 .scan-hint {
   position: absolute;
