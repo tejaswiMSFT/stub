@@ -143,6 +143,27 @@ export function classify(context) {
   if (/\bBAHN\b|\bZUG\b|\bTRENO\b|\bTREN\b|\bTREIN\b/.test(upper)) rail += 15;
   if (/\bONLINE-?TICKET\b/.test(upper) && /\bBAHN\b|\bZUG\b/.test(upper)) rail += 20;
 
+  /*
+   * The phrases printed on an Indian counter ticket, which is a photograph problem.
+   *
+   * A Bangalore–Pune reservation was refused with 39 of 240 words read confidently: a
+   * dot-matrix ticket, printed in Hindi and English on faded pink stock, photographed.
+   * The signals were all present and all just missed — "COACH SEAT/BERTH" came back as
+   * "COACH SEATAERTH", so `\bBERTH\b` failed on a word that was right there.
+   *
+   * So these are matched loosely, without word boundaries on the right, because OCR
+   * routinely welds the next character on. That is a real weakening and it is confined
+   * to phrases specific enough to survive it: no other document says "journey cum
+   * reservation".
+   */
+  if (/JOURNEY\s*CUM\s*RESERVATION/.test(upper)) rail += 45;
+  if (/HAPPY\s*JOURNEY/.test(upper)) rail += 20;
+  if (/RESERVATION\s*(?:TICKET|SLIP|VOUCHER)/.test(upper)) rail += 25;
+  if (/\bCOACH\s*SEAT/.test(upper)) rail += 30;
+  if (/\bSEAT\s*[\/A-Z]?\s*BERTH/.test(upper)) rail += 30;
+  if (/\bT\.?\s*AUTHORITY\b|\bCONC\b.*\bSF\.?CH\b/.test(upper)) rail += 20;
+  if (/\bCY\s*JN\b|\b[A-Z]{3,}\s+JN\b/.test(upper)) rail += 15;
+
   // ── Bus-specific vocabulary ──
   if (/\bBUS\b/.test(upper)) bus += 25;
   if (/\bBOARDING\s*(?:POINT|PLACE|AT)\b/.test(upper)) bus += 30;
@@ -155,6 +176,23 @@ export function classify(context) {
   if (/\bWAY\s*BILL\b|\bWAYBILL\b/.test(upper)) bus += 20;
   if (/\bBUS\s*STAND\b|\bBUS\s*STATION\b/.test(upper)) bus += 20;
   if (/\bPLATFORM\s*NO\b/.test(upper) && busOperator) bus += 10;
+
+  /*
+   * A day pass is a bus ticket, and the commonest one in a city.
+   *
+   * BMTC and KSRTC daily passes were refused. They carry no barcode, no seat and no
+   * reservation — a conductor reads them — so nothing above fires, and a pass someone
+   * uses every working day was the thing this app was least able to hold.
+   *
+   * The text also arrives badly: these are photographs of small printed cards, half in
+   * Kannada, and Tesseract reads only English. "GOLD Day Pass" came back as "WHINE GOLD
+   * Day PASS". What survives is the English half, so that is what these match.
+   */
+  if (/\bDAY\s*PASS\b|\bDAILY\s*PASS\b/.test(upper)) bus += 40;
+  if (/\bMONTHLY\s*PASS\b|\bSEASON\s*(?:TICKET|PASS)\b/.test(upper)) bus += 35;
+  if (/\bBUS\s*PASS\b/.test(upper)) bus += 40;
+  if (/\bVAYU\s*VAJRA\b|\bVAYUVAJRA\b|\bVOLVO\b/.test(upper)) bus += 25;
+  if (/\bCONDUCTOR'?S?\s*COPY\b|\bPASSENGER'?S?\s*COPY\b/.test(upper)) bus += 20;
 
   // "Sleeper" is genuinely ambiguous — SL is a rail class and a bus body type — so it
   // is only allowed to speak when nothing else in the document contradicts it.
