@@ -51,6 +51,9 @@ const state = {
   history: [],
 };
 
+/** Where the drawer's bottom edge last landed, for the display readout in Settings. */
+let lastDrawerBottom = null;
+
 // ────────────────────────────── platform ──────────────────────────────
 
 /**
@@ -122,7 +125,18 @@ function show(name, { remember = true } = {}) {
   // The drawer belongs to the list, and only to it. On a pass, a review or a sheet it
   // would offer to navigate away from work in progress.
   const drawer = $('drawer');
-  if (drawer) drawer.hidden = name !== 'home';
+  if (drawer) {
+    drawer.hidden = name !== 'home';
+
+    // Its position is recorded while it is on screen, because Settings — the one place
+    // that reports it — is also a screen where it is hidden, and a hidden element has no
+    // geometry to read.
+    if (!drawer.hidden) {
+      requestAnimationFrame(() => {
+        lastDrawerBottom = Math.round(drawer.getBoundingClientRect().bottom);
+      });
+    }
+  }
 
   // Written down on every navigation, so that a page discarded while the phone is
   // locked can come back to the same place rather than the home screen.
@@ -2176,6 +2190,45 @@ const UPDATE_ICONS = {
   ready: '<path d="M12 4v11M8 11l4 4 4-4M5 19h14"/>',
 };
 
+/**
+ * The geometry the browser is actually giving us, as one short string.
+ *
+ * Every number here answers a specific question about a fault that cannot be reproduced
+ * off the device:
+ *
+ *   win vs screen — whether the page has been given the whole display. If the window is
+ *     shorter, everything pinned to the bottom will sit above a band the page can never
+ *     paint, and no CSS will fix it.
+ *
+ *   vv — the visual viewport, which differs from the window while a keyboard or a
+ *     browser bar is up.
+ *
+ *   safe — what env(safe-area-inset-bottom) resolves to. Zero here on a phone with a
+ *     home indicator means viewport-fit=cover is not in effect.
+ *
+ *   drawer — where the bar's bottom edge actually lands, which is the fault itself
+ *     stated as a number rather than a description.
+ */
+function displayFacts() {
+  const bottom = lastDrawerBottom;
+
+  const safe = getComputedStyle(document.documentElement)
+    .getPropertyValue('--bottom').trim() || '0px';
+
+  const mode = ['standalone', 'minimal-ui', 'fullscreen', 'window-controls-overlay']
+    .find((value) => window.matchMedia(`(display-mode: ${value})`).matches) || 'browser';
+
+  return [
+    `win ${window.innerWidth}×${window.innerHeight}`,
+    `screen ${window.screen?.width}×${window.screen?.height}`,
+    `vv ${Math.round(window.visualViewport?.height || 0)}`,
+    `safe ${safe}`,
+    bottom === null ? 'drawer ?' : `drawer ${bottom}`,
+    mode,
+    `dpr ${window.devicePixelRatio}`,
+  ].join(' · ');
+}
+
 async function openSettings() {
   const estimate = await store.storageEstimate();
   const current = prefs.settings();
@@ -2303,6 +2356,19 @@ async function openSettings() {
         <div class="fact-row">
           <span class="fact-label">Released</span>
           <span class="fact-value">${escapeHtml(BUILD.date)}</span>
+        </div>
+        <!--
+          What the browser says about the screen it has given us.
+
+          Here because a layout fault reported from a phone cannot be reproduced on a
+          desktop: the drawer was reported as floating above the bottom edge, and no
+          amount of measuring in a headless browser showed it, because the numbers that
+          matter — the window height against the screen height, and what the safe-area
+          inset actually resolves to — exist only on the device.
+        -->
+        <div class="fact-row">
+          <span class="fact-label">Display</span>
+          <span class="fact-value">${escapeHtml(displayFacts())}</span>
         </div>
         <p id="update-state" class="update-state checking">
           <span class="update-icon" aria-hidden="true"></span>

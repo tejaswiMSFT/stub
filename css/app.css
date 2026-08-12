@@ -2568,6 +2568,10 @@ kbd {
   color: var(--label);
   font-variant-numeric: tabular-nums;
   text-align: right;
+  /* The display readout is a long string of measurements, and a fact row is a two-column
+     grid — without this it forces the row wider than the sheet. */
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 /* The update line. Its icon carries the state; the colour confirms it. */
