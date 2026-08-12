@@ -1786,9 +1786,21 @@ p { margin: 0; }
    * needs, so the larger of the two is the correct spacing rather than their sum.
    */
   padding: 7px 6px max(9px, var(--bottom));
-  background: var(--surface);
-  backdrop-filter: var(--blur);
-  -webkit-backdrop-filter: var(--blur);
+  /*
+   * Opaque, not translucent.
+   *
+   * The bar was `--surface` — rgba(28,28,30,0.78) — which over the black page renders as
+   * a grey band. Anything below it that is not the bar is therefore *pure black*, and
+   * the seam between the two is exactly what reads as the bar floating above the bottom
+   * of the screen rather than sitting on it.
+   *
+   * A translucent bar only works when whatever is behind it is the same everywhere. At
+   * the foot of the screen it is not: the home-indicator strip, the safe area, and any
+   * band a browser leaves below the layout viewport are all page background. A solid
+   * colour cannot disagree with itself, so the bar and everything beneath it are one
+   * surface at every size and on every device.
+   */
+  background: var(--surface-solid);
   border-top: 1px solid var(--separator);
 
   /* Its own layer, for the same reason as the top bar: a translucent strip that blurs
@@ -1801,20 +1813,17 @@ p { margin: 0; }
    Some browsers report a viewport that stops short of the physical bottom edge even with
    viewport-fit=cover, which leaves a band of page showing beneath a bar pinned to
    bottom:0. This paints the same surface through it, so the drawer always reaches the
-   edge of the glass rather than floating above a stripe of background. */
+   edge of the glass rather than floating above a stripe of background. Generous, because
+   the strip's height varies by device and an over-long backstop is invisible. */
 .drawer::after {
   content: '';
   position: absolute;
   left: 0;
   right: 0;
   top: 100%;
-  height: 60px;
-  background: inherit;
+  height: 140px;
+  background: var(--surface-solid);
   pointer-events: none;
-}
-
-@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .drawer { background: var(--surface-solid, var(--bg)); }
 }
 
 .drawer-item {
