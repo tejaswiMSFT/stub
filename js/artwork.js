@@ -560,6 +560,220 @@ function cafeStrip({ width, height, palette, seed }) {
   `;
 }
 
+/**
+ * Flight: a horizon, a low sun, and a climbing contrail.
+ *
+ * The one composition every traveller can name from a glance at a boarding pass. Drawn
+ * as a view from altitude rather than as an aeroplane: the aircraft itself is already the
+ * transit glyph between the origin and destination, and repeating it here would say the
+ * same thing twice at two different sizes.
+ *
+ * The trail climbs left to right because that is the direction the route above it reads,
+ * and because a descending line under a departure board is the wrong idea entirely.
+ */
+function flightStrip({ width, height, palette, seed }) {
+  const horizon = height * 0.62;
+
+  // Cloud banks along the horizon, at scattered heights. Ellipses rather than paths: at
+  // this size a modelled cloud is a smudge, and a soft band reads correctly.
+  const clouds = [];
+  for (let i = 0; i < 7; i++) {
+    const x = (i / 7) * width + ((seed >> (i % 8)) % 40);
+    const y = horizon + 4 + ((seed >> (i % 5)) % 14);
+    const rx = 34 + ((seed >> i) % 30);
+    clouds.push(
+      `<ellipse cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" rx="${rx}" ry="${(rx * 0.22).toFixed(1)}"
+                fill="${palette.lift}" opacity="0.12"/>`
+    );
+  }
+
+  // Stars, above the horizon only. Kept sparse: this is dusk, not deep night.
+  const stars = [];
+  for (let i = 0; i < 18; i++) {
+    const x = ((seed >> (i % 9)) * 7 + i * 53) % width;
+    const y = ((seed >> (i % 6)) % Math.round(horizon * 0.8));
+    stars.push(`<circle cx="${x}" cy="${y}" r="${1 + (i % 2)}" fill="#fff" opacity="0.2"/>`);
+  }
+
+  return `
+    <defs>
+      <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="${palette.deep}"/>
+        <stop offset="58%" stop-color="${palette.background}"/>
+        <stop offset="100%" stop-color="${palette.deep}"/>
+      </linearGradient>
+      <radialGradient id="sun" cx="76%" cy="62%" r="34%">
+        <stop offset="0%" stop-color="${palette.lift}" stop-opacity="0.55"/>
+        <stop offset="100%" stop-color="${palette.lift}" stop-opacity="0"/>
+      </radialGradient>
+      <linearGradient id="trail" x1="0" y1="1" x2="1" y2="0">
+        <stop offset="0%" stop-color="${palette.lift}" stop-opacity="0"/>
+        <stop offset="60%" stop-color="${palette.lift}" stop-opacity="0.5"/>
+        <stop offset="100%" stop-color="#fff" stop-opacity="0.75"/>
+      </linearGradient>
+    </defs>
+
+    <rect width="${width}" height="${height}" fill="url(#bg)"/>
+    ${stars.join('')}
+    <rect width="${width}" height="${height}" fill="url(#sun)"/>
+
+    <!-- The horizon, softened rather than ruled: a hard line reads as a border. -->
+    <rect x="0" y="${horizon.toFixed(1)}" width="${width}" height="${(height - horizon).toFixed(1)}"
+          fill="#000" opacity="0.22"/>
+    ${clouds.join('')}
+
+    <!-- The contrail, climbing out of the lower left. -->
+    <path d="M${width * 0.06} ${height * 0.92}
+             Q${width * 0.42} ${height * 0.78} ${width * 0.86} ${height * 0.2}"
+          fill="none" stroke="url(#trail)" stroke-width="2.6" stroke-linecap="round"/>
+    <circle cx="${(width * 0.86).toFixed(1)}" cy="${(height * 0.2).toFixed(1)}" r="3.4"
+            fill="#fff" opacity="0.85"/>
+  `;
+}
+
+/**
+ * Rail: a track running to a vanishing point, under overhead wires.
+ *
+ * Perspective rather than a side-on train, for the same reason the flight strip is a
+ * view rather than an aeroplane — and because converging rails read as travel at any
+ * size, where a locomotive at 60px tall does not.
+ */
+function railStrip({ width, height, palette, seed }) {
+  const vanishX = width * 0.68;
+  const vanishY = height * 0.34;
+
+  // Sleepers, spaced closer as they recede. The ratio is what sells the perspective:
+  // evenly spaced sleepers read as a ladder lying flat.
+  const sleepers = [];
+  for (let i = 0; i < 14; i++) {
+    const t = (i / 14) ** 1.9;
+    const y = height - t * (height - vanishY);
+    const halfWidth = (1 - t) * width * 0.42 + 6;
+    sleepers.push(
+      `<rect x="${(vanishX - halfWidth).toFixed(1)}" y="${y.toFixed(1)}"
+             width="${(halfWidth * 2).toFixed(1)}" height="${(3.2 * (1 - t) + 0.8).toFixed(1)}"
+             fill="#000" opacity="${(0.3 * (1 - t) + 0.05).toFixed(2)}"/>`
+    );
+  }
+
+  // Catenary masts, receding with the track.
+  const masts = [];
+  for (let i = 0; i < 5; i++) {
+    const t = (i / 5) ** 1.5;
+    const x = vanishX - (1 - t) * width * 0.5;
+    const y = height - t * (height - vanishY);
+    const mastHeight = (1 - t) * height * 0.5 + 6;
+    masts.push(
+      `<rect x="${x.toFixed(1)}" y="${(y - mastHeight).toFixed(1)}"
+             width="${(1.8 * (1 - t) + 0.6).toFixed(1)}" height="${mastHeight.toFixed(1)}"
+             fill="${palette.deep}" opacity="0.55"/>`
+    );
+  }
+
+  return `
+    <defs>
+      <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="${palette.deep}"/>
+        <stop offset="46%" stop-color="${palette.background}"/>
+        <stop offset="100%" stop-color="${palette.deep}"/>
+      </linearGradient>
+      <radialGradient id="far" cx="68%" cy="34%" r="40%">
+        <stop offset="0%" stop-color="${palette.lift}" stop-opacity="0.5"/>
+        <stop offset="100%" stop-color="${palette.lift}" stop-opacity="0"/>
+      </radialGradient>
+      <linearGradient id="rail" x1="0" y1="1" x2="0" y2="0">
+        <stop offset="0%" stop-color="${palette.lift}" stop-opacity="0.7"/>
+        <stop offset="100%" stop-color="${palette.lift}" stop-opacity="0.05"/>
+      </linearGradient>
+    </defs>
+
+    <rect width="${width}" height="${height}" fill="url(#bg)"/>
+    <rect width="${width}" height="${height}" fill="url(#far)"/>
+    ${masts.join('')}
+    ${sleepers.join('')}
+
+    <!-- The two rails, converging on the light. -->
+    <path d="M${width * 0.1} ${height} L${vanishX} ${vanishY}" fill="none"
+          stroke="url(#rail)" stroke-width="2.4" stroke-linecap="round"/>
+    <path d="M${width * 0.62} ${height} L${vanishX} ${vanishY}" fill="none"
+          stroke="url(#rail)" stroke-width="2.4" stroke-linecap="round"/>
+
+    <!-- Overhead wire, sagging between the masts. -->
+    <path d="M0 ${(height * 0.2).toFixed(1)} Q${(vanishX * 0.5).toFixed(1)} ${(height * 0.34).toFixed(1)} ${vanishX.toFixed(1)} ${vanishY.toFixed(1)}"
+          fill="none" stroke="${palette.lift}" stroke-width="1" opacity="0.28"/>
+    <circle cx="${vanishX.toFixed(1)}" cy="${vanishY.toFixed(1)}" r="2.6" fill="#fff" opacity="0.7"/>
+  `;
+}
+
+/**
+ * Bus and coach: a road running to the horizon, with a dashed centre line.
+ *
+ * Deliberately close to the rail composition — both are ground transport heading away
+ * from the viewer — but a road has no sleepers, no wires and a broken centre line, which
+ * is enough to tell them apart at a glance while keeping the family resemblance.
+ */
+function roadStrip({ width, height, palette, seed }) {
+  const vanishX = width * 0.56;
+  const vanishY = height * 0.36;
+
+  const dashes = [];
+  for (let i = 0; i < 9; i++) {
+    const t = (i / 9) ** 1.8;
+    const y = height - t * (height - vanishY);
+    const length = (1 - t) * height * 0.13 + 1.5;
+    const dashWidth = (1 - t) * 5 + 1;
+    dashes.push(
+      `<rect x="${(vanishX - dashWidth / 2).toFixed(1)}" y="${(y - length).toFixed(1)}"
+             width="${dashWidth.toFixed(1)}" height="${length.toFixed(1)}"
+             fill="#fff" opacity="${(0.34 * (1 - t) + 0.04).toFixed(2)}" rx="0.5"/>`
+    );
+  }
+
+  // A low treeline at the horizon. Kept faint and flat: at 0.5 opacity these read as
+  // green blobs floating over the road rather than as land behind it.
+  const hills = [];
+  for (let i = 0; i < 5; i++) {
+    const x = (i / 5) * width + ((seed >> (i % 7)) % 50);
+    const r = 50 + ((seed >> i) % 40);
+    hills.push(
+      `<ellipse cx="${x.toFixed(1)}" cy="${(vanishY + 10).toFixed(1)}" rx="${r}" ry="${(r * 0.16).toFixed(1)}"
+                fill="#000" opacity="0.2"/>`
+    );
+  }
+
+  return `
+    <defs>
+      <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="${palette.deep}"/>
+        <stop offset="42%" stop-color="${palette.background}"/>
+        <stop offset="100%" stop-color="${palette.deep}"/>
+      </linearGradient>
+      <radialGradient id="far" cx="56%" cy="36%" r="38%">
+        <stop offset="0%" stop-color="${palette.lift}" stop-opacity="0.45"/>
+        <stop offset="100%" stop-color="${palette.lift}" stop-opacity="0"/>
+      </radialGradient>
+      <linearGradient id="tarmac" x1="0" y1="1" x2="0" y2="0">
+        <stop offset="0%" stop-color="#000" stop-opacity="0.55"/>
+        <stop offset="100%" stop-color="#000" stop-opacity="0.05"/>
+      </linearGradient>
+    </defs>
+
+    <rect width="${width}" height="${height}" fill="url(#bg)"/>
+    ${hills.join('')}
+    <rect width="${width}" height="${height}" fill="url(#far)"/>
+
+    <!-- The carriageway. Its edges are lit rather than merely drawn: a road at dusk is
+         read by its markings, not by its surface. -->
+    <polygon points="${width * -0.05},${height} ${vanishX},${vanishY} ${width * 1.05},${height}"
+             fill="url(#tarmac)"/>
+    <path d="M${width * -0.05} ${height} L${vanishX} ${vanishY}" fill="none"
+          stroke="${palette.lift}" stroke-width="2.2" opacity="0.55" stroke-linecap="round"/>
+    <path d="M${width * 1.05} ${height} L${vanishX} ${vanishY}" fill="none"
+          stroke="${palette.lift}" stroke-width="2.2" opacity="0.55" stroke-linecap="round"/>
+    ${dashes.join('')}
+  `;
+}
+
 const COMPOSITIONS = {
   movie: movieStrip,
   concert: concertStrip,
@@ -569,6 +783,18 @@ const COMPOSITIONS = {
   cafe: cafeStrip,
   retail: cafeStrip,
   event: genericStrip,
+
+  /*
+   * Travel had no compositions at all.
+   *
+   * Every transport kind fell through to `genericStrip` — a plain two-stop gradient —
+   * so a boarding pass opened to a flat blue panel while a cinema ticket opened to a
+   * projector beam over a dark auditorium. The kinds most people use most often were the
+   * ones with nothing drawn on them.
+   */
+  flight: flightStrip,
+  rail: railStrip,
+  bus: roadStrip,
 };
 
 /**

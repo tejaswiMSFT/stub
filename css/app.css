@@ -1777,7 +1777,15 @@ p { margin: 0; }
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   align-items: end;
-  padding: 8px 6px calc(8px + var(--bottom));
+  /*
+   * `max`, not an addition.
+   *
+   * Adding the inset to a fixed padding gave a bar with 8px of its own breathing room
+   * plus the whole home-indicator strip beneath it — visibly too tall, with the labels
+   * stranded well above the edge. The inset already includes the room the indicator
+   * needs, so the larger of the two is the correct spacing rather than their sum.
+   */
+  padding: 7px 6px max(9px, var(--bottom));
   background: var(--surface);
   backdrop-filter: var(--blur);
   -webkit-backdrop-filter: var(--blur);
@@ -1787,6 +1795,22 @@ p { margin: 0; }
      unevenly while content scrolls beneath it looks broken. */
   transform: translateZ(0);
   isolation: isolate;
+}
+
+/* A backstop below the bar.
+   Some browsers report a viewport that stops short of the physical bottom edge even with
+   viewport-fit=cover, which leaves a band of page showing beneath a bar pinned to
+   bottom:0. This paints the same surface through it, so the drawer always reaches the
+   edge of the glass rather than floating above a stripe of background. */
+.drawer::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  height: 60px;
+  background: inherit;
+  pointer-events: none;
 }
 
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
@@ -1819,13 +1843,17 @@ p { margin: 0; }
 .drawer-plus {
   display: grid;
   place-items: center;
-  width: 46px;
-  height: 32px;
-  margin-top: -14px;
-  border-radius: 16px;
+  /* Wide rather than tall. A near-circular pill sat proud of the row and read as the old
+     floating button that had merely moved; a lozenge the width of a label reads as part
+     of the bar. */
+  width: 52px;
+  height: 30px;
+  margin-top: -11px;
+  border-radius: 15px;
   background: var(--accent);
   color: #fff;
   box-shadow: 0 4px 14px color-mix(in srgb, var(--accent) 38%, transparent);
+  transition: transform 0.12s var(--ease);
 }
 
 .drawer-add { color: var(--accent); font-weight: 600; }
@@ -2097,13 +2125,10 @@ p { margin: 0; }
   transform-origin: center;
 }
 
-/* Enlarged a step, with the whole screen as the target to put it back. */
-#scan-canvas.zoomed {
-  max-width: none;
-  max-height: none;
-  width: min(112vw, 112vh);
-  height: auto;
-}
+/* The screen owns the gesture.
+   Without this the browser claims a pinch for its own page zoom and the code never
+   receives it — the app appears to ignore the gesture entirely. */
+.screen.scan { touch-action: none; }
 
 .scan-reference {
   margin-top: 20px;

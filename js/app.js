@@ -144,6 +144,7 @@ async function start() {
   registerServiceWorker();
   initTheme();
   wire();
+  wireScanGestures();
   haptics.pressable(document);
 
   // The same mark, small, in the bars of the import flow. Drawn once at start rather
@@ -1206,10 +1207,9 @@ async function openScan(ticket) {
   const note = $('scan-note');
 
   reference.textContent = ticket.fields?.pnr || ticket.fields?.reference || '';
-  note.textContent = 'Tap anywhere to enlarge it';
 
-  // Never opens zoomed, whatever was left from last time.
-  canvas.classList.remove('zoomed');
+  // Never opens zoomed or panned, whatever was left from last time.
+  resetScanZoom();
 
   // Controls start hidden: the user has just tapped to get here, so they know how they
   // arrived and do not need a way out presented to them immediately.
@@ -1245,6 +1245,138 @@ async function openScan(ticket) {
   } catch (error) {
     note.textContent = error.message;
   }
+}
+
+/**
+ * How the code is currently zoomed and panned.
+ *
+ * Held here rather than in a class on the element because the scale is now continuous —
+ * a pinch can leave it at 1.83 — and a class can only express the steps.
+ */
+const scanZoom = { scale: 1, x: 0, y: 0 };
+
+/** The sizes a tap cycles through. Fit, a nudge, and properly large. */
+const SCAN_STEPS = [1, 1.6, 2.6];
+
+function applyScanZoom() {
+  const canvas = $('scan-canvas');
+  if (!canvas) return;
+
+  // Panning is clamped to what is actually off-screen, so the code can never be dragged
+  // out of view and lost — the commonest way a zoomable image becomes a dead end.
+  const box = canvas.getBoundingClientRect();
+  const overflowX = Math.max(0, (box.width * scanZoom.scale - window.innerWidth) / 2);
+  const overflowY = Math.max(0, (box.height * scanZoom.scale - window.innerHeight) / 2);
+
+  scanZoom.x = Math.max(-overflowX, Math.min(overflowX, scanZoom.x));
+  scanZoom.y = Math.max(-overflowY, Math.min(overflowY, scanZoom.y));
+
+  canvas.style.transform =
+    `translate(${scanZoom.x.toFixed(1)}px, ${scanZoom.y.toFixed(1)}px) scale(${scanZoom.scale.toFixed(3)})`;
+
+  const note = $('scan-note');
+  if (note) {
+    note.textContent = scanZoom.scale > 1.02
+      ? 'Drag to move · tap to change size'
+      : 'Tap to enlarge · pinch to zoom';
+  }
+}
+
+function setScanZoom(scale, { animate = true } = {}) {
+  const canvas = $('scan-canvas');
+  if (!canvas) return;
+
+  canvas.style.transition = animate ? 'transform 0.22s var(--ease)' : 'none';
+  scanZoom.scale = Math.max(1, Math.min(6, scale));
+  if (scanZoom.scale <= 1.02) { scanZoom.x = 0; scanZoom.y = 0; }
+  applyScanZoom();
+}
+
+function stepScanZoom() {
+  // The next step above where we are, wrapping back to fit. Written as a search rather
+  // than an index so a pinch that left the scale between two steps still advances
+  // sensibly instead of jumping back to the start.
+  const next = SCAN_STEPS.find((step) => step > scanZoom.scale + 0.02) ?? 1;
+  setScanZoom(next);
+}
+
+function resetScanZoom() {
+  setScanZoom(1, { animate: false });
+}
+
+/**
+ * Pinch to zoom, drag to pan.
+ *
+ * Pointer events rather than touch events: they cover a trackpad and a stylus as well,
+ * and the two-finger bookkeeping is the same either way. `touch-action: none` on the
+ * screen is what stops the browser claiming the gesture for its own page zoom first.
+ */
+function wireScanGestures() {
+  const screen = $('screen-scan');
+  const canvas = $('scan-canvas');
+  if (!screen || !canvas) return;
+
+  const points = new Map();
+  let startDistance = 0;
+  let startScale = 1;
+  let startX = 0;
+  let startY = 0;
+  let panFrom = null;
+  let moved = 0;
+
+  const distance = () => {
+    const [a, b] = [...points.values()];
+    return Math.hypot(a.x - b.x, a.y - b.y);
+  };
+
+  screen.addEventListener('pointerdown', (event) => {
+    points.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    moved = 0;
+
+    if (points.size === 2) {
+      startDistance = distance();
+      startScale = scanZoom.scale;
+      panFrom = null;
+    } else if (points.size === 1 && scanZoom.scale > 1.02) {
+      panFrom = { x: event.clientX, y: event.clientY };
+      startX = scanZoom.x;
+      startY = scanZoom.y;
+    }
+  });
+
+  screen.addEventListener('pointermove', (event) => {
+    if (!points.has(event.pointerId)) return;
+    const previous = points.get(event.pointerId);
+    moved += Math.hypot(event.clientX - previous.x, event.clientY - previous.y);
+    points.set(event.pointerId, { x: event.clientX, y: event.clientY });
+
+    if (points.size === 2 && startDistance > 0) {
+      canvas.style.transition = 'none';
+      scanZoom.scale = Math.max(1, Math.min(6, startScale * (distance() / startDistance)));
+      applyScanZoom();
+      return;
+    }
+
+    if (points.size === 1 && panFrom) {
+      canvas.style.transition = 'none';
+      scanZoom.x = startX + (event.clientX - panFrom.x);
+      scanZoom.y = startY + (event.clientY - panFrom.y);
+      applyScanZoom();
+    }
+  });
+
+  const end = (event) => {
+    points.delete(event.pointerId);
+    if (points.size < 2) startDistance = 0;
+    if (points.size === 0) panFrom = null;
+
+    // A drag is not a tap. Without this every pan ended by stepping the zoom, so moving
+    // the code around resized it on release — which feels like the app fighting you.
+    if (moved > 12) event.stopPropagation();
+  };
+
+  screen.addEventListener('pointerup', end, true);
+  screen.addEventListener('pointercancel', end, true);
 }
 
 /**
@@ -2525,14 +2657,20 @@ function wire() {
     // was refused earlier — Safari grants one only during a gesture.
     if (prefs.settings().keepAwake) wakelock.acquire();
 
-    // Tapping anywhere toggles the enlarged view.
-    //
-    // The target used to be the code itself, which enlarged past the screen edge and
-    // took its own tap target with it — leaving no way back. Anywhere on the screen
-    // works, and the note says which state you are in.
-    const canvas = $('scan-canvas');
-    const zoomed = canvas.classList.toggle('zoomed');
-    $('scan-note').textContent = zoomed ? 'Tap anywhere to shrink it' : 'Tap anywhere to enlarge it';
+    /*
+     * Zoom in steps, and by pinch.
+     *
+     * It was a single on/off toggle between "fits the screen" and 112vw — so the only
+     * two sizes available were fully out and so far in that a wide code ran past both
+     * screen edges at once, unreadable and unpannable. There was no size in between, and
+     * a barcode is exactly the thing someone wants to nudge slightly larger.
+     *
+     * Tapping now steps through fit, 1.6x and 2.6x and back to fit, and a pinch sets any
+     * scale between. Panning is enabled whenever the code is larger than the screen,
+     * because enlarging something past the viewport without a way to move it is worse
+     * than not enlarging it at all.
+     */
+    stepScanZoom();
 
     revealScanControls();
   });
