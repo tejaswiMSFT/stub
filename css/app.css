@@ -820,10 +820,32 @@ p { margin: 0; }
   color: var(--label-2);
 }
 
-.landing-links { margin-top: 8px; display: flex; gap: 10px; align-items: baseline; }
-.landing-links a { color: #a99bff; text-decoration: none; }
-.landing-links a:hover { text-decoration: underline; }
-.landing-links span { opacity: 0.4; }
+/* Links sit above the credit, with real space between the two. They were a line apart and
+   read as one crowded block rather than as navigation and a signature.
+   Contact points at the contact form on Tejaswi's own site rather than a mailto:, which
+   would expose an address to scrapers and open a mail client the reader may not have. */
+.landing-links {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  flex-wrap: wrap;
+  font-size: 14px;
+}
+
+.landing-links a,
+.landing-links .link-button { color: #a99bff; text-decoration: none; }
+.landing-links a:hover,
+.landing-links .link-button:hover { text-decoration: underline; }
+.landing-links span { opacity: 0.32; }
+
+.landing-credit {
+  /* Set on the element rather than fighting the shared `p` rule with !important, which
+     the earlier version did. */
+  font-size: 12.5px;
+  color: rgba(235, 235, 245, 0.38);
+}
+
+.landing-links + .landing-credit { margin-top: 16px; }
 
 .app-mark img { border-radius: 22%; box-shadow: 0 8px 26px rgba(0, 0, 0, 0.16); }
 
@@ -956,17 +978,39 @@ p { margin: 0; }
   color: rgba(235, 235, 245, 0.7);
 }
 
-.landing-alt .landing-skip { margin-top: 6px; }
+.landing-alt .landing-skip {
+  margin-top: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
 
+/* The arrow leans away on hover, which is the small motion that makes a link feel like it
+   goes somewhere. */
+.skip-arrow { flex: none; transition: transform 0.18s var(--ease); }
+.landing-alt .landing-skip:hover .skip-arrow { transform: translate(2px, -2px); }
+
+/* The warning was the dimmest text on the page and says the most consequential thing on
+   it — that tickets can be lost with no way back. It is now a panel in a caution colour
+   with a glyph, because a reader skimming for the button must not skim past this. Amber
+   rather than red: this is a consequence to understand before choosing, not an error. */
 .landing-alt-note {
-  margin: 10px 0 0;
-  font-size: 12.5px;
+  margin: 14px 0 0;
+  display: flex;
+  gap: 11px;
+  align-items: flex-start;
+  padding: 13px 15px;
+  border-radius: 13px;
+  border: 1px solid rgba(255, 176, 46, 0.34);
+  background: rgba(255, 176, 46, 0.09);
+  font-size: 13px;
   line-height: 1.5;
-  color: rgba(235, 235, 245, 0.44);
+  color: rgba(255, 226, 176, 0.86);
   max-width: 40em;
 }
 
-.landing-alt-note strong { color: rgba(235, 235, 245, 0.72); font-weight: 600; }
+.alt-warn { display: flex; flex: none; margin-top: 1px; color: #ffb02e; }
+.landing-alt-note strong { color: #ffd08a; font-weight: 650; }
 
 /* A button that reads as a link. Used where the action stays inside the app — the install
    guide — so it cannot be an anchor without inventing a URL that does not exist. */
@@ -1147,12 +1191,41 @@ p { margin: 0; }
 .phone-screen {
   border-radius: 26px;
   background: linear-gradient(180deg, #101018, #08080c);
-  padding: 22px 11px 16px;
+  /* Top padding is small now: the status bar sits inside the screen and supplies its own
+     clearance around the notch or the hole-punch. */
+  padding: 7px 11px 16px;
   overflow: hidden;
   min-height: 300px;
 }
 
 .phone.android .phone-screen { border-radius: 15px; }
+
+/* ── the status bar ──
+   This is what actually distinguishes the two phones. A notch against a hole-punch is a
+   difference nobody notices; the clock's position and the battery's shape are read
+   instantly, without being looked for. */
+
+.status {
+  display: flex;
+  align-items: center;
+  height: 17px;
+  margin-bottom: 8px;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 9.5px;
+  font-weight: 640;
+  letter-spacing: 0.01em;
+}
+
+.status-icons { display: flex; align-items: center; gap: 3.5px; }
+
+/* iOS: the bar is split around the notch, so the clock is inset from the left and the
+   icons from the right rather than running edge to edge. */
+.ios-status { justify-content: space-between; padding: 0 3px; }
+.ios-status .status-time { font-variant-numeric: tabular-nums; }
+
+/* Android: clock hard left, icons hard right, and a slightly lighter weight. */
+.android-status { justify-content: space-between; padding: 0 1px; }
+.android-status .status-time { font-weight: 560; font-size: 9px; }
 
 .phone-notch {
   position: absolute;

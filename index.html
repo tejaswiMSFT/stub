@@ -192,12 +192,32 @@
              rely on it at a gate, not after. -->
         <div class="landing-alt">
           <p class="landing-alt-lead">Not comfortable installing things?</p>
-          <button class="text-link landing-skip" id="open-anyway" type="button">Use it in the browser instead</button>
+          <button class="text-link landing-skip" id="open-anyway" type="button">
+            <!-- The diagonal arrow says this leads somewhere rather than toggling
+                 something in place: the button opens the app itself. Deliberately not the
+                 box-with-arrow used for external links — this destination is Stub, not
+                 another site. -->
+            <svg class="skip-arrow" viewBox="0 0 24 24" width="15" height="15" fill="none"
+                 stroke="currentColor" stroke-width="2.1" stroke-linecap="round"
+                 stroke-linejoin="round" aria-hidden="true">
+              <path d="M7 17 17 7M8.6 7H17v8.4"/>
+            </svg>
+            Use it in the browser instead
+          </button>
           <p class="landing-alt-note">
-            Your tickets are then kept in this browser's storage. If you clear your browsing
-            data, use private browsing, or your browser reclaims space, they are gone — and
-            because nothing is ever uploaded, there is no copy to restore.
-            <strong>Export anything you cannot afford to lose.</strong>
+            <span class="alt-warn" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+                   stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 3.4 21.4 20H2.6Z"/>
+                <path d="M12 9.4v4.4M12 17.1h.01"/>
+              </svg>
+            </span>
+            <span>
+              Your tickets are then kept in this browser's storage. If you clear your browsing
+              data, use private browsing, or your browser reclaims space, they are gone — and
+              because nothing is ever uploaded, there is no copy to restore.
+              <strong>Export anything you cannot afford to lose.</strong>
+            </span>
           </p>
         </div>
 
@@ -278,6 +298,36 @@
             <div class="phone-frame">
               <span class="phone-notch"></span>
               <div class="phone-screen">
+                <!-- The status bar is what actually tells the two apart. A notch against a
+                     hole-punch is a difference you have to squint at; the clock's position
+                     and the shape of the battery are recognised instantly.
+
+                     iOS splits the bar around the notch — clock left, signal, wi-fi and a
+                     rounded battery right — and 9:41 is the time Apple has used in its own
+                     marketing since the first iPhone keynote. -->
+                <div class="status ios-status">
+                  <span class="status-time">9:41</span>
+                  <span class="status-icons">
+                    <svg viewBox="0 0 18 12" width="17" height="11" aria-hidden="true">
+                      <rect x="0" y="8" width="3" height="4" rx="1" fill="currentColor"/>
+                      <rect x="4.4" y="6" width="3" height="6" rx="1" fill="currentColor"/>
+                      <rect x="8.8" y="3.4" width="3" height="8.6" rx="1" fill="currentColor"/>
+                      <rect x="13.2" y="0.6" width="3" height="11.4" rx="1" fill="currentColor"/>
+                    </svg>
+                    <svg viewBox="0 0 16 12" width="15" height="11" aria-hidden="true">
+                      <path d="M8 10.4a1.4 1.4 0 1 0 0-2.8 1.4 1.4 0 0 0 0 2.8Z" fill="currentColor"/>
+                      <path d="M4.6 6.6a4.8 4.8 0 0 1 6.8 0M2 4a8.4 8.4 0 0 1 12 0" fill="none"
+                            stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                    <svg viewBox="0 0 26 12" width="23" height="11" aria-hidden="true">
+                      <rect x="0.6" y="0.6" width="21" height="10.8" rx="3.2" fill="none"
+                            stroke="currentColor" stroke-opacity="0.45" stroke-width="1.1"/>
+                      <rect x="2.2" y="2.2" width="15" height="7.6" rx="2" fill="currentColor"/>
+                      <path d="M23.4 4.2v3.6a2.1 2.1 0 0 0 0-3.6Z" fill="currentColor" fill-opacity="0.5"/>
+                    </svg>
+                  </span>
+                </div>
+
                 <div class="phone-bar">
                   <span class="device-mark" id="ios-mark"></span>
                   <span class="device-name">Stub</span>
@@ -305,6 +355,26 @@
             <div class="phone-frame">
               <span class="phone-punch"></span>
               <div class="phone-screen">
+                <!-- Android puts the clock on the left, ahead of the hole-punch, with the
+                     status icons right and a flat-topped battery carrying a numeral. The
+                     signal bars are a solid wedge rather than four separate rounded bars.
+                     Those three details are what the eye reads as "not an iPhone". -->
+                <div class="status android-status">
+                  <span class="status-time">9:41</span>
+                  <span class="status-icons">
+                    <svg viewBox="0 0 14 12" width="13" height="11" aria-hidden="true">
+                      <path d="M13 1.2v9.6H1.4Z" fill="currentColor"/>
+                    </svg>
+                    <svg viewBox="0 0 14 12" width="13" height="11" aria-hidden="true">
+                      <path d="M7 11 0.6 3.6a9.6 9.6 0 0 1 12.8 0Z" fill="currentColor"/>
+                    </svg>
+                    <svg viewBox="0 0 13 12" width="12" height="11" aria-hidden="true">
+                      <rect x="2.6" y="0.4" width="7.8" height="2" rx="0.8" fill="currentColor"/>
+                      <rect x="1.2" y="1.8" width="10.6" height="9.8" rx="1.6" fill="currentColor"/>
+                    </svg>
+                  </span>
+                </div>
+
                 <div class="phone-pass">
                   <span class="handset-route">BLR <span class="device-arrow">→</span> DXB</span>
                   <span class="handset-sub">Emirates · EK 569 · Seat 14A</span>
@@ -374,10 +444,8 @@
       </ul>
 
       <footer class="landing-footer">
-        <p>Vibe coded by Tejaswi · Built with <span class="heartbeat" aria-label="love">❤️</span> and Microsoft Scout.</p>
-        <!-- Points at the contact form on Tejaswi's own site rather than a mailto:, which
-             exposes an address to scrapers and opens a mail client the reader may not
-             have. Opened in a new tab so a half-finished ticket import is not lost. -->
+        <!-- Links first, credit last. Navigation is what a reader is looking for at the
+             foot of a page; the credit is a signature and signatures go at the bottom. -->
         <p class="landing-links">
           <button class="link-button" id="landing-help" type="button">Install guide</button>
           <span aria-hidden="true">·</span>
@@ -385,6 +453,7 @@
           <span aria-hidden="true">·</span>
           <a href="https://github.com/tejaswiMSFT/stub" target="_blank" rel="noopener noreferrer">Source</a>
         </p>
+        <p class="landing-credit">Vibe coded by Tejaswi · Built with <span class="heartbeat" aria-label="love">❤️</span> and Microsoft Scout.</p>
       </footer>
     </div>
   </div>
