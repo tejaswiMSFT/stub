@@ -187,3 +187,44 @@ test('a name stops at its column', async (t) => {
     assert.equal(people.length, 2, `expected 2 travellers, got ${people.join(', ')}`);
   });
 });
+/**
+ * The American Airlines e-ticket, where the caption and the name share a line.
+ *
+ * "PASSENGER NAME    ASHLEY/MARTELLE" is two columns of one printed line. Looking only
+ * *beneath* the caption walked straight past the answer and kept going down the page
+ * until it reached the airport table, and the pass named the traveller "SAN FRANCISCO
+ * INTL" — twice, since the airport is printed for both departure and arrival.
+ *
+ * Shape cannot separate the two: an airport's name is a short capitalised phrase with no
+ * digits, which is exactly what a name-finder is looking for.
+ */
+test('a caption beside its name', async (t) => {
+  const american = lines([
+    [40, [[16, 'e-Ticket Receipt & Itinerary']]],
+    [90, [[16, 'PASSENGER AND TICKET INFORMATION']]],
+    [130, [[16, 'PASSENGER NAME'], [200, 'ASHLEY/MARTELLE'], [520, 'FREQUENT FLYER'], [700, 'EK217206592/BLUE']]],
+    [160, [[16, 'E-TICKET NUMBER'], [200, '176 2143480036'], [520, 'BOOKING REFERENCE'], [700, 'HG6NWJ']]],
+    [200, [[16, 'ISSUED BY/DATE'], [200, 'AGT 86491845 AE']]],
+    [260, [[16, 'DEPARTURE']]],
+    [300, [[16, 'FLIGHT'], [160, 'DEPART/ARRIVE'], [330, 'AIRPORT/TERMINAL']]],
+    [330, [[16, 'AA 9279'], [160, '02 MAR 24'], [330, 'SAN FRANCISCO INTL']]],
+    [360, [[16, 'CONFIRMED'], [160, '14:05'], [330, 'TERMINAL 2']]],
+  ]);
+
+  const draft = await flightAdapter.build({ lines: american, barcode: null });
+  const people = draft.passengers || [draft.value('passenger')].filter(Boolean);
+
+  await t.test('takes the name beside the caption', () => {
+    assert.equal(draft.value('passenger'), 'ASHLEY/MARTELLE');
+  });
+
+  await t.test('does not take an airport as a traveller', () => {
+    for (const name of people) {
+      assert.ok(!/SAN FRANCISCO|INTL|TERMINAL/i.test(name), `"${name}" is an airport`);
+    }
+  });
+
+  await t.test('does not invent a second traveller', () => {
+    assert.equal(people.length, 1, `expected 1 traveller, got ${people.join(', ')}`);
+  });
+});

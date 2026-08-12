@@ -570,6 +570,25 @@ function findPassengerNames(lines) {
      */
     if (!/\s/.test(value) && isAirportCity(value)) return;
 
+    /*
+     * Nor is an airport, however many words it runs to.
+     *
+     * The single-word check above let "SAN FRANCISCO INTL" through, and an American
+     * Airlines e-ticket showed it as the traveller — on a document that prints
+     * "PASSENGER NAME  ASHLEY/MARTELLE" in plain sight. An airport's name is a short
+     * capitalised phrase with no digits, which is exactly the shape being searched for,
+     * so shape can never separate the two.
+     *
+     * These words end an airport's name and appear in nobody's. Checked before the
+     * airport table because a terminal line often names no city at all.
+     */
+    if (/\b(?:INTL|INTERNATIONAL|AIRPORT|AIRPT|TERMINAL|DOMESTIC)\b/i.test(value)) return;
+
+    // And a multi-word value that is *entirely* a known city — "SAN FRANCISCO", "NEW
+    // YORK" — is that city. A surname coinciding with a place is left alone by the
+    // single-word rule above; this one requires the whole value to match.
+    if (isAirportCity(value)) return;
+
     const key = value.toUpperCase();
     if (seen.has(key)) return;
 
@@ -623,6 +642,25 @@ function findPassengerNames(lines) {
   // Failing a title, the lines beneath a passenger heading.
   for (let index = 0; index < lines.length; index++) {
     if (!/\bpassenger\s*(information|details|name)\b/i.test(lines[index].text)) continue;
+
+    /*
+     * Beside the caption before beneath it.
+     *
+     * American Airlines prints "PASSENGER NAME    ASHLEY/MARTELLE" as two columns of one
+     * line. Looking only underneath walked past the answer and kept going until it
+     * reached the airport table, and the pass named the traveller "SAN FRANCISCO INTL".
+     *
+     * The value is the cell immediately after the caption's own, and only that one.
+     * Taking every remaining cell picked up "FREQUENT FLYER" from further along the same
+     * row — a second caption, labelling a value of its own.
+     */
+    const cells = splitColumns(lines[index]);
+    const captionCell = cells.findIndex((cell) => /\bpassenger\s*(information|details|name)\b/i.test(cell.text));
+    const beside = captionCell >= 0 ? strip(cells[captionCell + 1]?.text || '') : '';
+    if (beside && !/\d/.test(beside) && !CAPTION_WORD.test(beside)) {
+      add(beside, lines[index]);
+      if (found.length) break;
+    }
 
     for (let next = index + 1; next < Math.min(index + 6, lines.length); next++) {
       const value = strip(lines[next].text);
