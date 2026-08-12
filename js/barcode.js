@@ -340,9 +340,27 @@ export async function readBarcodesFromSource(ingested, options = {}) {
     }
 
     const best = [...all.values()].sort((a, b) => b.score - a.score)[0];
-    // Any Wallet-compatible payload of real length is the ticket; decoration is
-    // either a short URL or nothing at all, so there is no reason to keep looking.
-    if (best && best.walletCompatible && best.score >= 40) break;
+
+    /*
+     * Stop once the ticket has plainly been found.
+     *
+     * The score threshold alone was unreachable for a QR code. Scoring caps at 15 for the
+     * symbology plus 20 for length, so a QR maxes out at 35 against a threshold of 40 —
+     * meaning every QR ticket searched all ten candidates however early it was found.
+     * Measured on an IRCTC slip: the code decodes on the first candidate in 2.4 seconds,
+     * and the search then spent a further nine seconds confirming there was nothing else.
+     * On a phone that is the difference between prompt and apparently hung.
+     *
+     * QR is scored low deliberately, because a QR is often decoration where a PDF417
+     * never is — so the length test does the work instead. A payload of this size is a
+     * token, not a link to an app store, and anything that *is* a link is excluded
+     * outright.
+     */
+    const decisive = best?.walletCompatible && (
+      best.score >= 40
+      || (best.latin1.length >= 60 && !/^https?:\/\//i.test(best.text))
+    );
+    if (decisive) break;
   }
 
   const barcodes = [...all.values()].sort((a, b) => b.score - a.score);

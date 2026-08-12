@@ -618,6 +618,9 @@ async function build(context) {
   if (mode === Mode.RAIL) buildRailExtras(draft, lines, text, table);
   else buildBusExtras(draft, lines, text);
 
+  // ── The barcode, which outranks everything read off the page ──
+  applyIrctcRecord(draft, barcode);
+
   // ── Honesty about the absent barcode ──
   if (!barcode) {
     draft.warnings.push(
@@ -627,6 +630,128 @@ async function build(context) {
   }
 
   return draft;
+}
+
+/**
+ * The record inside an IRCTC QR code.
+ *
+ * Indian Railways prints a complete, labelled copy of the reservation in the QR — PNR,
+ * every passenger, train, class, date, origin and destination — and until now it was
+ * decoded, stored and then ignored while the same fields were guessed from OCR of the
+ * printed page. Measured across three real tickets, the barcode was right where OCR was
+ * wrong every time:
+ *
+ *   Train "12618 6 / / MNGLA MINGLA" against "12618 / MNGLA LKSDP EXP".
+ *   Origin "MUMBAI" against "PANVEL - PNVL".
+ *   Destination "New Delhi - NDLS ( (new Delhi )" against "NEW DELHI - NDLS".
+ *
+ * And two of the three carry passengers OCR never found at all — a booking for three
+ * showed one, which is precisely the failure that is discovered at the coach door.
+ *
+ * The format is one `Key:Value` a line, values never containing a comma, with each
+ * passenger introduced by a repeated `Passenger Name` and their details indented beneath.
+ *
+ * @returns the fields found, or null if this is not an IRCTC record
+ */
+export function parseIrctcRecord(text) {
+  if (!text) return null;
+
+  // Two labels, not one. A single "PNR No." could appear in any operator's payload;
+  // together with a train number it is unmistakably this format.
+  if (!/\bPNR\s*No\.?\s*:/i.test(text) || !/\bTrain\s*No\.?\s*:/i.test(text)) return null;
+
+  const fields = {};
+  const passengers = [];
+
+  for (const rawLine of text.split(/\r?\n/)) {
+    const line = rawLine.replace(/^[\s\t]+/, '').replace(/,\s*$/, '').trim();
+    if (!line) continue;
+
+    const split = line.indexOf(':');
+    if (split < 1) continue;
+
+    const key = line.slice(0, split).trim().toLowerCase().replace(/\s*\.\s*/g, '').replace(/\s+/g, ' ');
+    const value = line.slice(split + 1).trim();
+    if (!value) continue;
+
+    // Repeated rather than overwritten: a booking for three prints the label three times.
+    if (key === 'passenger name') {
+      passengers.push(value);
+      continue;
+    }
+
+    // First occurrence wins for everything else. "Status" is printed once per passenger
+    // and the first belongs to the traveller whose name heads the pass.
+    if (!(key in fields)) fields[key] = value;
+  }
+
+  return { fields, passengers };
+}
+
+/**
+ * Overwrites what was read from the page with what the barcode says.
+ *
+ * Unconditional where the barcode has a value. This is not a merge: a field decoded from
+ * a barcode is not a better guess than one read by OCR, it is the operator's own record,
+ * and preferring anything else would be choosing a photograph of the truth over the
+ * truth. Fields the record does not carry are left exactly as the page gave them.
+ */
+function applyIrctcRecord(draft, barcode) {
+  const record = parseIrctcRecord(barcode?.text);
+  if (!record) return;
+
+  const { fields, passengers } = record;
+
+  const set = (key, value, note) => {
+    if (!value) return;
+    const field = draft.get(key);
+    if (!field) return;
+    field.value = value;
+    field.source = Source.BARCODE;
+    field.confidence = Confidence.HIGH;
+    field.issues = [];
+    if (note) field.note = note;
+  };
+
+  /*
+   * Stations are parsed, not pasted.
+   *
+   * The record states "NASHIK ROAD - NK", which is a name and a code together. The rest
+   * of the adapter keeps those apart — the face of the pass wants NK, the back wants the
+   * full name — and pasting the raw string put both on the front of the card.
+   */
+  const from = fields.from ? parseStation(fields.from) : null;
+  const to = fields.to ? parseStation(fields.to) : null;
+
+  set('origin', from?.code || from?.display, from?.name || null);
+  set('destination', to?.code || to?.display, to?.name || null);
+  if (from?.name) draft.originName = from.name;
+  if (to?.name) draft.destinationName = to.name;
+
+  set('pnr', fields['pnr no']);
+  set('quota', fields.quota);
+  set('class', fields.class?.replace(/_/g, ' '));
+  set('passenger', passengers[0]);
+  set('status', fields.status);
+
+  // The train is named by the same field the page reads into — "service" here, since a
+  // bus service and a train number are the same slot in this adapter.
+  if (fields['train no'] && fields['train name']) {
+    set('service', `${fields['train no']} / ${fields['train name']}`);
+  }
+
+  // The journey date, which the record states unambiguously — no guessing which of two
+  // numbers is the month.
+  const journey = parseDate(fields['date of journey'] || fields['scheduled departure']);
+  if (journey?.date) {
+    set('date', journey.date.toISOString().slice(0, 10));
+  }
+
+  if (passengers.length > 1) {
+    draft.passengers = passengers;
+    const field = draft.get('passenger');
+    if (field) field.note = `${passengers.length} passengers on this booking, all from the barcode.`;
+  }
 }
 
 function buildRoute(draft, lines, vocab) {

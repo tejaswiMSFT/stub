@@ -14,7 +14,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import railAdapter from '../js/adapters/rail.js';
+import railAdapter, { parseIrctcRecord } from '../js/adapters/rail.js';
+import { Source } from '../js/adapters/registry.js';
 import { buildLines } from '../js/text.js';
 
 /** Positioned text runs, so column geometry is real rather than assumed. */
@@ -236,4 +237,96 @@ test('IRCTC: a value on its own line, and a table that ends', async (t) => {
     }
     assert.equal(people.length, 1, `expected 1 passenger, got ${people.join(', ')}`);
   });
+});
+
+/*
+ * The IRCTC QR, which carries a complete copy of the reservation.
+ *
+ * It was decoded, stored and then ignored while the same fields were guessed from OCR of
+ * the printed page. Measured on three real tickets, the barcode was right wherever OCR
+ * was wrong: "12618 6 / / MNGLA MINGLA" against "12618 / MNGLA LKSDP EXP", "MUMBAI"
+ * against "PANVEL - PNVL", "New Delhi - NDLS ( (new Delhi )" against "NEW DELHI - NDLS".
+ *
+ * Two of the three also list passengers OCR never found. A booking for three showing one
+ * is the failure discovered at the coach door.
+ */
+const IRCTC_QR = [
+  'PNR No.:2552449241,',
+  'TXN ID:100005348586626,',
+  'Passenger Name:PRAMOD PALDE,',
+  '\t\tGender:M,',
+  '\t\tAge:39,',
+  '\t\tStatus:RLWL/10',
+  'Passenger Name:GANESH GHULE,',
+  '\t\tGender:M,',
+  '\t\tAge:40,',
+  '\t\tStatus:RLWL/11',
+  'Passenger Name:SAJI THOMAS,',
+  '\t\tGender:M,',
+  '\t\tAge:52,',
+  '\t\tStatus:RLWL/12,',
+  'Quota:GENERAL (GN),',
+  'Train No.:12618,',
+  'Train Name:MNGLA LKSDP EXP,',
+  'Scheduled Departure:22-Nov-2024 02:08,',
+  'Date Of Journey:22-Nov-2024,',
+  'Boarding Station:NASHIK ROAD - NK,',
+  'Class:THIRD_AC_ECONOMY (3E),',
+  'From:NASHIK ROAD - NK,',
+  'To:ALUVA - AWY,',
+  'Ticket Fare: Rs5190.0,',
+  'IRCTC C Fee: Rs23.6+PG Charges Extra',
+].join('\n');
+
+test('IRCTC: the barcode outranks the page', async (t) => {
+  // Deliberately wrong on the page, exactly as OCR read it, so the barcode has something
+  // to correct rather than merely something to agree with.
+  const page = lines([
+    [20, 40, [[16, 'Electronic Reservation Slip (ERS)']]],
+    [80, 30, [[60, 'Booked From'], [400, 'To']]],
+    [120, 30, [[60, 'MUMBAI'], [400, 'New Delhi - NDLS ( (new Delhi )']]],
+    [180, 30, [[60, 'PNR'], [300, 'Train No./Name'], [600, 'Class']]],
+    [220, 30, [[60, '2552449241'], [300, '12618 6 / / MNGLA MINGLA'], [600, 'SL']]],
+    [280, 30, [[16, 'Passenger Details']]],
+    [320, 30, [[16, '#'], [60, 'Name'], [300, 'Age'], [500, 'Status']]],
+    [360, 30, [[16, '1.'], [60, 'PRAMOD PALDE'], [300, '39'], [500, 'RLWL/10']]],
+  ]);
+
+  const draft = await railAdapter.build({
+    lines: page,
+    barcode: { format: 'QRCode', text: IRCTC_QR, walletCompatible: true },
+  });
+
+  await t.test('takes the route from the record, not the page', () => {
+    assert.equal(draft.value('origin'), 'NK');
+    assert.equal(draft.value('destination'), 'AWY');
+  });
+
+  await t.test('keeps the full station names for the back of the pass', () => {
+    assert.match(draft.originName || '', /Nashik Road/i);
+  });
+
+  await t.test('corrects a train name OCR doubled', () => {
+    assert.equal(draft.value('service'), '12618 / MNGLA LKSDP EXP');
+  });
+
+  await t.test('finds every traveller, not only the one OCR read', () => {
+    assert.deepEqual(draft.passengers, ['PRAMOD PALDE', 'GANESH GHULE', 'SAJI THOMAS']);
+  });
+
+  await t.test('states the journey date unambiguously', () => {
+    assert.equal(draft.value('date'), '2024-11-22');
+  });
+
+  await t.test('marks the corrected fields as coming from the barcode', () => {
+    for (const key of ['origin', 'destination', 'pnr']) {
+      assert.equal(draft.get(key).source, Source.BARCODE, `${key} should be barcode-backed`);
+    }
+  });
+});
+
+test('a payload that is not an IRCTC record is left alone', () => {
+  assert.equal(parseIrctcRecord('https://example.com/ticket/123'), null);
+  assert.equal(parseIrctcRecord('PNR No.:123456'), null, 'a PNR alone is not enough');
+  assert.equal(parseIrctcRecord(''), null);
 });
