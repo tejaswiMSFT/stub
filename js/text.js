@@ -443,6 +443,33 @@ function valueBelow(lines, index, labelColumn, labelPattern, maxDistance) {
       }
     }
 
+    /*
+     * Nothing overlapped: try right edges instead.
+     *
+     * The test above assumes a column is left-aligned under its caption, which is the
+     * common case and wrong for a value set flush right. A Paytm ticket prints "PNR" at
+     * the right margin with "M4N29N" beneath it — the value is wider, so it starts
+     * further left, and the two boxes barely meet. The booking reference was lost on a
+     * ticket that displays it more prominently than anything else.
+     */
+    if (!best) {
+      const labelRight = labelColumn.x + labelColumn.width;
+      let closest = Infinity;
+
+      for (const column of columns) {
+        const gap = Math.abs((column.x + column.width) - labelRight);
+
+        // Judged against the *value's* width rather than the label's. A caption is often
+        // much shorter than what it labels — "PNR" over "M4N29N" — so a tolerance scaled
+        // to the caption is far too tight to admit the very pairing being looked for.
+        const tolerance = Math.max(24, column.width * 1.2);
+        if (gap < tolerance && gap < closest) {
+          best = column;
+          closest = gap;
+        }
+      }
+    }
+
     if (!best?.text) continue;
 
     // A row that repeats the label is another header, not the value.

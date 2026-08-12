@@ -16,7 +16,7 @@ import {
   parseTime, parseDate, toWalletDate, findLabelled, findProvider, toPlainText,
 } from './registry.js';
 import { splitColumns } from '../text.js';
-import { airport } from '../data/airports.js';
+import { airport, isAirportCity, isKnownAirport } from '../data/airports.js';
 
 const IATA_CODE = /^[A-Z]{3}$/;
 
@@ -94,6 +94,19 @@ function detect(context) {
 
   return score >= 40 ? Math.min(score, 90) : 0;
 }
+
+/**
+ * Lines that carry a date which is certainly not the date of travel.
+ *
+ * A ticket that doubles as a tax invoice prints several dates, and the ones about the
+ * *transaction* are usually nearest the top and therefore found first. A Paytm-issued
+ * IndiGo ticket reads "Booked on: 08 Mar 2024" and "Invoice Date: 08 Mar 2024" above a
+ * journey on 28 April, and the pass was built for the wrong day by seven weeks.
+ *
+ * Defined once and shared, because this was previously written three times in three
+ * slightly different forms — one knew about invoices and two did not.
+ */
+const NOT_A_TRAVEL_DATE = /\b(?:book(?:ing|ed)|issued?|printed?|purchased?|generated|invoice|receipt|billed?|paid|transaction|order(?:ed)?|created)\b/i;
 
 /**
  * Cross-checks a barcode value against the PDF text.
@@ -174,8 +187,7 @@ function buildTimeFields(draft, leg, lines, airports) {
   //
   // Lines announcing a booking, issue or print are removed before the search rather than
   // excluded by lookbehind, which older Safari does not support.
-  const travelLines = lines.filter((line) =>
-    !/\b(?:book(?:ing|ed)|issued?|printed?|purchased?|generated)\b/i.test(line.text));
+  const travelLines = lines.filter((line) => !NOT_A_TRAVEL_DATE.test(line.text));
 
   const printedDate = findLabelled(travelLines, [
     /\b(?:date\s*of\s*(?:travel|journey|departure)|travel\s*date|flight\s*date|departure\s*date)\b/i,
@@ -542,6 +554,21 @@ function findPassengerNames(lines) {
   const add = (value, region) => {
     if (!value) return;
     if (value.length < 2 || value.length > 40) return;
+
+    /*
+     * A city is not a passenger.
+     *
+     * "Bengaluru" appeared in a list of travellers on a Paytm-issued IndiGo ticket,
+     * sitting between two real names. It came from the airport line — "Bengaluru,
+     * Kempegowda Airport" — which is a short capitalised phrase with no digits, exactly
+     * the shape a name-finder is looking for.
+     *
+     * The airport table already knows every city this app can name, so the check costs
+     * nothing and is not a word list that will rot. A single word matching a city is
+     * refused; two or more words are left alone, because a surname can coincide with a
+     * place and "Mr Ahmedabad Sharma" is a person.
+     */
+    if (!/\s/.test(value) && isAirportCity(value)) return;
 
     const key = value.toUpperCase();
     if (seen.has(key)) return;
@@ -1128,6 +1155,36 @@ function buildFromTextOnly(draft, lines) {
     routeRegion = originFound?.region || null;
   }
 
+  /*
+   * Failing both: two known airport codes on one line.
+   *
+   * A Paytm-issued IndiGo ticket lays its route across a row with no captions at all —
+   * "DPS  11:30      15:30  BLR" — so there is no sector to match and no label to find,
+   * and the pass came out with no route whatsoever. That is the one thing a boarding
+   * pass must carry.
+   *
+   * Only codes the airport table recognises count, and only a line holding exactly two
+   * of them. That is what keeps it from reading three-letter words: a line of prose
+   * rarely contains two real IATA codes and nothing else, and one that does is a route.
+   * Order is reading order, which is departure then arrival on every ticket in any
+   * language.
+   */
+  if (!from || !to) {
+    for (const line of lines) {
+      const codes = (line.text.toUpperCase().match(/\b[A-Z]{3}\b/g) || [])
+        .filter((code) => isKnownAirport(code));
+
+      // Exactly two, and not the same airport twice.
+      const unique = [...new Set(codes)];
+      if (unique.length !== 2) continue;
+
+      from = from || unique[0];
+      to = to || unique[1];
+      routeRegion = routeRegion || line;
+      break;
+    }
+  }
+
   if (from && to) {
     draft.set('origin', new Field({
       key: 'origin', label: 'From', value: from, source: Source.PDF_TEXT,
@@ -1158,6 +1215,9 @@ function buildFromTextOnly(draft, lines) {
   }
 
   // ── Date ──
+  //
+  // A labelled travel date is preferred, but the label must say *travel*: an invoice
+  // date is labelled too, and matching "date" alone found it first.
   const dateFound = findLabelled(lines, [
     /\bdate\s*of\s*(?:travel|journey|departure)\b/i,
     /\btravel\s*date\b/i,
@@ -1165,13 +1225,13 @@ function buildFromTextOnly(draft, lines) {
   ]);
   const parsedDate = dateFound ? parseDate(dateFound.value) : null;
 
-  // Failing a labelled date, the first date on the page that is not the booking date.
-  // The booking date is explicitly excluded: it is printed most prominently on many
-  // itineraries and is never the date of travel.
+  // Failing that, the first date on the page that is not about the transaction. Booking,
+  // invoice and issue dates are printed most prominently on many itineraries and are
+  // never the date of travel.
   let fallbackDate = null;
   if (!parsedDate?.date) {
     for (const line of lines) {
-      if (/\bbook(?:ing|ed)\b/i.test(line.text)) continue;
+      if (NOT_A_TRAVEL_DATE.test(line.text)) continue;
       const candidate = parseDate(line.text);
       if (candidate?.date) { fallbackDate = candidate; break; }
     }

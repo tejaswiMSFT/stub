@@ -200,6 +200,18 @@ function departureTimestamp(draftOrRecord) {
   const date = value('date');
   if (!date) return null;
 
+  /*
+   * A year that cannot be a journey is treated as no date at all.
+   *
+   * A browser's date input accepts whatever its year box is given, so typing "26" for
+   * 2026 produced "0026-12-25" — and a pass dated to the third century sorted straight
+   * into Past, where its owner could not find it. Refusing the value here means the
+   * ticket keeps its place in the list, which is the failure the user can actually
+   * recover from.
+   */
+  const year = Number(String(date).slice(0, 4));
+  if (!Number.isFinite(year) || year < 1990 || year > 2100) return null;
+
   const time = value('departureTime') || value('startTime') || value('boardingTime') || '00:00';
   const stamp = Date.parse(`${date}T${time.length === 5 ? time : '00:00'}:00`);
   return Number.isNaN(stamp) ? null : stamp;

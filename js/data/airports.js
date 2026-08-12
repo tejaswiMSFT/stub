@@ -581,3 +581,31 @@ export function knownAirportCodes() {
   if (!index) index = buildIndex();
   return [...index.keys()];
 }
+
+/**
+ * Whether a word is the name of a city this table knows.
+ *
+ * Exists so that a place cannot be mistaken for a person. "Bengaluru" turned up in a
+ * list of travellers, lifted from the line "Bengaluru, Kempegowda Airport" — a short
+ * capitalised word with no digits, which is exactly what a name looks like.
+ *
+ * Matching against the airport table rather than a hand-written list of place names
+ * means it covers everywhere the app can name and nowhere it cannot, and it cannot
+ * drift out of date separately from the data it is drawn from.
+ */
+let cityIndex = null;
+
+export function isAirportCity(name) {
+  const value = String(name || '').trim().toLowerCase();
+  if (value.length < 3) return false;
+
+  if (!cityIndex) {
+    if (!index) index = buildIndex();
+    cityIndex = new Set();
+    for (const record of index.values()) {
+      if (record.city) cityIndex.add(record.city.toLowerCase());
+    }
+  }
+
+  return cityIndex.has(value);
+}

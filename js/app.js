@@ -1664,13 +1664,29 @@ function fieldMarkup(field) {
 
   const type = field.type === 'date' ? 'date' : field.type === 'time' ? 'time' : 'text';
 
+  /*
+   * A date field needs bounds.
+   *
+   * Without them a browser accepts whatever the year box is given, and typing "26" for
+   * 2026 yields the year 26 — which arrives as "0026-12-25", two thousand years in the
+   * past, and quietly files the ticket under Past where the user cannot find it.
+   *
+   * The window is deliberately wide rather than clever: a ticket bought today might be
+   * for a flight next year, and an old one might be kept for an expense claim. What it
+   * cannot be is the third century.
+   */
+  const bounds = type === 'date'
+    ? ` min="${new Date(Date.now() - 3 * 365 * 86400000).toISOString().slice(0, 10)}"`
+      + ` max="${new Date(Date.now() + 3 * 365 * 86400000).toISOString().slice(0, 10)}"`
+    : '';
+
   return `
     <div class="field ${field.critical ? 'critical' : ''}">
       <div class="field-head">
         <label for="f-${escapeAttr(field.key)}">${escapeHtml(field.label)}</label>
         ${badge}
       </div>
-      <input id="f-${escapeAttr(field.key)}" type="${type}" value="${escapeAttr(field.value)}"
+      <input id="f-${escapeAttr(field.key)}" type="${type}" value="${escapeAttr(field.value)}"${bounds}
              data-input="${escapeAttr(field.key)}" enterkeyhint="done"
              autocapitalize="characters" autocomplete="off" spellcheck="false">
       ${issues}

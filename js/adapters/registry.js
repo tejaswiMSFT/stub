@@ -112,9 +112,20 @@ export function parseDate(raw, { reference = new Date() } = {}) {
     return { date: new Date(Date.UTC(+iso[1], +iso[2] - 1, +iso[3])), ambiguous: false, hadYear: true };
   }
 
-  // 16 Sep 2026 / 16-SEP-26 — unambiguous because the month is named.
-  const dayFirst = text.match(/\b(\d{1,2})[\s\-/]*([a-z]{3,4})[\s\-/]*(\d{2,4})?\b/i);
-  const monthFirst = text.match(/\b([a-z]{3,4})[\s\-/]*(\d{1,2})(?:st|nd|rd|th)?[\s,\-/]*(\d{2,4})?\b/i);
+  /*
+   * 16 Sep 2026 / 16-SEP-26 / Sun 28 Apr, 2024 — unambiguous, because the month is named.
+   *
+   * The separators matter more than they look. A comma between the month and the year is
+   * ordinary — "Sun 28 Apr, 2024" is how several Indian agents print a date — and without
+   * it here the year was not captured at all, so a flight in April 2024 was dated to the
+   * current year. A pass two years wrong is worse than one with no date, because nobody
+   * checks a field that looks filled in.
+   *
+   * The month is three to nine letters, not three to four: "April", "August" and
+   * "September" are spelled out often enough, and `{3,4}` silently refused all of them.
+   */
+  const dayFirst = text.match(/\b(\d{1,2})(?:st|nd|rd|th)?[\s,\-/]*([a-z]{3,9})[\s,\-/]*(\d{2,4})?\b/i);
+  const monthFirst = text.match(/\b([a-z]{3,9})[\s,\-/]*(\d{1,2})(?:st|nd|rd|th)?[\s,\-/]*(\d{2,4})?\b/i);
   const named = dayFirst || monthFirst;
 
   if (named) {
