@@ -998,6 +998,13 @@ p { margin: 0; }
 
 /* ── call to action, in the dark band ── */
 
+/* Space above it.
+   The block was written to sit directly under the headline in its own band, where the
+   band's padding gave it room. Moved below the three points it inherited none, so its
+   top edge landed exactly on their bottom edge — a zero-pixel gap, which reads as two
+   panels colliding rather than as one section following another. */
+.landing-foot .landing-cta { margin-top: clamp(34px, 5vw, 60px); }
+
 .landing-cta { max-width: 34rem; }
 .landing-cta .install-card { margin: 0; }
 .landing-cta .primary { width: 100%; }
