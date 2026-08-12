@@ -9,7 +9,7 @@
  */
 
 export const BUILD = {
-  version: "v83 (e65029f)",
+  version: "v85 (8c6cd30)",
   date: "12 Aug 2026",
-  commit: "e65029f",
+  commit: "8c6cd30",
 };
