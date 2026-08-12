@@ -55,5 +55,8 @@ await browser.close();
 // The vector forms, for the site itself — sharp at any size and a fraction of the weight.
 await writeFile(new URL('../icons/mark.svg', import.meta.url), markSvg({ size: 512, variant: 'app' }));
 await writeFile(new URL('../icons/mark-plain.svg', import.meta.url), markSvg({ size: 512, variant: 'plain', colour: brand.colour.ink }));
-await writeFile(new URL('../icons/wordmark.svg', import.meta.url), wordmarkSvg({ height: 44 }));
+// The name is given the brand colour rather than left to inherit. As a standalone file
+// there is nothing to inherit from, and the default resolved to near-black — invisible
+// anywhere the file is used on a dark ground.
+await writeFile(new URL('../icons/wordmark.svg', import.meta.url), wordmarkSvg({ height: 44, colour: brand.colour.ink }));
 console.log('wrote mark.svg, mark-plain.svg, wordmark.svg');

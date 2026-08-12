@@ -1,22 +1,54 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="Stub">
   <defs>
-    <linearGradient id="sfkd8w69f" x1="0.2" y1="0" x2="0.8" y2="1">
+    <linearGradient id="sedtumk5f" x1="0.2" y1="0" x2="0.8" y2="1">
       <stop offset="0%" stop-color="#8B7CFF"/>
       <stop offset="48%" stop-color="#5B4FE8"/>
       <stop offset="100%" stop-color="#4A3DC4"/>
     </linearGradient>
-    <linearGradient id="sfkd8w69s" x1="0" y1="0" x2="0" y2="1">
+    <linearGradient id="sedtumk5s" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%" stop-color="#fff" stop-opacity="0.40"/>
       <stop offset="45%" stop-color="#fff" stop-opacity="0"/>
     </linearGradient>
-    <clipPath id="sfkd8w69c"><path d="M 52.12 0 L 156.37 0 A 20.27 20.27 0 0 0 196.91 0 L 301.16 0 A 52.12 52.12 0 0 1 353.28 52.12 L 353.28 114.38 A 30.41 30.41 0 0 0 353.28 175.19 L 353.28 237.45 A 52.12 52.12 0 0 1 301.16 289.57 L 196.91 289.57 A 20.27 20.27 0 0 0 156.37 289.57 L 52.12 289.57 A 52.12 52.12 0 0 1 0 237.45 L 0 175.19 A 30.41 30.41 0 0 0 0 114.38 L 0 52.12 A 52.12 52.12 0 0 1 52.12 0 Z" transform="translate(79.36 111.21)"/></clipPath>
+
+    <!-- The tile is shaded rather than flat. A flat white square reads as printed on the
+         background; a face falling off very slightly towards the bottom reads as a
+         physical object catching light from above, which is what every platform's own
+         icons do. The range is deliberately narrow — a strong gradient here competes with
+         the mark and looks like a button. -->
+    <linearGradient id="sedtumk5t" x1="0.15" y1="0" x2="0.85" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="58%" stop-color="#f6f6f6"/>
+      <stop offset="100%" stop-color="#e6e6e6"/>
+    </linearGradient>
+
+    <!-- A hairline inside the edge. It separates the tile from a background of a similar
+         colour — a white tile on a white page otherwise has no boundary at all — and
+         gives the top edge the thin bright line a lit surface has. -->
+    <linearGradient id="sedtumk5e" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9"/>
+      <stop offset="55%" stop-color="#d6d6d6" stop-opacity="0.30"/>
+      <stop offset="100%" stop-color="#bdbdbd" stop-opacity="0.42"/>
+    </linearGradient>
+
+    <clipPath id="sedtumk5c"><path d="M 66.07 0 L 156.08 0 A 20.56 20.56 0 0 0 197.20 0 L 287.21 0 A 66.07 66.07 0 0 1 353.28 66.07 L 353.28 107.19 A 37.09 39.64 0 0 0 353.28 186.48 L 353.28 227.59 A 66.07 66.07 0 0 1 287.21 293.67 L 197.20 293.67 A 20.56 20.56 0 0 0 156.08 293.67 L 66.07 293.67 A 66.07 66.07 0 0 1 0 227.59 L 0 186.48 A 37.09 39.64 0 0 0 0 107.19 L 0 66.07 A 66.07 66.07 0 0 1 66.07 0 Z" transform="translate(79.36 109.17)"/></clipPath>
+    <!-- The perforation is cut out of the mark rather than painted over it, so the tile
+         shows through. Painted white it was invisible the moment the tile turned white,
+         and the mark lost the one detail that says "ticket". -->
+    <mask id="sedtumk5m">
+      <path d="M 66.07 0 L 156.08 0 A 20.56 20.56 0 0 0 197.20 0 L 287.21 0 A 66.07 66.07 0 0 1 353.28 66.07 L 353.28 107.19 A 37.09 39.64 0 0 0 353.28 186.48 L 353.28 227.59 A 66.07 66.07 0 0 1 287.21 293.67 L 197.20 293.67 A 20.56 20.56 0 0 0 156.08 293.67 L 66.07 293.67 A 66.07 66.07 0 0 1 0 227.59 L 0 186.48 A 37.09 39.64 0 0 0 0 107.19 L 0 66.07 A 66.07 66.07 0 0 1 66.07 0 Z" transform="translate(79.36 109.17)" fill="#fff"/>
+      <g transform="translate(79.36 109.17)"><rect x="165.63" y="35.24"
+      width="22.02" height="38.18" rx="11.01" fill="#000"/><rect x="165.63" y="96.91"
+      width="22.02" height="38.18" rx="11.01" fill="#000"/><rect x="165.63" y="158.58"
+      width="22.02" height="38.18" rx="11.01" fill="#000"/><rect x="165.63" y="220.25"
+      width="22.02" height="38.18" rx="11.01" fill="#000"/></g>
+    </mask>
   </defs>
-  <rect width="512" height="512" rx="115.2" fill="#1c1c1e"/>
-  <g transform="translate(79.36 111.21)"><path d="M 52.12 0 L 156.37 0 A 20.27 20.27 0 0 0 196.91 0 L 301.16 0 A 52.12 52.12 0 0 1 353.28 52.12 L 353.28 114.38 A 30.41 30.41 0 0 0 353.28 175.19 L 353.28 237.45 A 52.12 52.12 0 0 1 301.16 289.57 L 196.91 289.57 A 20.27 20.27 0 0 0 156.37 289.57 L 52.12 289.57 A 52.12 52.12 0 0 1 0 237.45 L 0 175.19 A 30.41 30.41 0 0 0 0 114.38 L 0 52.12 A 52.12 52.12 0 0 1 52.12 0 Z" fill="url(#sfkd8w69f)"/></g>
-  <g clip-path="url(#sfkd8w69c)"><rect width="512" height="512" fill="url(#sfkd8w69s)"/></g>
-  <g transform="translate(79.36 111.21)"><rect x="165.78" y="34.75"
-      width="21.72" height="37.64" rx="10.86" fill="#ffffff"/><rect x="165.78" y="95.56"
-      width="21.72" height="37.64" rx="10.86" fill="#ffffff"/><rect x="165.78" y="156.37"
-      width="21.72" height="37.64" rx="10.86" fill="#ffffff"/><rect x="165.78" y="217.18"
-      width="21.72" height="37.64" rx="10.86" fill="#ffffff"/></g>
+  <rect width="512" height="512" rx="115.2" fill="url(#sedtumk5t)"/>
+  <g mask="url(#sedtumk5m)">
+    <g transform="translate(79.36 109.17)"><path d="M 66.07 0 L 156.08 0 A 20.56 20.56 0 0 0 197.20 0 L 287.21 0 A 66.07 66.07 0 0 1 353.28 66.07 L 353.28 107.19 A 37.09 39.64 0 0 0 353.28 186.48 L 353.28 227.59 A 66.07 66.07 0 0 1 287.21 293.67 L 197.20 293.67 A 20.56 20.56 0 0 0 156.08 293.67 L 66.07 293.67 A 66.07 66.07 0 0 1 0 227.59 L 0 186.48 A 37.09 39.64 0 0 0 0 107.19 L 0 66.07 A 66.07 66.07 0 0 1 66.07 0 Z" fill="url(#sedtumk5f)"/></g>
+    <g clip-path="url(#sedtumk5c)"><rect width="512" height="512" fill="url(#sedtumk5s)"/></g>
+  </g>
+  <rect x="2.05" y="2.05"
+        width="507.90" height="507.90"
+        rx="115.2" fill="none" stroke="url(#sedtumk5e)" stroke-width="4.10"/>
 </svg>

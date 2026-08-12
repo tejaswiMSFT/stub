@@ -384,7 +384,16 @@ function renderLanding() {
 
   // The wordmark is generated rather than an image file, so the name and mark are never
   // separately positioned and cannot drift apart.
-  $('landing-wordmark').innerHTML = wordmarkSvg({ height: 40, colour: 'currentColor' });
+  //
+  // No colour is passed. The mark's face is a brand gradient, and handing it
+  // `currentColor` put white into the middle stop and washed the whole thing out — which
+  // is exactly how it shipped. The word alone inherits the surrounding colour.
+  $('landing-wordmark').innerHTML = wordmarkSvg({ height: 44 });
+
+  // The drawn phone gets the flat variant, which does take a colour: it stands in for the
+  // app bar, where the mark is a single silhouette rather than a tile.
+  const deviceMark = $('device-mark');
+  if (deviceMark) deviceMark.innerHTML = markSvg({ size: 19, variant: 'plain', colour: '#8b7cff' });
 
   if (platform.standalone) {
     card.innerHTML = '';

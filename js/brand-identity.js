@@ -43,6 +43,17 @@ export const brand = {
     // Lighter and darker stops, for the lit face.
     lift: '#8B7CFF',
     deep: '#4A3DC4',
+
+    /**
+     * The tile behind the mark on a home screen.
+     *
+     * White, not the app's dark surface. A near-black tile made the icon disappear into a
+     * dark wallpaper — the mark and the tile were both dark, so only the perforation read
+     * from any distance. A light tile carries the indigo on any background, which is why
+     * essentially every shipped app icon does this.
+     */
+    tile: '#ffffff',
+
     ground: '#1c1c1e',
     paper: '#ffffff',
   },
@@ -55,16 +66,36 @@ export const brand = {
  * without shortening the side notch, for instance, leaves no straight edge between the
  * two and the silhouette turns to mush.
  *
- * The side notches are shallower than the reference mark's, and the slots wider. Drawn to
- * the reference proportions the mark was correct at display size but pinched at the waist
- * by 20px, where it read as a bowtie rather than a ticket, and the perforation closed up
- * into an invisible hairline. Widening the cut and easing the bite costs nothing large
- * and is the difference between legible and not small.
+ * These are not estimates. tools/_trace-mark.mjs walks both the reference mark and this
+ * one row by row and reports where the ink starts and stops as a fraction of width, which
+ * is what finally settled a shape that three rounds of eyeballing had got wrong:
+ *
+ *   The side notch cuts to 0.157 of the width at its deepest, against 0.130 here — the
+ *   bite was visibly shallower, which is what made the shape read as a soft-edged card
+ *   rather than a ticket with a piece taken out.
+ *
+ *   The notch spans t=0.40 to t=0.60 of the height; the corner finishes turning by
+ *   t=0.15. Those two match already and are not changed.
+ *
+ *   Aspect is 1.203, not 1.22.
  */
 const SHAPE = {
-  ratio: 1.22,
-  corner: 0.18,
-  sideNotch: 0.105,
+  ratio: 1.203,
+  // The corner inset at the very top and bottom row of the profile: 0.157 of the width in
+  // the reference, against 0.125 with an 0.18 radius. A rounder corner is what gives the
+  // shape its soft, squircle-like feel rather than a rectangle with the edges knocked off.
+  corner: 0.225,
+  // Depth and span are separate because the notch is an ellipse, not a circle. As a
+  // circle the two were one number, and deepening the bite also stretched it along the
+  // edge until it met the corners — so the arc clamped and the depth would not move
+  // however large the radius was set.
+  //
+  // 0.105 is the measured depth at mid-height. An earlier reading of 0.157 was taken from
+  // the profile's last row, which is the *corner* inset, not the notch — cutting to that
+  // produced a waist far deeper than the reference. Read the middle of the profile for
+  // the notch and the ends for the corner; they are different measurements.
+  notchDepth: 0.105,
+  notchSpan: 0.135,
   edgeNotch: 0.07,
   slots: 4,
   slotWidth: 0.075,
@@ -76,10 +107,15 @@ const SHAPE = {
  *
  * All four notches use sweep-flag 0 — see the note at the top of the file. `w` and `h`
  * are the ticket's own box; the caller positions it.
+ *
+ * The side notch is an elliptical arc: `notchDepth` is how far it cuts in, measured
+ * against the width as the trace reports it, and `notchSpan` is how far it reaches along
+ * the edge. Keeping them independent is what finally let the bite match the reference.
  */
 function ticketPath({ w, h }) {
   const corner = h * SHAPE.corner;
-  const side = h * SHAPE.sideNotch;
+  const depth = w * SHAPE.notchDepth;
+  const span = h * SHAPE.notchSpan;
   const edge = h * SHAPE.edgeNotch;
   const midX = w / 2;
   const midY = h / 2;
@@ -91,16 +127,16 @@ function ticketPath({ w, h }) {
     `A ${n(edge)} ${n(edge)} 0 0 0 ${n(midX + edge)} 0`,
     `L ${n(w - corner)} 0`,
     `A ${n(corner)} ${n(corner)} 0 0 1 ${n(w)} ${n(corner)}`,
-    `L ${n(w)} ${n(midY - side)}`,
-    `A ${n(side)} ${n(side)} 0 0 0 ${n(w)} ${n(midY + side)}`,
+    `L ${n(w)} ${n(midY - span)}`,
+    `A ${n(depth)} ${n(span)} 0 0 0 ${n(w)} ${n(midY + span)}`,
     `L ${n(w)} ${n(h - corner)}`,
     `A ${n(corner)} ${n(corner)} 0 0 1 ${n(w - corner)} ${n(h)}`,
     `L ${n(midX + edge)} ${n(h)}`,
     `A ${n(edge)} ${n(edge)} 0 0 0 ${n(midX - edge)} ${n(h)}`,
     `L ${n(corner)} ${n(h)}`,
     `A ${n(corner)} ${n(corner)} 0 0 1 0 ${n(h - corner)}`,
-    `L 0 ${n(midY + side)}`,
-    `A ${n(side)} ${n(side)} 0 0 0 0 ${n(midY - side)}`,
+    `L 0 ${n(midY + span)}`,
+    `A ${n(depth)} ${n(span)} 0 0 0 0 ${n(midY - span)}`,
     `L 0 ${n(corner)}`,
     `A ${n(corner)} ${n(corner)} 0 0 1 ${n(corner)} 0`,
     'Z',
@@ -127,11 +163,41 @@ function slots({ w, h, fill }) {
 }
 
 /**
+ * Moves a colour towards its opposite by a small amount.
+ *
+ * Used for the tile's shading, which has to work for a white tile and a dark one: mixing
+ * towards black would do nothing visible on a near-black ground. Direction is chosen from
+ * the colour's own lightness, so a light tile darkens and a dark tile lifts.
+ *
+ * Accepts three- or six-digit hex, which is what every colour in this file is.
+ */
+function shade(hex, amount) {
+  const raw = hex.replace('#', '');
+  const full = raw.length === 3 ? raw.split('').map((c) => c + c).join('') : raw;
+  const value = Number.parseInt(full, 16);
+  const r = (value >> 16) & 255;
+  const g = (value >> 8) & 255;
+  const b = value & 255;
+
+  // Rec. 601 luma: good enough to decide which way is "away from this colour".
+  const towards = (0.299 * r + 0.587 * g + 0.114 * b) > 140 ? 0 : 255;
+  const mix = (channel) => Math.round(channel + (towards - channel) * amount);
+
+  return `#${[mix(r), mix(g), mix(b)].map((c) => c.toString(16).padStart(2, '0')).join('')}`;
+}
+
+/**
  * The mark.
  *
  * `variant`:
  *   'app'   — the mark on its tile, for home screens and favicons
  *   'plain' — the ticket alone in one colour, for use inline with text
+ *
+ * `colour` applies to the plain variant, which is a single flat silhouette. It is ignored
+ * for the app variant: that face is a three-stop gradient built from the brand palette,
+ * and a caller passing `currentColor` — as the landing page did — put white into the
+ * middle stop and washed the whole mark out. A tile that changes colour with surrounding
+ * text is not a thing worth supporting.
  *
  * `bleed` is the margin left around it. Maskable icons need much more, because Android
  * crops to whatever shape a launcher prefers and a mark drawn near the edge loses its
@@ -177,8 +243,11 @@ export function markSvg({
 </svg>`;
   }
 
-  const face = colour || brand.colour.ink;
-  const tile = ground || brand.colour.ground;
+  // Deliberately not `colour`. See the note above: the lit face is a brand gradient, and
+  // letting a caller substitute the middle stop is what washed the landing mark out.
+  const face = brand.colour.ink;
+  const tile = ground || brand.colour.tile;
+  const radius = (size * 0.225).toFixed(1);
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" role="img" aria-label="${brand.name}">
   <defs>
@@ -191,12 +260,44 @@ export function markSvg({
       <stop offset="0%" stop-color="#fff" stop-opacity="0.40"/>
       <stop offset="45%" stop-color="#fff" stop-opacity="0"/>
     </linearGradient>
+
+    <!-- The tile is shaded rather than flat. A flat white square reads as printed on the
+         background; a face falling off very slightly towards the bottom reads as a
+         physical object catching light from above, which is what every platform's own
+         icons do. The range is deliberately narrow — a strong gradient here competes with
+         the mark and looks like a button. -->
+    <linearGradient id="${uid}t" x1="0.15" y1="0" x2="0.85" y2="1">
+      <stop offset="0%" stop-color="${tile}"/>
+      <stop offset="58%" stop-color="${shade(tile, 0.035)}"/>
+      <stop offset="100%" stop-color="${shade(tile, 0.10)}"/>
+    </linearGradient>
+
+    <!-- A hairline inside the edge. It separates the tile from a background of a similar
+         colour — a white tile on a white page otherwise has no boundary at all — and
+         gives the top edge the thin bright line a lit surface has. -->
+    <linearGradient id="${uid}e" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9"/>
+      <stop offset="55%" stop-color="${shade(tile, 0.16)}" stop-opacity="0.30"/>
+      <stop offset="100%" stop-color="${shade(tile, 0.26)}" stop-opacity="0.42"/>
+    </linearGradient>
+
     <clipPath id="${uid}c"><path d="${d}" transform="${at}"/></clipPath>
+    <!-- The perforation is cut out of the mark rather than painted over it, so the tile
+         shows through. Painted white it was invisible the moment the tile turned white,
+         and the mark lost the one detail that says "ticket". -->
+    <mask id="${uid}m">
+      <path d="${d}" transform="${at}" fill="#fff"/>
+      <g transform="${at}">${slots({ w, h, fill: '#000' })}</g>
+    </mask>
   </defs>
-  <rect width="${size}" height="${size}" rx="${(size * 0.225).toFixed(1)}" fill="${tile}"/>
-  <g transform="${at}"><path d="${d}" fill="url(#${uid}f)"/></g>
-  <g clip-path="url(#${uid}c)"><rect width="${size}" height="${size}" fill="url(#${uid}s)"/></g>
-  <g transform="${at}">${slots({ w, h, fill: brand.colour.paper })}</g>
+  <rect width="${size}" height="${size}" rx="${radius}" fill="url(#${uid}t)"/>
+  <g mask="url(#${uid}m)">
+    <g transform="${at}"><path d="${d}" fill="url(#${uid}f)"/></g>
+    <g clip-path="url(#${uid}c)"><rect width="${size}" height="${size}" fill="url(#${uid}s)"/></g>
+  </g>
+  <rect x="${(size * 0.004).toFixed(2)}" y="${(size * 0.004).toFixed(2)}"
+        width="${(size * 0.992).toFixed(2)}" height="${(size * 0.992).toFixed(2)}"
+        rx="${radius}" fill="none" stroke="url(#${uid}e)" stroke-width="${(size * 0.008).toFixed(2)}"/>
 </svg>`;
 }
 

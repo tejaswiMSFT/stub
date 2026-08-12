@@ -3,30 +3,62 @@
   <g transform="translate(0, -1.3)">
     <svg xmlns="http://www.w3.org/2000/svg" width="46.64" height="46.64" viewBox="0 0 46.64 46.64" role="img" aria-label="Stub">
   <defs>
-    <linearGradient id="somipocqf" x1="0.2" y1="0" x2="0.8" y2="1">
+    <linearGradient id="s458v9a1f" x1="0.2" y1="0" x2="0.8" y2="1">
       <stop offset="0%" stop-color="#8B7CFF"/>
-      <stop offset="48%" stop-color="currentColor"/>
+      <stop offset="48%" stop-color="#5B4FE8"/>
       <stop offset="100%" stop-color="#4A3DC4"/>
     </linearGradient>
-    <linearGradient id="somipocqs" x1="0" y1="0" x2="0" y2="1">
+    <linearGradient id="s458v9a1s" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%" stop-color="#fff" stop-opacity="0.40"/>
       <stop offset="45%" stop-color="#fff" stop-opacity="0"/>
     </linearGradient>
-    <clipPath id="somipocqc"><path d="M 5.37 0 L 16.10 0 A 2.09 2.09 0 0 0 20.28 0 L 31.01 0 A 5.37 5.37 0 0 1 36.38 5.37 L 36.38 11.78 A 3.13 3.13 0 0 0 36.38 18.04 L 36.38 24.45 A 5.37 5.37 0 0 1 31.01 29.82 L 20.28 29.82 A 2.09 2.09 0 0 0 16.10 29.82 L 5.37 29.82 A 5.37 5.37 0 0 1 0 24.45 L 0 18.04 A 3.13 3.13 0 0 0 0 11.78 L 0 5.37 A 5.37 5.37 0 0 1 5.37 0 Z" transform="translate(5.13 8.41)"/></clipPath>
+
+    <!-- The tile is shaded rather than flat. A flat white square reads as printed on the
+         background; a face falling off very slightly towards the bottom reads as a
+         physical object catching light from above, which is what every platform's own
+         icons do. The range is deliberately narrow — a strong gradient here competes with
+         the mark and looks like a button. -->
+    <linearGradient id="s458v9a1t" x1="0.15" y1="0" x2="0.85" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="58%" stop-color="#f6f6f6"/>
+      <stop offset="100%" stop-color="#e6e6e6"/>
+    </linearGradient>
+
+    <!-- A hairline inside the edge. It separates the tile from a background of a similar
+         colour — a white tile on a white page otherwise has no boundary at all — and
+         gives the top edge the thin bright line a lit surface has. -->
+    <linearGradient id="s458v9a1e" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9"/>
+      <stop offset="55%" stop-color="#d6d6d6" stop-opacity="0.30"/>
+      <stop offset="100%" stop-color="#bdbdbd" stop-opacity="0.42"/>
+    </linearGradient>
+
+    <clipPath id="s458v9a1c"><path d="M 6.80 0 L 16.07 0 A 2.12 2.12 0 0 0 20.31 0 L 29.58 0 A 6.80 6.80 0 0 1 36.38 6.80 L 36.38 11.04 A 3.82 4.08 0 0 0 36.38 19.20 L 36.38 23.44 A 6.80 6.80 0 0 1 29.58 30.24 L 20.31 30.24 A 2.12 2.12 0 0 0 16.07 30.24 L 6.80 30.24 A 6.80 6.80 0 0 1 0 23.44 L 0 19.20 A 3.82 4.08 0 0 0 0 11.04 L 0 6.80 A 6.80 6.80 0 0 1 6.80 0 Z" transform="translate(5.13 8.20)"/></clipPath>
+    <!-- The perforation is cut out of the mark rather than painted over it, so the tile
+         shows through. Painted white it was invisible the moment the tile turned white,
+         and the mark lost the one detail that says "ticket". -->
+    <mask id="s458v9a1m">
+      <path d="M 6.80 0 L 16.07 0 A 2.12 2.12 0 0 0 20.31 0 L 29.58 0 A 6.80 6.80 0 0 1 36.38 6.80 L 36.38 11.04 A 3.82 4.08 0 0 0 36.38 19.20 L 36.38 23.44 A 6.80 6.80 0 0 1 29.58 30.24 L 20.31 30.24 A 2.12 2.12 0 0 0 16.07 30.24 L 6.80 30.24 A 6.80 6.80 0 0 1 0 23.44 L 0 19.20 A 3.82 4.08 0 0 0 0 11.04 L 0 6.80 A 6.80 6.80 0 0 1 6.80 0 Z" transform="translate(5.13 8.20)" fill="#fff"/>
+      <g transform="translate(5.13 8.20)"><rect x="17.06" y="3.63"
+      width="2.27" height="3.93" rx="1.13" fill="#000"/><rect x="17.06" y="9.98"
+      width="2.27" height="3.93" rx="1.13" fill="#000"/><rect x="17.06" y="16.33"
+      width="2.27" height="3.93" rx="1.13" fill="#000"/><rect x="17.06" y="22.68"
+      width="2.27" height="3.93" rx="1.13" fill="#000"/></g>
+    </mask>
   </defs>
-  <rect width="46.64" height="46.64" rx="10.5" fill="#1c1c1e"/>
-  <g transform="translate(5.13 8.41)"><path d="M 5.37 0 L 16.10 0 A 2.09 2.09 0 0 0 20.28 0 L 31.01 0 A 5.37 5.37 0 0 1 36.38 5.37 L 36.38 11.78 A 3.13 3.13 0 0 0 36.38 18.04 L 36.38 24.45 A 5.37 5.37 0 0 1 31.01 29.82 L 20.28 29.82 A 2.09 2.09 0 0 0 16.10 29.82 L 5.37 29.82 A 5.37 5.37 0 0 1 0 24.45 L 0 18.04 A 3.13 3.13 0 0 0 0 11.78 L 0 5.37 A 5.37 5.37 0 0 1 5.37 0 Z" fill="url(#somipocqf)"/></g>
-  <g clip-path="url(#somipocqc)"><rect width="46.64" height="46.64" fill="url(#somipocqs)"/></g>
-  <g transform="translate(5.13 8.41)"><rect x="17.07" y="3.58"
-      width="2.24" height="3.88" rx="1.12" fill="#ffffff"/><rect x="17.07" y="9.84"
-      width="2.24" height="3.88" rx="1.12" fill="#ffffff"/><rect x="17.07" y="16.10"
-      width="2.24" height="3.88" rx="1.12" fill="#ffffff"/><rect x="17.07" y="22.36"
-      width="2.24" height="3.88" rx="1.12" fill="#ffffff"/></g>
+  <rect width="46.64" height="46.64" rx="10.5" fill="url(#s458v9a1t)"/>
+  <g mask="url(#s458v9a1m)">
+    <g transform="translate(5.13 8.20)"><path d="M 6.80 0 L 16.07 0 A 2.12 2.12 0 0 0 20.31 0 L 29.58 0 A 6.80 6.80 0 0 1 36.38 6.80 L 36.38 11.04 A 3.82 4.08 0 0 0 36.38 19.20 L 36.38 23.44 A 6.80 6.80 0 0 1 29.58 30.24 L 20.31 30.24 A 2.12 2.12 0 0 0 16.07 30.24 L 6.80 30.24 A 6.80 6.80 0 0 1 0 23.44 L 0 19.20 A 3.82 4.08 0 0 0 0 11.04 L 0 6.80 A 6.80 6.80 0 0 1 6.80 0 Z" fill="url(#s458v9a1f)"/></g>
+    <g clip-path="url(#s458v9a1c)"><rect width="46.64" height="46.64" fill="url(#s458v9a1s)"/></g>
+  </g>
+  <rect x="0.19" y="0.19"
+        width="46.27" height="46.27"
+        rx="10.5" fill="none" stroke="url(#s458v9a1e)" stroke-width="0.37"/>
 </svg>
   </g>
   <text x="58.1" y="31.7"
         font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif"
         font-size="37.8" font-weight="680"
         letter-spacing="-1.32"
-        fill="currentColor">Stub</text>
+        fill="#5B4FE8">Stub</text>
 </svg>

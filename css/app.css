@@ -415,8 +415,6 @@ p { margin: 0; }
 
 /* ───────────────────────── landing ───────────────────────── */
 
-.landing-inner { padding: 40px 20px calc(40px + var(--bottom)); text-align: center; }
-
 /*
  * Credit, centred at the foot of the landing page.
  *
@@ -824,10 +822,279 @@ p { margin: 0; }
 
 .app-mark img { border-radius: 22%; box-shadow: 0 8px 26px rgba(0, 0, 0, 0.16); }
 
-.landing h1 { font-size: clamp(30px, 7vw, 42px); margin: 22px 0 12px; }
-.lede { font-size: 17px; color: var(--label-2); max-width: 26em; margin: 0 auto; }
+/* ───────────────────────── landing ─────────────────────────
+   Two bands, light over dark, with the drawn phone straddling the seam.
 
-.install-card { margin: 30px 0 0; }
+   The page previously centred everything in one narrow column — mark, headline, button,
+   list — which reads as an install gate rather than a welcome. The split is what makes it
+   a product page: the claims sit in the light, the call to action in the dark, and the
+   phone crosses both so the two bands read as one composition.
+
+   The light band is light in *both* themes. This is the only such surface in the app, and
+   it is deliberate: the landing page is a shop window rather than a screen someone stares
+   at in a dark aeroplane cabin, and the split needs real contrast to work at all. */
+
+.landing {
+  padding: 0;
+  /* The landing page manages its own width. `.screen` caps every screen at a readable
+     column, which is right for the app but wrong here: the light and dark bands have to
+     reach the window edges or the composition reads as two floating panels. Each band
+     centres its own content, so the text column stays the same width regardless. */
+  max-width: none;
+}
+
+.landing-band {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 clamp(20px, 5vw, 56px);
+}
+
+.landing-top {
+  background: linear-gradient(168deg, #ffffff 0%, #f3f2fb 58%, #eceafa 100%);
+  color: #1a1a22;
+  padding: calc(clamp(30px, 6vw, 60px) + var(--top)) 0 clamp(30px, 6vw, 64px);
+}
+
+.landing-bottom {
+  background: linear-gradient(180deg, #171734 0%, #101026 100%);
+  color: #ffffff;
+  padding: clamp(30px, 6vw, 58px) 0 clamp(34px, 7vw, 70px);
+}
+
+/* The install instructions are a panel on a dark ground here, not the app's translucent
+   surface — which sampled the page behind it and rendered as pale grey haze over the
+   band, with the text inside barely legible. */
+.landing-bottom .install-steps {
+  background: rgba(255, 255, 255, 0.055);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.landing-bottom .install-lead { color: #fff; }
+.landing-bottom .install-body,
+.landing-bottom .install-steps ol { color: rgba(235, 235, 245, 0.66); }
+.landing-bottom .install-steps strong { color: #fff; }
+.landing-bottom .ghost-button { border-color: rgba(255, 255, 255, 0.2); color: #a99bff; }
+
+.landing-foot {
+  background: #0d0d1c;
+  color: #ffffff;
+  padding: clamp(26px, 5vw, 48px) 0 calc(clamp(26px, 5vw, 44px) + var(--bottom));
+}
+
+/* Copy occupies the left of the light band, leaving the right clear for the phone, which
+   is positioned over the seam below. Reserving the space here rather than letting the
+   phone overlap the text is what keeps the headline readable at every width. */
+.landing-copy { max-width: 34rem; }
+
+.wordmark-slot { display: flex; color: inherit; }
+
+.landing h1 {
+  font-size: clamp(27px, 4vw, 44px);
+  line-height: 1.18;
+  letter-spacing: -0.028em;
+  font-weight: 700;
+  margin: clamp(18px, 3vw, 30px) 0 0;
+  color: inherit;
+}
+
+/* ── the four claims, in the light band ── */
+
+.claims {
+  list-style: none;
+  margin: clamp(24px, 4vw, 40px) 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(10px, 2vw, 22px);
+}
+
+.claims li {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  font-size: clamp(11.5px, 1.3vw, 13.5px);
+  line-height: 1.35;
+  color: #55556a;
+}
+
+.claim-glyph { color: #6a6a86; }
+.claim-text { font-weight: 500; }
+
+/* ── call to action, in the dark band ── */
+
+.landing-cta { max-width: 34rem; }
+.landing-cta .install-card { margin: 0; }
+.landing-cta .primary { width: 100%; }
+
+.hero-note {
+  font-size: 13px;
+  color: rgba(235, 235, 245, 0.5);
+  margin: 14px 0 0;
+}
+
+.landing-skip { margin-top: 14px; font-size: 15px; }
+.landing-bottom .landing-skip { color: #a99bff; }
+
+/* ── the drawn phone ── */
+
+/* Pulled up so it crosses the seam between the bands, which is what ties them into one
+   composition rather than two stacked panels.
+ *
+ * Above 900px it is taken out of flow and placed to the right, clear of the copy. Left in
+ * flow it sat centred in the page and covered the install button — the one thing the page
+ * exists to offer. Below that width there is no room beside the text, so it returns to
+ * the flow and sits under the call to action instead of over it. */
+.landing-device {
+  display: flex;
+  justify-content: center;
+  /* Only a small overlap on narrow screens. A deeper pull looked better in isolation but
+     put the phone over the last line of the call to action, and covering the escape hatch
+     on a page whose whole job is offering a choice is worse than a softer seam. */
+  margin: clamp(-40px, -6vw, -20px) auto clamp(20px, 3vw, 34px);
+  position: relative;
+  z-index: 2;
+  pointer-events: none;
+}
+
+@media (min-width: 900px) {
+  .landing-device {
+    position: absolute;
+    top: clamp(120px, 17vw, 210px);
+    left: 50%;
+    /* Half the band's max width, less a margin, puts the phone in the empty right-hand
+       side of the light band rather than at the centre of the page. */
+    transform: translateX(clamp(60px, 14vw, 210px));
+    margin: 0;
+  }
+
+  /* The bands stack in a positioning context of their own so the phone can be placed
+     against the whole section rather than the viewport. */
+  .landing { position: relative; }
+}
+
+.device {
+  width: min(272px, 68vw);
+  border-radius: 40px;
+  padding: 10px;
+  background: linear-gradient(160deg, #3a3a3e, #121214 46%, #29292d);
+  box-shadow: 0 34px 80px rgba(8, 8, 25, 0.62), 0 2px 0 rgba(255, 255, 255, 0.09) inset;
+}
+
+.device-screen {
+  border-radius: 31px;
+  background: linear-gradient(180deg, #101018, #08080c);
+  padding: 15px 12px 20px;
+  overflow: hidden;
+}
+
+.device-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 15px; }
+.device-mark { display: flex; width: 19px; height: 19px; }
+.device-mark svg { width: 100%; height: 100%; }
+.device-name { font-size: 16.5px; font-weight: 750; letter-spacing: -0.02em; color: #fff; }
+
+.device-label {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: rgba(235, 235, 245, 0.45);
+  margin: 0 0 6px;
+}
+
+.device-card {
+  position: relative;
+  border-radius: 14px;
+  padding: 12px 12px 11px;
+  margin-bottom: 11px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow: hidden;
+}
+
+/* The same three categories the app itself colours, so the drawing cannot imply a palette
+   the product does not have. */
+.device-card.flight { background: linear-gradient(150deg, #2f6d8f, #1d3f57); }
+.device-card.rail { background: linear-gradient(150deg, #8a6a34, #4f3a1c); }
+.device-card.movie { background: linear-gradient(150deg, #5b4fe8, #34246b); }
+
+.device-chip {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  padding: 3px 6px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.17);
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.device-route {
+  font-size: 19px;
+  font-weight: 720;
+  letter-spacing: -0.015em;
+  color: #fff;
+  margin-top: 13px;
+}
+
+.device-route.small { font-size: 14.5px; }
+.device-arrow { opacity: 0.6; margin: 0 3px; font-weight: 500; }
+
+.device-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 10.5px;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.device-meta em { font-style: normal; font-weight: 700; color: #fff; }
+
+/* ── closing points ── */
+
+.points {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+}
+
+.points li {
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: var(--radius);
+  padding: 18px 18px 16px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: rgba(235, 235, 245, 0.62);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.point-glyph {
+  display: flex;
+  width: 38px;
+  height: 38px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 11px;
+  margin-bottom: 7px;
+  color: #a99bff;
+  background: rgba(169, 155, 255, 0.14);
+}
+
+.points strong { color: #fff; font-weight: 640; font-size: 15px; }
+
+/* Below this the four claims cannot hold a row without wrapping to two words a line. */
+@media (max-width: 620px) {
+  .claims { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
 
 .install-steps {
   text-align: left;
@@ -865,27 +1132,6 @@ p { margin: 0; }
 .qr-handoff { margin-top: 26px; }
 #qr-canvas { border-radius: 10px; background: #fff; padding: 8px; box-shadow: var(--shadow); }
 .qr-note { font-size: 13px; color: var(--label-2); margin-top: 10px; }
-
-.points {
-  list-style: none;
-  margin: 34px 0 18px;
-  padding: 0;
-  text-align: left;
-  display: grid;
-  gap: 1px;
-  background: var(--separator);
-  border-radius: var(--radius);
-  overflow: hidden;
-}
-
-.points li {
-  background: var(--surface-solid);
-  padding: 14px 18px;
-  font-size: 14.5px;
-  color: var(--label-2);
-}
-
-.points strong { display: block; color: var(--label); font-weight: 600; margin-bottom: 2px; }
 
 /* ───────────────────────── home ───────────────────────── */
 
@@ -1916,8 +2162,6 @@ kbd {
 /* A row of information is not a control; keep it clear of the button below it. */
 .group .info-card + .row,
 .group .info-card + button { margin-top: 12px; }
-
-.wordmark-slot { display: flex; justify-content: center; color: var(--label); }
 
 /* ───────────────────────── buttons ───────────────────────── */
 
