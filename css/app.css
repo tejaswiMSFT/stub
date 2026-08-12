@@ -126,15 +126,25 @@ html {
 
 body {
   margin: 0;
-  /* Fills the viewport, so the canvas colour behind it only ever shows in the strip
-     below — never as a band at the top. */
   min-height: 100%;
   font-family: var(--font);
   font-size: 17px;
   line-height: 1.45;
   letter-spacing: -0.011em;
   color: var(--label);
-  background: var(--bg);
+  /*
+   * The bar's colour, not the page's.
+   *
+   * The page's own background is painted by `.backdrop`, a fixed element covering the
+   * viewport — so this colour is never visible inside the page at all. It shows only
+   * where the document does not reach: the strip an installed app leaves below the
+   * layout viewport, which several iOS versions fill by sampling the body rather than
+   * the manifest.
+   *
+   * Setting it to the drawer's surface means that strip cannot contrast with the bar
+   * above it, whatever the device's insets turn out to be. The page is unaffected.
+   */
+  background: var(--surface-solid);
   -webkit-font-smoothing: antialiased;
   overscroll-behavior-y: none;
 }
@@ -1813,28 +1823,28 @@ p { margin: 0; }
   grid-template-columns: repeat(3, 1fr);
   align-items: end;
   /*
-   * `max`, not an addition.
+   * Painted past the edge, positioned by the inset.
    *
-   * Adding the inset to a fixed padding gave a bar with 8px of its own breathing room
-   * plus the whole home-indicator strip beneath it — visibly too tall, with the labels
-   * stranded well above the edge. The inset already includes the room the indicator
-   * needs, so the larger of the two is the correct spacing rather than their sum.
+   * Measured on an iPhone in standalone: window 402×812 against a screen of 402×874, with
+   * safe-area-inset-bottom reporting 34px. The bar sat correctly at the page's bottom —
+   * 812, exactly the window height — and there was still a black strip beneath it,
+   * because the page is 62px shorter than the screen and that strip is not part of the
+   * document at all. Nothing positioned inside it can reach there, which is why padding,
+   * an opaque background and a backstop element all failed in turn.
+   *
+   * So the box is pushed below the viewport and its padding grows by the same amount.
+   * The content lands in exactly the position it did before — the arithmetic cancels —
+   * while the painted surface continues past the edge into whatever strip the device
+   * leaves.
+   *
+   * `OVERHANG` is not a measurement of any device. It is simply more than any of them
+   * leave, which is the point: a number tuned to one phone would be wrong on the next.
+   * Where there is no strip, as on every desktop browser, it sits off-screen and is
+   * never seen.
    */
-  padding: 7px 6px max(9px, var(--bottom));
-  /*
-   * Opaque, not translucent.
-   *
-   * The bar was `--surface` — rgba(28,28,30,0.78) — which over the black page renders as
-   * a grey band. Anything below it that is not the bar is therefore *pure black*, and
-   * the seam between the two is exactly what reads as the bar floating above the bottom
-   * of the screen rather than sitting on it.
-   *
-   * A translucent bar only works when whatever is behind it is the same everywhere. At
-   * the foot of the screen it is not: the home-indicator strip, the safe area, and any
-   * band a browser leaves below the layout viewport are all page background. A solid
-   * colour cannot disagree with itself, so the bar and everything beneath it are one
-   * surface at every size and on every device.
-   */
+  --overhang: 120px;
+  bottom: calc(var(--overhang) * -1);
+  padding: 7px 6px calc(var(--overhang) + max(9px, var(--bottom)));
   background: var(--surface-solid);
   border-top: 1px solid var(--separator);
 
@@ -1844,22 +1854,9 @@ p { margin: 0; }
   isolation: isolate;
 }
 
-/* A backstop below the bar.
-   Some browsers report a viewport that stops short of the physical bottom edge even with
-   viewport-fit=cover, which leaves a band of page showing beneath a bar pinned to
-   bottom:0. This paints the same surface through it, so the drawer always reaches the
-   edge of the glass rather than floating above a stripe of background. Generous, because
-   the strip's height varies by device and an over-long backstop is invisible. */
-.drawer::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 100%;
-  height: 140px;
-  background: var(--surface-solid);
-  pointer-events: none;
-}
+/* The backstop that used to sit here is gone. It was an element positioned at the
+   drawer's own bottom edge, and so lived inside the same viewport the strip is outside
+   of — it could never have covered it. The overhang above does the work instead. */
 
 /* ── with scripting disabled ──
    The only thing on the page that can speak, so it has to carry the whole message
