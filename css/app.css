@@ -820,6 +820,11 @@ p { margin: 0; }
   color: var(--label-2);
 }
 
+.landing-links { margin-top: 8px; display: flex; gap: 10px; align-items: baseline; }
+.landing-links a { color: #a99bff; text-decoration: none; }
+.landing-links a:hover { text-decoration: underline; }
+.landing-links span { opacity: 0.4; }
+
 .app-mark img { border-radius: 22%; box-shadow: 0 8px 26px rgba(0, 0, 0, 0.16); }
 
 /* ───────────────────────── landing ─────────────────────────
@@ -937,6 +942,45 @@ p { margin: 0; }
 .landing-skip { margin-top: 14px; font-size: 15px; }
 .landing-bottom .landing-skip { color: #a99bff; }
 
+/* The browser route: set apart and below the install card, so it reads as the second
+   choice it is rather than an equal one. */
+.landing-alt {
+  margin-top: clamp(18px, 3vw, 28px);
+  padding-top: clamp(16px, 2.5vw, 22px);
+  border-top: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+.landing-alt-lead {
+  margin: 0;
+  font-size: 14.5px;
+  color: rgba(235, 235, 245, 0.7);
+}
+
+.landing-alt .landing-skip { margin-top: 6px; }
+
+.landing-alt-note {
+  margin: 10px 0 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: rgba(235, 235, 245, 0.44);
+  max-width: 40em;
+}
+
+.landing-alt-note strong { color: rgba(235, 235, 245, 0.72); font-weight: 600; }
+
+/* A button that reads as a link. Used where the action stays inside the app — the install
+   guide — so it cannot be an anchor without inventing a URL that does not exist. */
+.link-button {
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: #a99bff;
+  cursor: pointer;
+}
+
+.link-button:hover { text-decoration: underline; }
+
 /* ── the drawn phone ── */
 
 /* Pulled up so it crosses the seam between the bands, which is what ties them into one
@@ -975,17 +1019,17 @@ p { margin: 0; }
 }
 
 .device {
-  width: min(272px, 68vw);
-  border-radius: 40px;
-  padding: 10px;
+  width: min(340px, 76vw);
+  border-radius: 46px;
+  padding: 11px;
   background: linear-gradient(160deg, #3a3a3e, #121214 46%, #29292d);
   box-shadow: 0 34px 80px rgba(8, 8, 25, 0.62), 0 2px 0 rgba(255, 255, 255, 0.09) inset;
 }
 
 .device-screen {
-  border-radius: 31px;
+  border-radius: 36px;
   background: linear-gradient(180deg, #101018, #08080c);
-  padding: 15px 12px 20px;
+  padding: 17px 13px 22px;
   overflow: hidden;
 }
 
@@ -1012,11 +1056,13 @@ p { margin: 0; }
   overflow: hidden;
 }
 
-/* The same three categories the app itself colours, so the drawing cannot imply a palette
-   the product does not have. */
+/* The same categories the app itself colours, so the drawing cannot imply a palette the
+   product does not have. */
 .device-card.flight { background: linear-gradient(150deg, #2f6d8f, #1d3f57); }
 .device-card.rail { background: linear-gradient(150deg, #8a6a34, #4f3a1c); }
 .device-card.movie { background: linear-gradient(150deg, #5b4fe8, #34246b); }
+.device-card.bus { background: linear-gradient(150deg, #2f8f5e, #1b4a33); }
+.device-card.event { background: linear-gradient(150deg, #b0407a, #5e1f45); }
 
 .device-chip {
   position: absolute;
@@ -1052,6 +1098,158 @@ p { margin: 0; }
 }
 
 .device-meta em { font-style: normal; font-weight: 700; color: #fff; }
+
+/* ── the device pair: two phones ── */
+
+.devices { margin-bottom: clamp(30px, 5vw, 54px); }
+
+.devices h2 {
+  font-size: clamp(21px, 2.8vw, 30px);
+  letter-spacing: -0.024em;
+  margin: 0 0 8px;
+  color: #fff;
+}
+
+.devices-lede {
+  margin: 0 0 clamp(26px, 4vw, 44px);
+  font-size: 15px;
+  line-height: 1.55;
+  color: rgba(235, 235, 245, 0.6);
+  max-width: 46em;
+}
+
+.devices-row {
+  display: flex;
+  align-items: flex-start;
+  /* Aligned with the heading above rather than centred on the band. Centred, the pair was
+     geometrically correct and looked wrong: everything else in the section starts at the
+     left margin, so a centred row reads as drifting. */
+  justify-content: flex-start;
+  gap: clamp(20px, 5vw, 64px);
+  flex-wrap: wrap;
+}
+
+.phone { width: min(228px, 40vw); }
+
+.phone-frame {
+  position: relative;
+  border-radius: 34px;
+  padding: 9px;
+  background: linear-gradient(160deg, #3a3a40, #16161a 48%, #2a2a30);
+  box-shadow: 0 28px 60px rgba(6, 6, 20, 0.6), 0 2px 0 rgba(255, 255, 255, 0.08) inset;
+}
+
+/* The two are told apart by hardware, not by interface — the app renders identically on
+   both, and inventing a difference would misrepresent it. A squarer frame and a
+   hole-punch camera are what read as Android at a glance. */
+.phone.android .phone-frame { border-radius: 22px; }
+
+.phone-screen {
+  border-radius: 26px;
+  background: linear-gradient(180deg, #101018, #08080c);
+  padding: 22px 11px 16px;
+  overflow: hidden;
+  min-height: 300px;
+}
+
+.phone.android .phone-screen { border-radius: 15px; }
+
+.phone-notch {
+  position: absolute;
+  top: 9px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 42%;
+  height: 17px;
+  border-radius: 0 0 11px 11px;
+  background: #0a0a0e;
+  z-index: 2;
+}
+
+.phone-punch {
+  position: absolute;
+  top: 17px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #05050a;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06);
+  z-index: 2;
+}
+
+.phone-label {
+  margin: 14px 0 0;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: rgba(235, 235, 245, 0.42);
+}
+
+.phone-bar { display: flex; align-items: center; gap: 7px; margin-bottom: 13px; }
+.phone-bar .device-mark { width: 16px; height: 16px; }
+.phone-bar .device-name { font-size: 14.5px; }
+
+.phone .device-card { padding: 10px 11px 9px; border-radius: 12px; margin-bottom: 9px; }
+.phone .device-route { font-size: 16px; margin-top: 2px; }
+.phone .device-route.small { font-size: 12.5px; }
+.phone .device-meta { font-size: 9px; }
+
+/* The Android phone shows a single pass rather than the list: it is the other half of the
+   app, and what a person actually holds up at a barrier. */
+.phone-pass {
+  border-radius: 14px;
+  padding: 13px 12px 14px;
+  background: linear-gradient(150deg, #2f6d8f, #1d3f57);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.handset-route { font-size: 16px; font-weight: 730; color: #fff; letter-spacing: -0.01em; }
+.handset-sub { font-size: 9px; color: rgba(255, 255, 255, 0.7); }
+
+/* A suggestion of a barcode, not a real one. Drawing something scannable-looking that is
+   not scannable would be a small lie in a product whose whole claim is the opposite. */
+.handset-code {
+  display: flex;
+  align-items: stretch;
+  gap: 1.5px;
+  height: 46px;
+  margin: 9px 0 6px;
+  padding: 6px 7px;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.handset-code span { flex: 1; background: #111; border-radius: 0.5px; }
+.handset-code span:nth-child(2n) { flex: 0.5; }
+.handset-code span:nth-child(3n) { flex: 1.6; }
+.handset-code span:nth-child(5n) { flex: 0.4; }
+
+.handset-note { font-size: 8.5px; color: rgba(255, 255, 255, 0.6); text-align: center; }
+
+/* The pass detail, in the app's own two-column arrangement. */
+.phone-detail {
+  margin: 14px 2px 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 10px;
+}
+
+.phone-detail div { display: flex; flex-direction: column; gap: 2px; }
+
+.phone-detail dt {
+  font-size: 7.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(235, 235, 245, 0.38);
+}
+
+.phone-detail dd { margin: 0; font-size: 11.5px; font-weight: 600; color: rgba(255, 255, 255, 0.9); }
 
 /* ── closing points ── */
 

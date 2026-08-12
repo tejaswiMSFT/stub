@@ -62,9 +62,25 @@
 ">
 
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-<title>Stub — your tickets, on your phone</title>
-<meta name="description" content="Add a boarding pass, train ticket or booking. Show it at the gate. Works offline; everything stays on your device.">
+<!-- Kept short deliberately. A browser tab shows roughly the first twenty characters, so
+     "Stub — your tickets, on your phone" was truncated to "Stub — your tick…" on every
+     tab.
 
+     "Tickets offline" was worse than the long one: as a bare fragment it reads as a
+     status page announcing that tickets are down. A tab title has no room for a claim,
+     so it states what the app holds and nothing more. -->
+<title>Stub · Your tickets</title>
+<meta name="description" content="Add a boarding pass, train ticket, cinema booking or coupon. Show it at the gate. Works with no signal; everything stays on your device.">
+
+<!-- Open Graph, so a link shared into a chat shows the mark and a sentence rather than a
+     bare URL. The image is an absolute URL because relative ones are not resolved by
+     most link previewers. -->
+<meta property="og:title" content="Stub — your tickets, stored on your device">
+<meta property="og:description" content="Add a boarding pass, train ticket, cinema booking or coupon. Works with no signal; nothing ever leaves your device.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://tejaswimsft.github.io/stub/">
+<meta property="og:image" content="https://tejaswimsft.github.io/stub/icons/icon-512.png">
+<meta name="twitter:card" content="summary">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="stylesheet" href="css/app.css">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -165,7 +181,25 @@
 
         <p class="hero-note">Free. No account. No tracking. Nothing to cancel.</p>
 
-        <button class="text-link landing-skip" id="open-anyway" type="button">Use it in the browser instead</button>
+        <!-- The browser route is offered, not hidden, but it is offered second and with
+             the trade-off stated.
+
+             The warning is not boilerplate. Persistent storage is only requested once the
+             app is installed; in an ordinary tab the browser may evict the database under
+             storage pressure, and clearing site data or browsing history removes it
+             outright. There is no server copy, by design — so a ticket lost that way is
+             lost for good. Someone choosing this route deserves to know that before they
+             rely on it at a gate, not after. -->
+        <div class="landing-alt">
+          <p class="landing-alt-lead">Not comfortable installing things?</p>
+          <button class="text-link landing-skip" id="open-anyway" type="button">Use it in the browser instead</button>
+          <p class="landing-alt-note">
+            Your tickets are then kept in this browser's storage. If you clear your browsing
+            data, use private browsing, or your browser reclaims space, they are gone — and
+            because nothing is ever uploaded, there is no copy to restore.
+            <strong>Export anything you cannot afford to lose.</strong>
+          </p>
+        </div>
 
         <div class="qr-handoff" id="qr-handoff" hidden>
           <canvas id="qr-canvas" width="180" height="180" aria-label="Scan to open this on your phone"></canvas>
@@ -205,14 +239,105 @@
           <span class="device-route">SBC <span class="device-arrow">→</span> MAS</span>
           <span class="device-meta">Shatabdi 12008<em>C4 · 17</em></span>
         </div>
+        <div class="device-card bus">
+          <span class="device-chip">SCANNABLE</span>
+          <span class="device-route">BLR <span class="device-arrow">→</span> MYS</span>
+          <span class="device-meta">KSRTC Airavat · 07:15<em>21</em></span>
+        </div>
+        <div class="device-card event">
+          <span class="device-chip">SCANNABLE</span>
+          <span class="device-route small">Coldplay · Music of the Spheres</span>
+          <span class="device-meta">DY Patil Stadium<em>B14</em></span>
+        </div>
       </div>
     </div>
   </div>
 
   <div class="landing-foot">
     <div class="landing-band">
-      <!-- The barcode promise is the whole product, and it was stated nowhere on this
-           page. It is the one claim a person cannot verify by looking. -->
+      <!-- "Works on any device" is one of the four claims and had nothing behind it.
+
+           Two phones, an iPhone and an Android, because that is the question a visitor
+           actually has: will it work on mine? A laptop answered a question nobody asks —
+           nobody opens one at a boarding gate. An Apple Watch was considered and is not
+           possible: Stub is a PWA and watchOS has no browser to run one in, so drawing
+           one would promise something that does not exist.
+
+           The two differ by hardware — notch and rounded frame against hole-punch and
+           squarer corners — not by interface. It is the same web app and the same
+           stylesheet on both, and faking a difference would be a lie about the product. -->
+      <section class="devices">
+        <h2>Whichever phone you carry.</h2>
+        <p class="devices-lede">
+          The same app on iPhone and Android — installed from the browser, no app store, no
+          account. Each keeps its own tickets on the device itself.
+        </p>
+
+        <div class="devices-row" aria-hidden="true">
+          <div class="phone ios">
+            <div class="phone-frame">
+              <span class="phone-notch"></span>
+              <div class="phone-screen">
+                <div class="phone-bar">
+                  <span class="device-mark" id="ios-mark"></span>
+                  <span class="device-name">Stub</span>
+                </div>
+                <p class="device-label">In 24 hours</p>
+                <div class="device-card movie">
+                  <span class="device-route small">Dune: Part Two</span>
+                  <span class="device-meta">PVR Forum Mall · 21:15</span>
+                </div>
+                <p class="device-label">Later</p>
+                <div class="device-card flight">
+                  <span class="device-route">BLR <span class="device-arrow">→</span> DXB</span>
+                  <span class="device-meta">EK 569 · 04:35<em>14A</em></span>
+                </div>
+                <div class="device-card rail">
+                  <span class="device-route">SBC <span class="device-arrow">→</span> MAS</span>
+                  <span class="device-meta">Shatabdi 12008<em>C4 · 17</em></span>
+                </div>
+              </div>
+            </div>
+            <p class="phone-label">iPhone</p>
+          </div>
+
+          <div class="phone android">
+            <div class="phone-frame">
+              <span class="phone-punch"></span>
+              <div class="phone-screen">
+                <div class="phone-pass">
+                  <span class="handset-route">BLR <span class="device-arrow">→</span> DXB</span>
+                  <span class="handset-sub">Emirates · EK 569 · Seat 14A</span>
+                  <div class="handset-code">
+                    <span></span><span></span><span></span><span></span><span></span>
+                    <span></span><span></span><span></span><span></span><span></span>
+                    <span></span><span></span><span></span><span></span><span></span>
+                    <span></span><span></span><span></span>
+                  </div>
+                  <span class="handset-note">Show this at the gate</span>
+                </div>
+
+                <!-- The detail below the pass. Without it the screen was a card floating in
+                     an empty rectangle, which reads as an unfinished app rather than a
+                     boarding pass. -->
+                <dl class="phone-detail">
+                  <div><dt>Passenger</dt><dd>T CHOWDARY</dd></div>
+                  <div><dt>Gate</dt><dd>B7</dd></div>
+                  <div><dt>Boarding</dt><dd>03:55</dd></div>
+                  <div><dt>Reference</dt><dd>JKLM4T</dd></div>
+                </dl>
+              </div>
+            </div>
+            <p class="phone-label">Android</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Written from the reader's side, not the implementation's.
+           An earlier version of the third card explained that the barcode is transplanted
+           byte for byte rather than regenerated. True, and the hardest part of the app —
+           but nobody standing at a gate cares how the code got there, only that it
+           scans. The engineering belongs in the help and the source, not here. -->
       <ul class="points">
         <li>
           <span class="point-glyph" aria-hidden="true">
@@ -221,8 +346,8 @@
               <path d="M3 13.2 21 4.6l-5.2 8.6L21 21.4Z"/>
             </svg>
           </span>
-          <strong>Built for offline life.</strong>
-          <span>Stub works with no signal, so a ticket is there on a plane, in a tunnel, or abroad with data switched off.</span>
+          <strong>It works when nothing else does.</strong>
+          <span>No signal on the platform, no data abroad, a dead spot in the terminal — your ticket is already on the screen.</span>
         </li>
         <li>
           <span class="point-glyph" aria-hidden="true">
@@ -232,23 +357,34 @@
               <path d="M8.2 10.4V7.4a3.8 3.8 0 0 1 7.6 0v3"/>
             </svg>
           </span>
-          <strong>Private by design.</strong>
-          <span>Every ticket is stored on your device. There is no server and no account, so we never see your data.</span>
+          <strong>There is no server.</strong>
+          <span>Not a promise not to look — there is nowhere to look. Your tickets never leave the device, so no account, no sign-in, nothing to breach.</span>
         </li>
         <li>
           <span class="point-glyph" aria-hidden="true">
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor"
                  stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M4 6v12M8 6v12M11.5 6v12M15.5 6v12M20 6v12"/>
+              <path d="M12 3.2v12.4M8.2 11.8 12 15.6l3.8-3.8"/>
+              <path d="M4.6 17.4v1.8a1.6 1.6 0 0 0 1.6 1.6h11.6a1.6 1.6 0 0 0 1.6-1.6v-1.8"/>
             </svg>
           </span>
-          <strong>The barcode is never redrawn.</strong>
-          <span>The code is copied across exactly as issued — the same bytes, not a picture and not a new code. That is the part a scanner reads.</span>
+          <strong>Yours to take away.</strong>
+          <span>Export everything in one tap, whenever you like. Nothing to cancel, no subscription, and no way for this to become someone else's product.</span>
         </li>
       </ul>
 
       <footer class="landing-footer">
         <p>Vibe coded by Tejaswi · Built with <span class="heartbeat" aria-label="love">❤️</span> and Microsoft Scout.</p>
+        <!-- Points at the contact form on Tejaswi's own site rather than a mailto:, which
+             exposes an address to scrapers and opens a mail client the reader may not
+             have. Opened in a new tab so a half-finished ticket import is not lost. -->
+        <p class="landing-links">
+          <button class="link-button" id="landing-help" type="button">Install guide</button>
+          <span aria-hidden="true">·</span>
+          <a href="https://tejaswimsft.github.io/#contact" target="_blank" rel="noopener noreferrer">Contact</a>
+          <span aria-hidden="true">·</span>
+          <a href="https://github.com/tejaswiMSFT/stub" target="_blank" rel="noopener noreferrer">Source</a>
+        </p>
       </footer>
     </div>
   </div>

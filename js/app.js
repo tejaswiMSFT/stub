@@ -387,13 +387,15 @@ function renderLanding() {
   //
   // No colour is passed. The mark's face is a brand gradient, and handing it
   // `currentColor` put white into the middle stop and washed the whole thing out — which
-  // is exactly how it shipped. The word alone inherits the surrounding colour.
-  $('landing-wordmark').innerHTML = wordmarkSvg({ height: 44 });
+  // is exactly how it shipped in v63. The word alone inherits the surrounding colour.
+  $('landing-wordmark').innerHTML = wordmarkSvg({ height: 62 });
 
   // The drawn phone gets the flat variant, which does take a colour: it stands in for the
   // app bar, where the mark is a single silhouette rather than a tile.
-  const deviceMark = $('device-mark');
-  if (deviceMark) deviceMark.innerHTML = markSvg({ size: 19, variant: 'plain', colour: '#8b7cff' });
+  for (const id of ['device-mark', 'ios-mark']) {
+    const slot = $(id);
+    if (slot) slot.innerHTML = markSvg({ size: 19, variant: 'plain', colour: '#8b7cff' });
+  }
 
   if (platform.standalone) {
     card.innerHTML = '';
@@ -2541,6 +2543,11 @@ function wire() {
   $('open-help').addEventListener('click', () => openHelp(0));
   wireHelpSwipe();
   $('help-close').addEventListener('click', back);
+  // The full install guide covers cases the landing page's summary cannot: a browser on
+  // iOS that is not Safari, a desktop, an Android launcher that words the menu
+  // differently. It existed already but was reachable only from the app bar — that is,
+  // only after installing, which is exactly when it is no longer needed.
+  $('landing-help')?.addEventListener('click', () => openHelp(0));
   $('help-prev').addEventListener('click', () => { state.helpPage--; renderHelp({ direction: 'back' }); });
   $('help-next').addEventListener('click', () => { state.helpPage++; renderHelp({ direction: 'forward' }); });
   $('open-settings').addEventListener('click', openSettings);
