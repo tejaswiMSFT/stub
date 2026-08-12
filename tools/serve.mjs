@@ -30,7 +30,17 @@ const TYPES = {
 createServer(async (req, res) => {
   const path = decodeURIComponent(new URL(req.url, 'http://x').pathname);
   // normalize collapses any ../ before it can escape the project directory.
-  const target = join(root, normalize(path).replace(/^(\.\.[/\\])+/, ''));
+  const safe = normalize(path).replace(/^(\.\.[/\\])+/, '');
+
+  // A directory serves its index, as every static host does. Without this, opening the
+  // site root returned 404 locally while working in production — so the service worker
+  // never registered in local testing, and the app under test was quietly not the app
+  // that ships.
+  //
+  // Both separators are tested because `normalize` returns a backslash on Windows, so a
+  // check for a trailing '/' alone silently never matches there.
+  const isDirectory = safe === '' || /[\\/]$/.test(safe);
+  const target = join(root, isDirectory ? join(safe, 'index.html') : safe);
 
   try {
     const body = await readFile(target);

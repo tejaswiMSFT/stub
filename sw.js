@@ -20,6 +20,16 @@ const VERSION = 'a98f578';
 const CACHE = `ticket-${VERSION}`;
 
 /**
+ * Where a shared file waits between the share sheet and the page reading it.
+ *
+ * Deliberately not versioned, and deliberately excluded from the cleanup in `activate`:
+ * a share can arrive at the exact moment a new worker takes over, and a versioned name
+ * would have the incoming worker delete the file the outgoing one had just stored.
+ */
+const SHARE_CACHE = 'ticket-share';
+const SHARE_PREFIX = './shared-file-';
+
+/**
  * Everything needed to run.
  *
  * The wasm and worker files are large but non-negotiable: barcode decoding and PDF
@@ -114,7 +124,9 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil((async () => {
     const names = await caches.keys();
-    await Promise.all(names.filter((name) => name !== CACHE).map((name) => caches.delete(name)));
+    await Promise.all(names
+      .filter((name) => name !== CACHE && name !== SHARE_CACHE)
+      .map((name) => caches.delete(name)));
     await self.clients.claim();
   })());
 });
@@ -122,10 +134,20 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const { request } = event;
 
-  if (request.method !== 'GET') return;
-
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
+
+  // A share arrives as a POST from the system share sheet. It has to be intercepted here,
+  // because the site is hosted statically and there is no server to accept the body — left
+  // to the network it returns 405 and the share is silently lost. The files are stashed
+  // for the page to collect, and the browser is redirected to a plain GET so a reload does
+  // not resubmit.
+  if (request.method === 'POST' && url.searchParams.get('action') === 'share') {
+    event.respondWith(receiveShare(event));
+    return;
+  }
+
+  if (request.method !== 'GET') return;
 
   event.respondWith((async () => {
     const cached = await caches.match(request, { ignoreSearch: true });
@@ -154,6 +176,49 @@ self.addEventListener('fetch', (event) => {
     }
   })());
 });
+
+/**
+ * Takes the files from a share and parks them where the page can collect them.
+ *
+ * The Cache API is used rather than IndexedDB because it is reachable from both the
+ * worker and the page without sharing a module, and it stores a Response — which carries
+ * the file's type and name alongside its bytes, so nothing has to be re-derived.
+ *
+ * The response is a redirect to a GET, so the share URL never stays in history as a POST
+ * that a reload would resubmit.
+ */
+async function receiveShare(event) {
+  const target = new URL('./?action=share', self.location.href);
+
+  try {
+    const form = await event.request.formData();
+    const files = form.getAll('file').filter((entry) => entry instanceof File && entry.size > 0);
+
+    if (files.length) {
+      const cache = await caches.open(SHARE_CACHE);
+      // Only the most recent share is kept. Two shares arriving before the page has read
+      // either is not a real sequence, and leaving the older one behind would make the
+      // app open the wrong ticket.
+      await Promise.all((await cache.keys()).map((key) => cache.delete(key)));
+
+      await Promise.all(files.map((file, i) => cache.put(
+        new Request(`${SHARE_PREFIX}${i}`),
+        new Response(file, {
+          headers: {
+            'content-type': file.type || 'application/octet-stream',
+            'x-stub-filename': encodeURIComponent(file.name || `shared-${i}`),
+          },
+        }),
+      )));
+    }
+  } catch (error) {
+    // A share that cannot be read is still better handled by opening the app than by
+    // showing the browser's error page.
+    console.warn('[sw] could not read shared files', error);
+  }
+
+  return Response.redirect(target.href, 303);
+}
 
 async function refresh(request) {
   try {

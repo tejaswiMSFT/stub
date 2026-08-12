@@ -275,19 +275,63 @@ async function applyRetention() {
  * not implement Web Share Target — which is the main place this feels less polished
  * there, and is stated plainly in the help rather than hidden.
  */
-function handleLaunchIntent() {
+async function handleLaunchIntent() {
   const params = new URLSearchParams(location.search);
   const action = params.get('action');
 
+  // Cleared before the file is read rather than after, so a share that fails partway
+  // cannot leave `?action=share` in the address bar to be replayed on the next reload.
+  if (action) history.replaceState(null, '', location.pathname);
+
   if (action === 'add') {
     openAdd();
-  } else if (action === 'share') {
-    // The service worker stashes a shared file; nothing to do here yet beyond opening
-    // the add screen so the user is not left staring at the home screen.
-    openAdd();
+    return;
   }
 
-  if (action) history.replaceState(null, '', location.pathname);
+  if (action !== 'share') return;
+
+  // The add screen is shown first and unconditionally. Collecting the file involves the
+  // service worker and can fail; landing on the home screen with nothing happening would
+  // read as the share having been ignored.
+  openAdd();
+
+  const shared = await collectSharedFiles();
+  if (shared.length) handleSource(() => ingest(shared[0]), describeFor(shared[0]));
+}
+
+/**
+ * Collects files the service worker stashed from a share, and clears them.
+ *
+ * Returns an empty list on any failure — an unshareable file is not worth an error
+ * screen, since the add screen is already open and the user can pick the file by hand.
+ */
+async function collectSharedFiles() {
+  if (!('caches' in window)) return [];
+
+  try {
+    const cache = await caches.open('ticket-share');
+    const keys = await cache.keys();
+    if (!keys.length) return [];
+
+    const files = await Promise.all(keys.map(async (key) => {
+      const response = await cache.match(key);
+      if (!response) return null;
+
+      const blob = await response.blob();
+      const header = response.headers.get('x-stub-filename');
+      const name = header ? decodeURIComponent(header) : 'shared-ticket';
+      return new File([blob], name, { type: blob.type || 'application/octet-stream' });
+    }));
+
+    // Emptied whether or not the read succeeded, so a file that cannot be handled does
+    // not reappear on every subsequent launch.
+    await Promise.all(keys.map((key) => cache.delete(key)));
+
+    return files.filter(Boolean);
+  } catch (error) {
+    console.warn('could not collect shared files', error);
+    return [];
+  }
 }
 
 /**

@@ -1,18 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="Stub">
   <defs>
-    <mask id="scyql2u2">
+    <mask id="svr5948n">
       <rect width="512" height="512" fill="#000"/>
-      <rect x="79.36" y="139.42" width="353.28" height="233.16" rx="28.16" fill="#fff"/>
-      <circle cx="298.39" cy="139.42" r="30.31" fill="#000"/>
-      <circle cx="298.39" cy="372.58" r="30.31" fill="#000"/>
-      <rect x="290.97" y="167.40"
-      width="14.84" height="27.98" rx="7.42" fill="#000"/><rect x="290.97" y="221.03"
-      width="14.84" height="27.98" rx="7.42" fill="#000"/><rect x="290.97" y="274.65"
-      width="14.84" height="27.98" rx="7.42" fill="#000"/><rect x="290.97" y="328.28"
-      width="14.84" height="27.98" rx="7.42" fill="#000"/>
+      <path d="M 75.54 0 L 226.62 0 A 29.38 29.38 0 0 0 285.38 0 L 436.46 0 A 75.54 75.54 0 0 1 512.00 75.54 L 512.00 165.77 A 44.07 44.07 0 0 0 512.00 253.90 L 512.00 344.13 A 75.54 75.54 0 0 1 436.46 419.67 L 285.38 419.67 A 29.38 29.38 0 0 0 226.62 419.67 L 75.54 419.67 A 75.54 75.54 0 0 1 0 344.13 L 0 253.90 A 44.07 44.07 0 0 0 0 165.77 L 0 75.54 A 75.54 75.54 0 0 1 75.54 0 Z" transform="translate(0.00 46.16)" fill="#fff"/>
+      <g transform="translate(0.00 46.16)"><rect x="240.26" y="50.36"
+      width="31.48" height="54.56" rx="15.74" fill="#000"/><rect x="240.26" y="138.49"
+      width="31.48" height="54.56" rx="15.74" fill="#000"/><rect x="240.26" y="226.62"
+      width="31.48" height="54.56" rx="15.74" fill="#000"/><rect x="240.26" y="314.75"
+      width="31.48" height="54.56" rx="15.74" fill="#000"/></g>
     </mask>
   </defs>
-  
-  
-  <rect width="512" height="512" fill="#0a84ff" mask="url(#scyql2u2)"/>
+  <rect width="512" height="512" fill="#5B4FE8" mask="url(#svr5948n)"/>
 </svg>

@@ -1,14 +1,18 @@
 {
-  "name": "Stub",
+  "id": "./",
+  "name": "Stub — your tickets, stored on your device",
   "short_name": "Stub",
   "description": "Add a boarding pass, train ticket or booking. Show it at the gate. Works offline; everything stays on your device.",
   "start_url": "./?source=installed",
   "scope": "./",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
   "orientation": "portrait",
   "background_color": "#1c1c1e",
   "theme_color": "#1c1c1e",
   "categories": ["travel", "utilities", "productivity"],
+  "lang": "en",
+  "dir": "ltr",
   "icons": [
     {
       "src": "icons/icon-192.png",
@@ -33,12 +37,19 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
+    },
+    {
+      "src": "icons/mark-plain.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "monochrome"
     }
   ],
   "shortcuts": [
     {
       "name": "Add a ticket",
       "short_name": "Add",
+      "description": "Import a ticket from a PDF or a photo",
       "url": "./?action=add",
       "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
     }
@@ -59,11 +70,17 @@
             "image/png",
             "image/jpeg",
             "image/webp",
+            "image/heic",
             "text/html",
             "message/rfc822"
           ]
         }
       ]
     }
-  }
+  },
+  "launch_handler": {
+    "client_mode": ["navigate-existing", "auto"]
+  },
+  "handle_links": "preferred",
+  "prefer_related_applications": false
 }
