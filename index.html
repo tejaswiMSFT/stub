@@ -108,6 +108,38 @@
 </head>
 <body>
 
+<!--
+  With JavaScript off, nothing below this ever runs.
+
+  Every screen in this document starts hidden and is revealed by the controller, so a
+  visitor with scripting disabled sees a blank page and concludes the site is broken.
+  Safari makes this easy to hit: the switch is in Settings, it is remembered, and people
+  who turn it on for privacy rarely turn it back off.
+
+  A noscript block is the only thing that can speak here, and it has to carry the whole
+  message — what the app is, why it cannot work, and what to change — because no script
+  will run to elaborate. The styles are inline for the same reason the message is: a
+  stylesheet may load, but nothing can be relied on to arrange it afterwards.
+-->
+<noscript>
+  <div class="noscript-shell">
+    <h1>Stub needs JavaScript</h1>
+    <p>
+      Everything this app does — reading your ticket, finding its barcode, drawing the
+      pass — happens in this browser, on your device. There is no server doing it for
+      you, so with scripting switched off there is nothing to show.
+    </p>
+    <p>
+      In Safari, turn it on under <strong>Settings › Apps › Safari › Advanced ›
+      JavaScript</strong>, then reload this page.
+    </p>
+    <p class="noscript-aside">
+      That the app cannot work without it is the same reason nothing you add here is ever
+      uploaded: the work happens on your device or it does not happen at all.
+    </p>
+  </div>
+</noscript>
+
 <div class="backdrop" aria-hidden="true">
   <div class="aurora aurora-1"></div>
   <div class="aurora aurora-2"></div>
@@ -473,6 +505,18 @@
         </div>
 
         <p class="hero-note">Free. No account. No tracking. Nothing to cancel.</p>
+
+        <!-- Stated where someone is about to install, not buried in the guide.
+
+             The app is entirely client-side, so scripting is not a nicety here — it is
+             the whole product. Someone who keeps it off in Safari for privacy has made a
+             reasonable choice, and deserves to know before installing rather than after
+             opening an icon that shows them nothing. -->
+        <p class="hero-requires">
+          Requires JavaScript — the app runs entirely in your browser, with no server
+          doing the work.
+          <button class="text-link" id="landing-check" type="button">Check this browser</button>
+        </p>
 
         <!-- The browser route is offered, not hidden, but it is offered second and with
              the trade-off stated.

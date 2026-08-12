@@ -1015,6 +1015,22 @@ p { margin: 0; }
   margin: 14px 0 0;
 }
 
+/* The scripting requirement, stated beside the install control.
+   Set quieter than the note above it but not hidden: it is a condition, not a caveat. */
+.hero-requires {
+  margin: 10px 0 0;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: rgba(235, 235, 245, 0.42);
+}
+
+.hero-requires .text-link {
+  font-size: 12.5px;
+  color: #a99bff;
+  padding: 0;
+  margin-left: 2px;
+}
+
 .landing-skip { margin-top: 14px; font-size: 15px; }
 .landing-bottom .landing-skip { color: #a99bff; }
 
@@ -1825,6 +1841,94 @@ p { margin: 0; }
   background: var(--surface-solid);
   pointer-events: none;
 }
+
+/* ── with scripting disabled ──
+   The only thing on the page that can speak, so it has to carry the whole message
+   unaided. Deliberately plain: no gradients, no drawn phone, nothing that depends on a
+   script having arranged it first. */
+.noscript-shell {
+  max-width: 32rem;
+  margin: 0 auto;
+  padding: clamp(48px, 12vw, 96px) 24px;
+  text-align: left;
+}
+
+.noscript-shell h1 { font-size: clamp(26px, 6vw, 34px); margin-bottom: 18px; }
+.noscript-shell p { margin-bottom: 14px; color: var(--label-2); line-height: 1.6; }
+.noscript-shell strong { color: var(--label); font-weight: 600; }
+
+.noscript-aside {
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid var(--separator);
+  font-size: 15px;
+}
+
+/* ── the readiness check ──
+   Tested capabilities, not a list of warnings. A line that says "make sure storage is
+   enabled" leaves the reader to work out whether it is; a green tick answers it. */
+.check-list { list-style: none; margin: 0 0 18px; padding: 0; }
+
+.check {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 11px;
+  align-items: start;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--separator);
+}
+
+.check:last-child { border-bottom: 0; }
+.check strong { display: block; font-weight: 600; font-size: 15.5px; }
+.check em { display: block; font-style: normal; font-size: 14px; color: var(--label-2); margin-top: 2px; }
+
+.check-mark {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-size: 13px;
+  font-weight: 700;
+  margin-top: 1px;
+}
+
+.check.ok .check-mark { background: color-mix(in srgb, var(--green) 20%, transparent); color: var(--green); }
+.check.bad .check-mark { background: color-mix(in srgb, var(--orange) 22%, transparent); color: var(--orange); }
+
+/* ── feedback ── */
+
+.feedback-lead { margin-bottom: 12px; }
+
+.feedback-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+/* Anchors, styled as buttons.
+   They are links rather than buttons because a popup blocker refuses a scripted
+   window.open — silently, on Safari — while a plain anchor is navigation the browser
+   never questions. */
+.feedback-button {
+  display: grid;
+  justify-items: center;
+  gap: 7px;
+  padding: 16px 10px;
+  border: 1px solid var(--separator);
+  border-radius: var(--radius-md, 14px);
+  background: var(--surface-solid);
+  color: var(--accent);
+  font-size: 13.5px;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.12s var(--ease), background 0.18s var(--ease);
+}
+
+.feedback-button:active { transform: scale(0.97); }
+.feedback-button:hover { background: var(--fill); }
 
 .drawer-item {
   display: grid;

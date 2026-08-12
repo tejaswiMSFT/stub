@@ -2172,6 +2172,10 @@ const SETTINGS_ICONS = {
     + '<path d="m9.2 12 2 2 3.6-3.8"/>',
   erase: '<path d="M4.5 7h15M9.5 7V5.2A1.2 1.2 0 0 1 10.7 4h2.6a1.2 1.2 0 0 1 1.2 1.2V7'
     + 'M6.5 7l1 12.1A1 1 0 0 0 8.5 20h7a1 1 0 0 0 1-.9L17.5 7M10.5 11v5M13.5 11v5"/>',
+  // A speech bubble, matching the Help tab in the drawer — both are ways of saying
+  // something to a person rather than to the app.
+  feedback: '<path d="M20.4 13.2a2.6 2.6 0 0 1-2.6 2.6H9.9L5.4 19.4a.5.5 0 0 1-.8-.4v-3.2'
+    + 'A2.6 2.6 0 0 1 3.6 13.2V7a2.6 2.6 0 0 1 2.6-2.6h11.6A2.6 2.6 0 0 1 20.4 7Z"/>',
 };
 
 function settingsIcon(name) {
@@ -2379,6 +2383,55 @@ async function openSettings() {
       <p class="group-note">
         Updates arrive on their own and apply when you are not using a pass. What you have
         saved is never affected — it lives on your device, separately from the app.
+      </p>
+    </section>
+
+    <!--
+      Feedback, above Erase so it is not the last thing before a destructive control.
+
+      Thumbs rather than a rating: a five-star scale asks someone to grade an app they
+      opened to catch a train, and most people answer neither. Two buttons ask a question
+      anyone can answer in the second they already have — and the answer chooses the
+      wording of the message that follows, so the contact form arrives already knowing
+      whether it is hearing praise or a problem.
+    -->
+    <section class="group">
+      <h2>${settingsIcon('feedback')}Feedback</h2>
+      <p class="group-note feedback-lead">
+        Something you liked, or something that got in your way? Either is worth hearing.
+      </p>
+      <!--
+        Real links, not buttons calling window.open.
+
+        A popup blocker refuses window.open unless it is certain the call came straight
+        from a click, and Safari's is stricter than most — a navigation opened from a
+        handler is often swallowed silently, with no error and nothing to tell the user
+        they were meant to go somewhere. An anchor is navigation the browser understands
+        natively and never blocks.
+      -->
+      <div class="feedback-row">
+        <a class="feedback-button" href="https://tejaswimsft.github.io/#contact"
+           target="_blank" rel="noopener noreferrer">
+          <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor"
+               stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M7.4 10.6 11.2 3a2.2 2.2 0 0 1 2.2 2.2v3.6h4.9a1.9 1.9 0 0 1 1.85 2.35l-1.4 6.2A2.2 2.2 0 0 1 16.4 19H7.4Z"/>
+            <rect x="2.9" y="10.2" width="4.5" height="9.4" rx="1.3"/>
+          </svg>
+          <span>Something I liked</span>
+        </a>
+        <a class="feedback-button" href="https://tejaswimsft.github.io/#contact"
+           target="_blank" rel="noopener noreferrer">
+          <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor"
+               stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M16.6 13.4 12.8 21a2.2 2.2 0 0 1-2.2-2.2v-3.6H5.7a1.9 1.9 0 0 1-1.85-2.35l1.4-6.2A2.2 2.2 0 0 1 7.6 5h9Z"/>
+            <rect x="16.6" y="4.4" width="4.5" height="9.4" rx="1.3"/>
+          </svg>
+          <span>Something to fix</span>
+        </a>
+      </div>
+      <p class="group-note">
+        Opens the contact form on Tejaswi's site. Nothing about your tickets is attached —
+        this app has no way to send them anywhere.
       </p>
     </section>
 
@@ -2770,6 +2823,10 @@ function wire() {
   // differently. It existed already but was reachable only from the app bar — that is,
   // only after installing, which is exactly when it is no longer needed.
   $('landing-help')?.addEventListener('click', () => openHelp(0));
+
+  // The readiness page sits directly after Install, so its index follows whether the
+  // install page is present — which it is not once the app is installed.
+  $('landing-check')?.addEventListener('click', () => openHelp(platform.standalone ? 0 : 1));
   $('help-prev').addEventListener('click', () => { state.helpPage--; renderHelp({ direction: 'back' }); });
   $('help-next').addEventListener('click', () => { state.helpPage++; renderHelp({ direction: 'forward' }); });
   $('open-settings').addEventListener('click', openSettings);

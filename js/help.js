@@ -39,6 +39,7 @@ export function helpPages(platform) {
   }
 
   pages.push(
+    { title: 'Ready?', body: readiness(platform) },
     { title: 'Guide', body: howToUse(platform) },
     { title: 'How it works', body: howItWorks() },
     { title: 'Management', body: managing() },
@@ -48,6 +49,80 @@ export function helpPages(platform) {
   );
 
   return pages;
+}
+
+/**
+ * What this browser can actually do, tested rather than described.
+ *
+ * Every line here is a setting someone plausibly turned on deliberately — for privacy,
+ * or to stop sites nagging them — and each one breaks something specific and silently.
+ * Two came from real use:
+ *
+ *   JavaScript off leaves a blank page, because every screen starts hidden and the
+ *   controller reveals them. Only the noscript block in the document can say so, and
+ *   this page cannot: if it is being read at all, scripting is on. It is listed anyway,
+ *   so someone who turns it off later knows what happened.
+ *
+ *   Popups blocked swallow a scripted window.open with no error, so a link appears to do
+ *   nothing at all. Everything outbound in this app is a plain anchor for that reason.
+ *
+ * Tested live rather than written as a warning, because a checklist that says "make sure
+ * X is enabled" leaves the reader to work out whether it is. A green line answers it.
+ */
+function readiness(platform) {
+  const checks = [
+    {
+      label: 'JavaScript',
+      ok: true,
+      good: 'On — you would be looking at a blank page otherwise.',
+      bad: '',
+    },
+    {
+      label: 'Storage',
+      ok: typeof indexedDB !== 'undefined',
+      good: 'Available. Your tickets are kept here on the device.',
+      bad: 'Blocked. Tickets cannot be saved — this is usually private browsing, or site data turned off.',
+    },
+    {
+      label: 'Offline support',
+      ok: 'serviceWorker' in navigator,
+      good: 'Available. The app works with no signal once it has loaded.',
+      bad: 'Unavailable. The app still works, but needs a connection to start.',
+    },
+    {
+      label: 'Reading pictures',
+      ok: typeof createImageBitmap === 'function',
+      good: 'Available. Barcodes can be read from photos and screenshots.',
+      bad: 'Unavailable. PDFs will still work; images may not.',
+    },
+  ];
+
+  const rows = checks.map((check) => `
+    <li class="check ${check.ok ? 'ok' : 'bad'}">
+      <span class="check-mark" aria-hidden="true">${check.ok ? '✓' : '!'}</span>
+      <span>
+        <strong>${check.label}</strong>
+        <em>${check.ok ? check.good : check.bad}</em>
+      </span>
+    </li>`).join('');
+
+  return `
+<p class="help-lead">What this browser allows, checked just now.</p>
+<ul class="check-list">${rows}</ul>
+
+<div class="help-note">
+  <strong>Popups and redirects.</strong> If you have those blocked — and there is every
+  reason to — the two links in Settings that open the contact form may be stopped by
+  Safari. Nothing in the app depends on a popup; if a link seems to do nothing, that is
+  what happened, and holding it down to copy the address works instead.
+</div>
+
+<div class="help-note">
+  <strong>Private browsing.</strong> Tickets added in a private tab are gone the moment
+  it closes. Nothing is uploaded, so there is no copy to restore — add them in an ordinary
+  window, or ${platform.standalone ? 'here in the installed app' : 'install the app'},
+  where storage is durable.
+</div>`;
 }
 
 /**
