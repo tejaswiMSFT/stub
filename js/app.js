@@ -119,6 +119,11 @@ function show(name, { remember = true } = {}) {
   state.screen = name;
   window.scrollTo(0, 0);
 
+  // The drawer belongs to the list, and only to it. On a pass, a review or a sheet it
+  // would offer to navigate away from work in progress.
+  const drawer = $('drawer');
+  if (drawer) drawer.hidden = name !== 'home';
+
   // Written down on every navigation, so that a page discarded while the phone is
   // locked can come back to the same place rather than the home screen.
   resume.remember(name, state.viewing?.id || null);
@@ -634,9 +639,9 @@ function renderHome() {
   if (mark && !mark.childElementCount) mark.innerHTML = markSvg({ size: 32 });
 
   if (!state.tickets.length) {
-    // No button here. A "+" already sits in the bar above, and offering two controls for
-    // one action makes the user choose between identical things. The empty state says
-    // what is true and points at the control that already exists.
+    // No button here. "Add" already sits in the drawer below, and offering two controls
+    // for one action makes the user choose between identical things. The empty state
+    // says what is true and points at the control that already exists.
     body.innerHTML = `
       <div class="empty">
         <div class="empty-mark" aria-hidden="true">
@@ -646,7 +651,7 @@ function renderHome() {
           </svg>
         </div>
         <h2>You have no saved tickets</h2>
-        <p class="muted">Tap <span class="inline-plus" aria-hidden="true">+</span> above to add a boarding pass, a train ticket, or a booking.</p>
+        <p class="muted">Tap <span class="inline-plus" aria-hidden="true">+</span> below to add a boarding pass, a train ticket, or a booking.</p>
       </div>`;
     return;
   }
@@ -2547,7 +2552,13 @@ function wire() {
     show('home', { remember: false });
   });
   $('review-save').addEventListener('click', saveDraft);
-  $('open-help').addEventListener('click', () => openHelp(0));
+  $('drawer-help').addEventListener('click', () => openHelp(0));
+
+  // Already where we are. Tapping it scrolls back to the top, which is what every phone
+  // app does with the tab you are already on, and is more useful than doing nothing.
+  $('drawer-tickets').addEventListener('click', () => {
+    $('home-body').scrollTo({ top: 0, behavior: 'smooth' });
+  });
   wireHelpSwipe();
   $('help-close').addEventListener('click', back);
   // The full install guide covers cases the landing page's summary cannot: a browser on

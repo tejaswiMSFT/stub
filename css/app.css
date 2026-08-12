@@ -927,19 +927,29 @@ p { margin: 0; }
 
 /* The install instructions are a panel on a dark ground here, not the app's translucent
    surface — which sampled the page behind it and rendered as pale grey haze over the
-   band, with the text inside barely legible. */
-.landing-bottom .install-steps {
+   band, with the text inside barely legible.
+
+   Scoped to both dark bands. It was written for .landing-bottom alone, and when the call
+   to action moved down the page the panel took the app's translucent styling with it:
+   a pale card carrying white text, which is the one combination that cannot be read. */
+.landing-bottom .install-steps,
+.landing-foot .install-steps {
   background: rgba(255, 255, 255, 0.055);
   border: 1px solid rgba(255, 255, 255, 0.1);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
 
-.landing-bottom .install-lead { color: #fff; }
+.landing-bottom .install-lead,
+.landing-foot .install-lead { color: #fff; }
 .landing-bottom .install-body,
-.landing-bottom .install-steps ol { color: rgba(235, 235, 245, 0.66); }
-.landing-bottom .install-steps strong { color: #fff; }
-.landing-bottom .ghost-button { border-color: rgba(255, 255, 255, 0.2); color: #a99bff; }
+.landing-bottom .install-steps ol,
+.landing-foot .install-body,
+.landing-foot .install-steps ol { color: rgba(235, 235, 245, 0.66); }
+.landing-bottom .install-steps strong,
+.landing-foot .install-steps strong { color: #fff; }
+.landing-bottom .ghost-button,
+.landing-foot .ghost-button { border-color: rgba(255, 255, 255, 0.2); color: #a99bff; }
 
 .landing-foot {
   background: #0d0d1c;
@@ -1071,13 +1081,25 @@ p { margin: 0; }
  * flow it sat centred in the page and covered the install button — the one thing the page
  * exists to offer. Below that width there is no room beside the text, so it returns to
  * the flow and sits under the call to action instead of over it. */
+/* The seam band carries no content: it is the dark half the phone straddles.
+   Its height is what the phone overlaps into, so it is stated rather than left to
+   collapse — an empty div is zero pixels tall and the seam would vanish with it. */
+.landing-seam { min-height: clamp(90px, 13vw, 150px); }
+
+/* On a wide screen the phone is positioned absolutely into the light band's empty right
+   side, so it no longer straddles anything and the seam has nothing to hold. Left at its
+   narrow height it is simply a bar of empty dark between the headline and the first
+   thing a reader is meant to read. */
+@media (min-width: 900px) {
+  .landing-seam { min-height: 40px; }
+}
+
 .landing-device {
   display: flex;
   justify-content: center;
-  /* Only a small overlap on narrow screens. A deeper pull looked better in isolation but
-     put the phone over the last line of the call to action, and covering the escape hatch
-     on a page whose whole job is offering a choice is worse than a softer seam. */
-  margin: clamp(-40px, -6vw, -20px) auto clamp(20px, 3vw, 34px);
+  /* A deeper pull than before. The call to action no longer sits beneath the phone —
+     there is nothing left here to cover — so the overlap can do its job properly. */
+  margin: clamp(-150px, -20vw, -90px) auto clamp(20px, 3vw, 34px);
   position: relative;
   z-index: 2;
   pointer-events: none;
@@ -1196,7 +1218,9 @@ p { margin: 0; }
   font-size: 15px;
   line-height: 1.55;
   color: rgba(235, 235, 245, 0.6);
-  max-width: 46em;
+  /* Narrow enough to clear the hero phone, which hangs into this band's right-hand side
+     on a wide screen. At 46em the last words of the lede ran under the frame. */
+  max-width: 40em;
 }
 
 .devices-row {
@@ -1302,18 +1326,91 @@ p { margin: 0; }
   z-index: 2;
 }
 
-.phone-label {
-  margin: 14px 0 0;
-  text-align: center;
-  font-size: 12px;
+/* No caption beneath either phone.
+   The drawings carry their own hardware cues — the clock's position, the shape of the
+   battery, the notch against the hole-punch — and a label saying "iPhone" only tells a
+   reader what they can already see. */
+
+/* The drawer, drawn as the app draws it.
+   The list is never shown without it, so a mockup that omits it is a picture of a
+   different app. Pushed to the foot of the screen for the same reason as .phone-foot. */
+.device-drawer {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  align-items: end;
+  margin: auto -8px -12px;
+  padding: 5px 4px 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.09);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.device-tab {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  font-size: 7.5px;
+  font-weight: 500;
+  color: rgba(235, 235, 245, 0.4);
+}
+
+.device-tab.is-current { color: #8b7cff; }
+.device-tab-add { color: #8b7cff; font-weight: 600; }
+
+.device-plus {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 17px;
+  margin-top: -9px;
+  border-radius: 9px;
+  background: #6c5ce7;
+  color: #fff;
+  font-size: 13px;
+  line-height: 1;
   font-weight: 600;
-  letter-spacing: 0.02em;
-  color: rgba(235, 235, 245, 0.42);
+}
+
+/* The hero phone is drawn at roughly twice the size of the pair below it, so its drawer
+   is too — scaled rather than reused, since a 7.5px label beside 17px card text would
+   read as a different app. */
+.device-drawer.large {
+  margin: auto -14px -14px;
+  padding: 9px 6px 11px;
+}
+
+.device-drawer.large .device-tab { font-size: 10px; gap: 3px; }
+.device-drawer.large .device-plus {
+  width: 34px;
+  height: 22px;
+  margin-top: -12px;
+  border-radius: 11px;
+  font-size: 17px;
 }
 
 /* The screen is a window, not a page: content that runs past the bottom is cut off by the
    frame exactly as it would be on a real phone, rather than stretching the drawing. */
 .phone-screen > *:last-child { margin-bottom: 0; }
+
+/* Nothing on a phone screen is squashed to fit.
+   The screen is a flex column, so its children were shrinking when the drawing got
+   narrow — cards compressed until their own text was cut through the middle, which reads
+   as a rendering fault rather than as a list running past the fold. They keep their
+   height; the frame clips whatever does not fit, exactly as a real screen does. */
+.phone-screen > * { flex: none; }
+
+/* Below this the frames are too narrow for everything drawn on them.
+   Measured rather than guessed: at a 390px viewport the iOS screen is 284px tall against
+   477px of content, so something has to go. Whole cards are removed rather than letting
+   the frame cut one through its own text — a list that ends is a list, a card sliced in
+   half is a bug. The screen is also allowed to be slightly taller, which recovers 60px
+   of the deficit before anything is dropped at all. */
+@media (max-width: 620px) {
+  .phone-screen { aspect-ratio: 9 / 20; }
+  .phone.ios .device-card.rail,
+  .phone.ios .device-card.bus { display: none; }
+  .phone.android .phone-detail div:nth-child(n+5) { display: none; }
+  .phone.android .phone-foot { display: none; }
+}
 
 .phone-bar { display: flex; align-items: center; gap: 7px; margin-bottom: 13px; }
 .phone-bar .device-mark { width: 16px; height: 16px; }
@@ -1654,22 +1751,82 @@ p { margin: 0; }
   font-size: 14px;
 }
 
-.fab {
+/* ───────────────────────── the drawer ─────────────────────────
+   The app's own controls, along the bottom edge.
+
+   It replaces a floating button that sat in the corner holding the only way to add a
+   ticket. A phone is held at the bottom, so the one action the app exists for was as far
+   from the thumb as the screen allows, with no label to say what it did.
+
+   Add is raised and coloured rather than being a third equal tab, because it is not a
+   destination: it is the action. Tickets and Help are places you go; Add is a thing you
+   do, and drawing all three identically would say otherwise. */
+.drawer {
   position: fixed;
-  right: 20px;
-  bottom: calc(22px + var(--bottom));
-  width: 58px; height: 58px;
-  border: 0; border-radius: 50%;
-  background: var(--accent);
-  color: #fff;
-  display: grid; place-items: center;
-  box-shadow: 0 6px 22px color-mix(in srgb, var(--accent) 42%, transparent);
-  cursor: pointer;
+  left: 0;
+  right: 0;
+  bottom: 0;
   z-index: 30;
-  transition: transform 0.16s var(--ease);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  align-items: end;
+  padding: 8px 6px calc(8px + var(--bottom));
+  background: var(--surface);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border-top: 1px solid var(--separator);
+
+  /* Its own layer, for the same reason as the top bar: a translucent strip that blurs
+     unevenly while content scrolls beneath it looks broken. */
+  transform: translateZ(0);
+  isolation: isolate;
 }
 
-.fab:active { transform: scale(0.9); }
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .drawer { background: var(--surface-solid, var(--bg)); }
+}
+
+.drawer-item {
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+  padding: 5px 4px 4px;
+  border: 0;
+  background: none;
+  color: var(--label-2);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  cursor: pointer;
+  border-radius: 12px;
+  transition: color 0.18s var(--ease), transform 0.12s var(--ease);
+}
+
+.drawer-item:active { transform: scale(0.94); }
+.drawer-item.is-current { color: var(--accent); }
+
+/* The raised action.
+   Lifted out of the strip rather than merely tinted, so the difference between a place
+   and an action survives being glanced at. */
+.drawer-plus {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 32px;
+  margin-top: -14px;
+  border-radius: 16px;
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--accent) 38%, transparent);
+}
+
+.drawer-add { color: var(--accent); font-weight: 600; }
+.drawer-add:active .drawer-plus { transform: scale(0.94); }
+
+/* Room for the drawer at the end of the list, so the last ticket is never trapped
+   beneath it. Measured from the drawer's own height rather than guessed. */
+.home .home-body { padding-bottom: calc(78px + var(--bottom)); }
 
 /* ───────────────────────── the ticket ───────────────────────── */
 

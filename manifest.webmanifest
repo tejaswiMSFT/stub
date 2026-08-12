@@ -1,6 +1,6 @@
 {
   "id": "./",
-  "name": "Stub — your tickets, stored on your device",
+  "name": "Stub — your tickets, offline",
   "short_name": "Stub",
   "description": "Add a boarding pass, train ticket or booking. Show it at the gate. Works offline; everything stays on your device.",
   "start_url": "./?source=installed",

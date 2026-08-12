@@ -67,15 +67,18 @@
      tab.
 
      "Tickets offline" was worse than the long one: as a bare fragment it reads as a
-     status page announcing that tickets are down. A tab title has no room for a claim,
-     so it states what the app holds and nothing more. -->
-<title>Stub · Your tickets</title>
+     status page announcing that tickets are down.
+
+     The possessive is what makes the claim safe. "Your tickets, offline" cannot be read
+     as an outage — a status page never says "your" — so the title can state what the app
+     does rather than merely what it holds. -->
+<title>Stub · Your tickets, offline</title>
 <meta name="description" content="Add a boarding pass, train ticket, cinema booking or coupon. Show it at the gate. Works with no signal; everything stays on your device.">
 
 <!-- Open Graph, so a link shared into a chat shows the mark and a sentence rather than a
      bare URL. The image is an absolute URL because relative ones are not resolved by
      most link previewers. -->
-<meta property="og:title" content="Stub — your tickets, stored on your device">
+<meta property="og:title" content="Stub — your tickets, offline">
 <meta property="og:description" content="Add a boarding pass, train ticket, cinema booking or coupon. Works with no signal; nothing ever leaves your device.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://tejaswimsft.github.io/stub/">
@@ -172,8 +175,298 @@
     </div>
   </div>
 
+  <!-- The dark band is deliberately empty.
+
+       It exists for the seam: the phone below straddles the boundary between light and
+       dark, which is what ties the two into one composition rather than two stacked
+       panels. The call to action used to live here, immediately under the headline —
+       which meant a visitor met "Install" before a single word explaining what they
+       would be installing, and the ones who took it arrived with questions the page had
+       already answered further down. It now sits after the explanation. -->
   <div class="landing-bottom">
+    <div class="landing-band landing-seam"></div>
+  </div>
+
+  <!-- The phone is positioned across the seam between the two bands, which is what ties
+       them into one composition rather than two stacked panels.
+
+       It is drawn in CSS rather than photographed: a screenshot would have to be retaken
+       by hand every time the interface changes, and would quietly drift out of date. This
+       borrows the app's own colours, so it cannot show a product that does not exist. -->
+  <div class="landing-device" aria-hidden="true">
+    <div class="device">
+      <div class="device-screen">
+        <div class="device-bar">
+          <span class="device-mark" id="device-mark"></span>
+          <span class="device-name">Stub</span>
+        </div>
+        <p class="device-label">In 24 hours</p>
+        <div class="device-card movie">
+          <span class="device-chip">SCANNABLE</span>
+          <span class="device-route small">Dune: Part Two</span>
+          <span class="device-meta">AMC Lincoln Square · 21:15</span>
+        </div>
+        <p class="device-label">Later</p>
+        <div class="device-card flight">
+          <span class="device-chip">SCANNABLE</span>
+          <span class="device-route">JFK <span class="device-arrow">→</span> LAX</span>
+          <span class="device-meta">DL 412 · 04:35<em>14A</em></span>
+        </div>
+        <div class="device-card rail">
+          <span class="device-chip">SCANNABLE</span>
+          <span class="device-route">NYP <span class="device-arrow">→</span> WAS</span>
+          <span class="device-meta">Acela 2150<em>C4 · 17</em></span>
+        </div>
+        <div class="device-card bus">
+          <span class="device-chip">SCANNABLE</span>
+          <span class="device-route">BOS <span class="device-arrow">→</span> NYC</span>
+          <span class="device-meta">Greyhound · 07:15<em>21</em></span>
+        </div>
+        <div class="device-card event">
+          <span class="device-chip">SCANNABLE</span>
+          <span class="device-route small">Foo Fighters · Live</span>
+          <span class="device-meta">Madison Square Garden<em>B14</em></span>
+        </div>
+
+        <!-- The drawer, at the size the hero draws everything else. The list is never
+             shown without it. -->
+        <div class="device-drawer large">
+          <span class="device-tab is-current">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+                 stroke-width="1.8" stroke-linejoin="round" aria-hidden="true">
+              <path d="M3.4 7.6a1.6 1.6 0 0 1 1.6-1.6h14a1.6 1.6 0 0 1 1.6 1.6v2a2.4 2.4 0 0 0 0 4.8v2a1.6 1.6 0 0 1-1.6 1.6H5a1.6 1.6 0 0 1-1.6-1.6v-2a2.4 2.4 0 0 0 0-4.8Z"/>
+            </svg>
+            Tickets
+          </span>
+          <span class="device-tab device-tab-add">
+            <span class="device-plus">+</span>
+            Add
+          </span>
+          <span class="device-tab">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+              <circle cx="12" cy="12" r="9.2" fill="none" stroke="currentColor" stroke-width="1.8"/>
+              <path d="M9.6 9.4a2.5 2.5 0 1 1 3.3 2.4c-.6.2-.9.7-.9 1.3v.5" fill="none"
+                    stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+              <circle cx="12" cy="17" r="1.05" fill="currentColor"/>
+            </svg>
+            Help
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="landing-foot">
     <div class="landing-band">
+      <!-- "Works on any device" is one of the four claims and had nothing behind it.
+
+           Two phones, an iPhone and an Android, because that is the question a visitor
+           actually has: will it work on mine? A laptop answered a question nobody asks —
+           nobody opens one at a boarding gate. An Apple Watch was considered and is not
+           possible: Stub is a PWA and watchOS has no browser to run one in, so drawing
+           one would promise something that does not exist.
+
+           The two differ by hardware — notch and rounded frame against hole-punch and
+           squarer corners — not by interface. It is the same web app and the same
+           stylesheet on both, and faking a difference would be a lie about the product.
+
+           Neither is captioned. The drawings carry their own hardware cues — the clock's
+           position, the shape of the battery, the notch against the hole-punch — and a
+           label underneath only tells a reader what they can already see. -->
+      <section class="devices">
+        <h2>An app that isn't an app.</h2>
+        <p class="devices-lede">
+          Added from the browser in a couple of taps — no app store, no account, nothing to
+          update. It then sits on your home screen and opens like anything else you have
+          installed, each device keeping its own tickets.
+        </p>
+
+        <div class="devices-row" aria-hidden="true">
+          <div class="phone ios">
+            <div class="phone-frame">
+              <span class="phone-notch"></span>
+              <div class="phone-screen">
+                <!-- The status bar is what actually tells the two apart. A notch against a
+                     hole-punch is a difference you have to squint at; the clock's position
+                     and the shape of the battery are recognised instantly.
+
+                     iOS splits the bar around the notch — clock left, signal, wi-fi and a
+                     rounded battery right — and 9:41 is the time Apple has used in its own
+                     marketing since the first iPhone keynote. -->
+                <div class="status ios-status">
+                  <span class="status-time">9:41</span>
+                  <span class="status-icons">
+                    <svg viewBox="0 0 18 12" width="17" height="11" aria-hidden="true">
+                      <rect x="0" y="8" width="3" height="4" rx="1" fill="currentColor"/>
+                      <rect x="4.4" y="6" width="3" height="6" rx="1" fill="currentColor"/>
+                      <rect x="8.8" y="3.4" width="3" height="8.6" rx="1" fill="currentColor"/>
+                      <rect x="13.2" y="0.6" width="3" height="11.4" rx="1" fill="currentColor"/>
+                    </svg>
+                    <svg viewBox="0 0 16 12" width="15" height="11" aria-hidden="true">
+                      <path d="M8 10.4a1.4 1.4 0 1 0 0-2.8 1.4 1.4 0 0 0 0 2.8Z" fill="currentColor"/>
+                      <path d="M4.6 6.6a4.8 4.8 0 0 1 6.8 0M2 4a8.4 8.4 0 0 1 12 0" fill="none"
+                            stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                    <svg viewBox="0 0 26 12" width="23" height="11" aria-hidden="true">
+                      <rect x="0.6" y="0.6" width="21" height="10.8" rx="3.2" fill="none"
+                            stroke="currentColor" stroke-opacity="0.45" stroke-width="1.1"/>
+                      <rect x="2.2" y="2.2" width="15" height="7.6" rx="2" fill="currentColor"/>
+                      <path d="M23.4 4.2v3.6a2.1 2.1 0 0 0 0-3.6Z" fill="currentColor" fill-opacity="0.5"/>
+                    </svg>
+                  </span>
+                </div>
+
+                <div class="phone-bar">
+                  <span class="device-mark" id="ios-mark"></span>
+                  <span class="device-name">Stub</span>
+                </div>
+                <p class="device-label">In 24 hours</p>
+                <div class="device-card movie">
+                  <span class="device-route small">Dune: Part Two</span>
+                  <span class="device-meta">AMC Lincoln Square · 21:15</span>
+                </div>
+                <p class="device-label">Later</p>
+                <div class="device-card flight">
+                  <span class="device-route">JFK <span class="device-arrow">→</span> LAX</span>
+                  <span class="device-meta">DL 412 · 04:35<em>14A</em></span>
+                </div>
+                <div class="device-card rail">
+                  <span class="device-route">NYP <span class="device-arrow">→</span> WAS</span>
+                  <span class="device-meta">Acela 2150<em>C4 · 17</em></span>
+                </div>
+                <div class="device-card bus">
+                  <span class="device-route">BOS <span class="device-arrow">→</span> NYC</span>
+                  <span class="device-meta">Greyhound · 07:15<em>21</em></span>
+                </div>
+
+                <!-- Four cards, not five.
+                     The drawer now occupies the foot of this screen, and the fifth card
+                     was cut through the middle of its own text — which reads as a
+                     rendering fault rather than as a list continuing past the fold. -->
+                <div class="device-drawer">
+                  <span class="device-tab is-current">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+                         stroke-width="1.8" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M3.4 7.6a1.6 1.6 0 0 1 1.6-1.6h14a1.6 1.6 0 0 1 1.6 1.6v2a2.4 2.4 0 0 0 0 4.8v2a1.6 1.6 0 0 1-1.6 1.6H5a1.6 1.6 0 0 1-1.6-1.6v-2a2.4 2.4 0 0 0 0-4.8Z"/>
+                    </svg>
+                    Tickets
+                  </span>
+                  <span class="device-tab device-tab-add">
+                    <span class="device-plus">+</span>
+                    Add
+                  </span>
+                  <span class="device-tab">
+                    <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+                      <circle cx="12" cy="12" r="9.2" fill="none" stroke="currentColor" stroke-width="1.8"/>
+                      <path d="M9.6 9.4a2.5 2.5 0 1 1 3.3 2.4c-.6.2-.9.7-.9 1.3v.5" fill="none"
+                            stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                      <circle cx="12" cy="17" r="1.05" fill="currentColor"/>
+                    </svg>
+                    Help
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="phone android">
+            <div class="phone-frame">
+              <span class="phone-punch"></span>
+              <div class="phone-screen">
+                <!-- Android puts the clock on the left, ahead of the hole-punch, with the
+                     status icons right and a flat-topped battery carrying a numeral. The
+                     signal bars are a solid wedge rather than four separate rounded bars.
+                     Those three details are what the eye reads as "not an iPhone". -->
+                <div class="status android-status">
+                  <span class="status-time">9:41</span>
+                  <span class="status-icons">
+                    <svg viewBox="0 0 14 12" width="13" height="11" aria-hidden="true">
+                      <path d="M13 1.2v9.6H1.4Z" fill="currentColor"/>
+                    </svg>
+                    <svg viewBox="0 0 14 12" width="13" height="11" aria-hidden="true">
+                      <path d="M7 11 0.6 3.6a9.6 9.6 0 0 1 12.8 0Z" fill="currentColor"/>
+                    </svg>
+                    <svg viewBox="0 0 13 12" width="12" height="11" aria-hidden="true">
+                      <rect x="2.6" y="0.4" width="7.8" height="2" rx="0.8" fill="currentColor"/>
+                      <rect x="1.2" y="1.8" width="10.6" height="9.8" rx="1.6" fill="currentColor"/>
+                    </svg>
+                  </span>
+                </div>
+
+                <div class="phone-pass">
+                  <span class="handset-route">JFK <span class="device-arrow">→</span> LAX</span>
+                  <span class="handset-sub">Delta · DL 412 · Seat 14A</span>
+                  <div class="handset-code">
+                    <span></span><span></span><span></span><span></span><span></span>
+                    <span></span><span></span><span></span><span></span><span></span>
+                    <span></span><span></span><span></span><span></span><span></span>
+                    <span></span><span></span><span></span>
+                  </div>
+                  <span class="handset-note">Show this at the gate</span>
+                </div>
+
+                <!-- The detail below the pass. Without it the screen was a card floating in
+                     an empty rectangle, which reads as an unfinished app rather than a
+                     boarding pass. -->
+                <dl class="phone-detail">
+                  <div><dt>Passenger</dt><dd>J MARTINEZ</dd></div>
+                  <div><dt>Gate</dt><dd>B7</dd></div>
+                  <div><dt>Boarding</dt><dd>03:55</dd></div>
+                  <div><dt>Reference</dt><dd>JKLM4T</dd></div>
+                  <div><dt>Terminal</dt><dd>2</dd></div>
+                  <div><dt>Class</dt><dd>Economy</dd></div>
+                </dl>
+
+                <!-- The pass screen keeps the screen at full brightness while it is open;
+                     saying so is the last thing on it in the app, and it fills what would
+                     otherwise be an empty third of the drawing. -->
+                <p class="phone-foot">Screen kept bright while this is open</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Written from the reader's side, not the implementation's.
+           An earlier version of the third card explained that the barcode is transplanted
+           byte for byte rather than regenerated. True, and the hardest part of the app —
+           but nobody standing at a gate cares how the code got there, only that it
+           scans. The engineering belongs in the help and the source, not here. -->
+      <ul class="points">
+        <li>
+          <span class="point-glyph" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor"
+                 stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 13.2 21 4.6l-5.2 8.6L21 21.4Z"/>
+            </svg>
+          </span>
+          <strong>It works when nothing else does.</strong>
+          <span>No signal on the platform, no data abroad, a dead spot in the terminal — your ticket is already on the screen.</span>
+        </li>
+        <li>
+          <span class="point-glyph" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor"
+                 stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="4.8" y="10.4" width="14.4" height="9.8" rx="2.2"/>
+              <path d="M8.2 10.4V7.4a3.8 3.8 0 0 1 7.6 0v3"/>
+            </svg>
+          </span>
+          <strong>There is no server.</strong>
+          <span>Not a promise not to look — there is nowhere to look. Your tickets never leave the device, so no account, no sign-in, nothing to breach.</span>
+        </li>
+        <li>
+          <span class="point-glyph" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor"
+                 stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3.2v12.4M8.2 11.8 12 15.6l3.8-3.8"/>
+              <path d="M4.6 17.4v1.8a1.6 1.6 0 0 0 1.6 1.6h11.6a1.6 1.6 0 0 0 1.6-1.6v-1.8"/>
+            </svg>
+          </span>
+          <strong>Yours to take away.</strong>
+          <span>Export everything in one tap, whenever you like. Nothing to cancel, no subscription, and no way for this to become someone else's product.</span>
+        </li>
+      </ul>
+
       <div class="landing-cta">
         <div class="install-card" id="install-card">
           <!-- Filled by the controller: a real button on Android, instructions on iOS. -->
@@ -226,238 +519,6 @@
           <p class="qr-note">Reading this on a computer? Scan to open it on your phone.</p>
         </div>
       </div>
-    </div>
-  </div>
-
-  <!-- The phone is positioned across the seam between the two bands, which is what ties
-       them into one composition rather than two stacked panels.
-
-       It is drawn in CSS rather than photographed: a screenshot would have to be retaken
-       by hand every time the interface changes, and would quietly drift out of date. This
-       borrows the app's own colours, so it cannot show a product that does not exist. -->
-  <div class="landing-device" aria-hidden="true">
-    <div class="device">
-      <div class="device-screen">
-        <div class="device-bar">
-          <span class="device-mark" id="device-mark"></span>
-          <span class="device-name">Stub</span>
-        </div>
-        <p class="device-label">In 24 hours</p>
-        <div class="device-card movie">
-          <span class="device-chip">SCANNABLE</span>
-          <span class="device-route small">Dune: Part Two</span>
-          <span class="device-meta">PVR Forum Mall · 21:15</span>
-        </div>
-        <p class="device-label">Later</p>
-        <div class="device-card flight">
-          <span class="device-chip">SCANNABLE</span>
-          <span class="device-route">BLR <span class="device-arrow">→</span> DXB</span>
-          <span class="device-meta">EK 569 · 04:35<em>14A</em></span>
-        </div>
-        <div class="device-card rail">
-          <span class="device-chip">SCANNABLE</span>
-          <span class="device-route">SBC <span class="device-arrow">→</span> MAS</span>
-          <span class="device-meta">Shatabdi 12008<em>C4 · 17</em></span>
-        </div>
-        <div class="device-card bus">
-          <span class="device-chip">SCANNABLE</span>
-          <span class="device-route">BLR <span class="device-arrow">→</span> MYS</span>
-          <span class="device-meta">KSRTC Airavat · 07:15<em>21</em></span>
-        </div>
-        <div class="device-card event">
-          <span class="device-chip">SCANNABLE</span>
-          <span class="device-route small">Coldplay · Music of the Spheres</span>
-          <span class="device-meta">DY Patil Stadium<em>B14</em></span>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="landing-foot">
-    <div class="landing-band">
-      <!-- "Works on any device" is one of the four claims and had nothing behind it.
-
-           Two phones, an iPhone and an Android, because that is the question a visitor
-           actually has: will it work on mine? A laptop answered a question nobody asks —
-           nobody opens one at a boarding gate. An Apple Watch was considered and is not
-           possible: Stub is a PWA and watchOS has no browser to run one in, so drawing
-           one would promise something that does not exist.
-
-           The two differ by hardware — notch and rounded frame against hole-punch and
-           squarer corners — not by interface. It is the same web app and the same
-           stylesheet on both, and faking a difference would be a lie about the product. -->
-      <section class="devices">
-        <h2>An app that isn't an app.</h2>
-        <p class="devices-lede">
-          Added from the browser in a couple of taps — no app store, no account, nothing to
-          update. It then sits on your home screen and opens like anything else you have
-          installed. The same on iPhone and Android, each keeping its own tickets.
-        </p>
-
-        <div class="devices-row" aria-hidden="true">
-          <div class="phone ios">
-            <div class="phone-frame">
-              <span class="phone-notch"></span>
-              <div class="phone-screen">
-                <!-- The status bar is what actually tells the two apart. A notch against a
-                     hole-punch is a difference you have to squint at; the clock's position
-                     and the shape of the battery are recognised instantly.
-
-                     iOS splits the bar around the notch — clock left, signal, wi-fi and a
-                     rounded battery right — and 9:41 is the time Apple has used in its own
-                     marketing since the first iPhone keynote. -->
-                <div class="status ios-status">
-                  <span class="status-time">9:41</span>
-                  <span class="status-icons">
-                    <svg viewBox="0 0 18 12" width="17" height="11" aria-hidden="true">
-                      <rect x="0" y="8" width="3" height="4" rx="1" fill="currentColor"/>
-                      <rect x="4.4" y="6" width="3" height="6" rx="1" fill="currentColor"/>
-                      <rect x="8.8" y="3.4" width="3" height="8.6" rx="1" fill="currentColor"/>
-                      <rect x="13.2" y="0.6" width="3" height="11.4" rx="1" fill="currentColor"/>
-                    </svg>
-                    <svg viewBox="0 0 16 12" width="15" height="11" aria-hidden="true">
-                      <path d="M8 10.4a1.4 1.4 0 1 0 0-2.8 1.4 1.4 0 0 0 0 2.8Z" fill="currentColor"/>
-                      <path d="M4.6 6.6a4.8 4.8 0 0 1 6.8 0M2 4a8.4 8.4 0 0 1 12 0" fill="none"
-                            stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                    </svg>
-                    <svg viewBox="0 0 26 12" width="23" height="11" aria-hidden="true">
-                      <rect x="0.6" y="0.6" width="21" height="10.8" rx="3.2" fill="none"
-                            stroke="currentColor" stroke-opacity="0.45" stroke-width="1.1"/>
-                      <rect x="2.2" y="2.2" width="15" height="7.6" rx="2" fill="currentColor"/>
-                      <path d="M23.4 4.2v3.6a2.1 2.1 0 0 0 0-3.6Z" fill="currentColor" fill-opacity="0.5"/>
-                    </svg>
-                  </span>
-                </div>
-
-                <div class="phone-bar">
-                  <span class="device-mark" id="ios-mark"></span>
-                  <span class="device-name">Stub</span>
-                </div>
-                <p class="device-label">In 24 hours</p>
-                <div class="device-card movie">
-                  <span class="device-route small">Dune: Part Two</span>
-                  <span class="device-meta">PVR Forum Mall · 21:15</span>
-                </div>
-                <p class="device-label">Later</p>
-                <div class="device-card flight">
-                  <span class="device-route">BLR <span class="device-arrow">→</span> DXB</span>
-                  <span class="device-meta">EK 569 · 04:35<em>14A</em></span>
-                </div>
-                <div class="device-card rail">
-                  <span class="device-route">SBC <span class="device-arrow">→</span> MAS</span>
-                  <span class="device-meta">Shatabdi 12008<em>C4 · 17</em></span>
-                </div>
-                <div class="device-card bus">
-                  <span class="device-route">BLR <span class="device-arrow">→</span> MYS</span>
-                  <span class="device-meta">KSRTC Airavat · 07:15<em>21</em></span>
-                </div>
-                <div class="device-card event">
-                  <span class="device-route small">Coldplay · Mumbai</span>
-                  <span class="device-meta">DY Patil Stadium<em>B14</em></span>
-                </div>
-              </div>
-            </div>
-            <p class="phone-label">iPhone</p>
-          </div>
-
-          <div class="phone android">
-            <div class="phone-frame">
-              <span class="phone-punch"></span>
-              <div class="phone-screen">
-                <!-- Android puts the clock on the left, ahead of the hole-punch, with the
-                     status icons right and a flat-topped battery carrying a numeral. The
-                     signal bars are a solid wedge rather than four separate rounded bars.
-                     Those three details are what the eye reads as "not an iPhone". -->
-                <div class="status android-status">
-                  <span class="status-time">9:41</span>
-                  <span class="status-icons">
-                    <svg viewBox="0 0 14 12" width="13" height="11" aria-hidden="true">
-                      <path d="M13 1.2v9.6H1.4Z" fill="currentColor"/>
-                    </svg>
-                    <svg viewBox="0 0 14 12" width="13" height="11" aria-hidden="true">
-                      <path d="M7 11 0.6 3.6a9.6 9.6 0 0 1 12.8 0Z" fill="currentColor"/>
-                    </svg>
-                    <svg viewBox="0 0 13 12" width="12" height="11" aria-hidden="true">
-                      <rect x="2.6" y="0.4" width="7.8" height="2" rx="0.8" fill="currentColor"/>
-                      <rect x="1.2" y="1.8" width="10.6" height="9.8" rx="1.6" fill="currentColor"/>
-                    </svg>
-                  </span>
-                </div>
-
-                <div class="phone-pass">
-                  <span class="handset-route">BLR <span class="device-arrow">→</span> DXB</span>
-                  <span class="handset-sub">Emirates · EK 569 · Seat 14A</span>
-                  <div class="handset-code">
-                    <span></span><span></span><span></span><span></span><span></span>
-                    <span></span><span></span><span></span><span></span><span></span>
-                    <span></span><span></span><span></span><span></span><span></span>
-                    <span></span><span></span><span></span>
-                  </div>
-                  <span class="handset-note">Show this at the gate</span>
-                </div>
-
-                <!-- The detail below the pass. Without it the screen was a card floating in
-                     an empty rectangle, which reads as an unfinished app rather than a
-                     boarding pass. -->
-                <dl class="phone-detail">
-                  <div><dt>Passenger</dt><dd>T CHOWDARY</dd></div>
-                  <div><dt>Gate</dt><dd>B7</dd></div>
-                  <div><dt>Boarding</dt><dd>03:55</dd></div>
-                  <div><dt>Reference</dt><dd>JKLM4T</dd></div>
-                  <div><dt>Terminal</dt><dd>2</dd></div>
-                  <div><dt>Class</dt><dd>Economy</dd></div>
-                </dl>
-
-                <!-- The pass screen keeps the screen at full brightness while it is open;
-                     saying so is the last thing on it in the app, and it fills what would
-                     otherwise be an empty third of the drawing. -->
-                <p class="phone-foot">Screen kept bright while this is open</p>
-              </div>
-            </div>
-            <p class="phone-label">Android</p>
-          </div>
-        </div>
-      </section>
-
-      <!-- Written from the reader's side, not the implementation's.
-           An earlier version of the third card explained that the barcode is transplanted
-           byte for byte rather than regenerated. True, and the hardest part of the app —
-           but nobody standing at a gate cares how the code got there, only that it
-           scans. The engineering belongs in the help and the source, not here. -->
-      <ul class="points">
-        <li>
-          <span class="point-glyph" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor"
-                 stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M3 13.2 21 4.6l-5.2 8.6L21 21.4Z"/>
-            </svg>
-          </span>
-          <strong>It works when nothing else does.</strong>
-          <span>No signal on the platform, no data abroad, a dead spot in the terminal — your ticket is already on the screen.</span>
-        </li>
-        <li>
-          <span class="point-glyph" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor"
-                 stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="4.8" y="10.4" width="14.4" height="9.8" rx="2.2"/>
-              <path d="M8.2 10.4V7.4a3.8 3.8 0 0 1 7.6 0v3"/>
-            </svg>
-          </span>
-          <strong>There is no server.</strong>
-          <span>Not a promise not to look — there is nowhere to look. Your tickets never leave the device, so no account, no sign-in, nothing to breach.</span>
-        </li>
-        <li>
-          <span class="point-glyph" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor"
-                 stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 3.2v12.4M8.2 11.8 12 15.6l3.8-3.8"/>
-              <path d="M4.6 17.4v1.8a1.6 1.6 0 0 0 1.6 1.6h11.6a1.6 1.6 0 0 0 1.6-1.6v-1.8"/>
-            </svg>
-          </span>
-          <strong>Yours to take away.</strong>
-          <span>Export everything in one tap, whenever you like. Nothing to cancel, no subscription, and no way for this to become someone else's product.</span>
-        </li>
-      </ul>
 
       <footer class="landing-footer">
         <!-- Links first, credit last. Navigation is what a reader is looking for at the
@@ -483,14 +544,12 @@
       <span class="name">Stub</span>
     </h1>
     <div class="bar-actions">
-      <button class="icon-button" id="open-help" type="button" aria-label="Help">
-        <svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true">
-          <circle cx="12" cy="12" r="9.2" fill="none" stroke="currentColor" stroke-width="1.7"/>
-          <path d="M9.6 9.4a2.5 2.5 0 1 1 3.3 2.4c-.6.2-.9.7-.9 1.3v.5" fill="none"
-                stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
-          <circle cx="12" cy="17" r="1.05" fill="currentColor"/>
-        </svg>
-      </button>
+      <!--
+        The gear alone up here.
+        Help moved into the tab bar below, where it is reachable with a thumb. Settings
+        stays at the top because it is the one control a traveller never needs in a
+        hurry — a top corner is the right place for something you look for deliberately.
+      -->
       <button class="icon-button" id="open-settings" type="button" aria-label="Settings">
         <!--
           A cog, not a sun.
@@ -512,12 +571,6 @@
   <div class="home-body" id="home-body">
     <!-- Filled by the controller. -->
   </div>
-
-  <button class="fab" id="add-ticket" type="button" aria-label="Add a ticket">
-    <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true">
-      <path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
-    </svg>
-  </button>
 </section>
 
 <!-- ═══════════ The ticket itself ═══════════ -->
@@ -649,6 +702,55 @@
 
   <div class="settings-body" id="settings-body"></div>
 </section>
+
+<!--
+  The drawer: the app's own controls, along the bottom edge.
+
+  It replaces a floating button in the corner that held the only way to add a ticket. A
+  phone is held at the bottom, so the one action the app exists for sat as far from the
+  thumb as the screen allows, with no label to say what it did.
+
+  Add is raised and coloured rather than being a third equal tab, because it is not a
+  destination: it is the action. Tickets and Help are places you go; Add is a thing you
+  do, and drawing all three identically would say otherwise.
+
+  It sits outside the screens rather than inside the home one. Every screen carries a
+  `rise` animation that moves it, and a transform on an ancestor makes that ancestor the
+  containing block for anything positioned fixed inside it — so a drawer nested in the
+  home screen was pinned to the bottom of the *section* for the 340ms the animation ran,
+  visibly sliding down the page on every return to the list. Chrome belongs beside the
+  screens, not in one.
+-->
+<nav class="drawer" id="drawer" aria-label="Main" hidden>
+  <button class="drawer-item is-current" id="drawer-tickets" type="button" aria-current="page">
+    <svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor"
+         stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M3.4 7.6a1.6 1.6 0 0 1 1.6-1.6h14a1.6 1.6 0 0 1 1.6 1.6v2a2.4 2.4 0 0 0 0 4.8v2a1.6 1.6 0 0 1-1.6 1.6H5a1.6 1.6 0 0 1-1.6-1.6v-2a2.4 2.4 0 0 0 0-4.8Z"/>
+      <path d="M14.2 6.6v1.7M14.2 11.15v1.7M14.2 15.7v1.7"/>
+    </svg>
+    <span>Tickets</span>
+  </button>
+
+  <button class="drawer-item drawer-add" id="add-ticket" type="button">
+    <span class="drawer-plus" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+        <path d="M12 5.4v13.2M5.4 12h13.2" fill="none" stroke="currentColor"
+              stroke-width="2.3" stroke-linecap="round"/>
+      </svg>
+    </span>
+    <span>Add</span>
+  </button>
+
+  <button class="drawer-item" id="drawer-help" type="button">
+    <svg viewBox="0 0 24 24" width="23" height="23" aria-hidden="true">
+      <circle cx="12" cy="12" r="9.2" fill="none" stroke="currentColor" stroke-width="1.7"/>
+      <path d="M9.6 9.4a2.5 2.5 0 1 1 3.3 2.4c-.6.2-.9.7-.9 1.3v.5" fill="none"
+            stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+      <circle cx="12" cy="17" r="1.05" fill="currentColor"/>
+    </svg>
+    <span>Help</span>
+  </button>
+</nav>
 
 <!-- Transient messages. Assertive, because they confirm destructive actions. -->
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
