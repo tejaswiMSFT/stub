@@ -196,6 +196,41 @@ p { margin: 0; }
   animation: rise 0.34s var(--ease) both;
 }
 
+/*
+ * On a wide screen, spread out.
+ *
+ * A PWA is not a phone app that happens to run in a browser, and a single 620px column
+ * stranded in the middle of a desktop display looks like one that forgot where it was.
+ * The column is right for reading a pass — a boarding pass is a portrait object, and
+ * stretching one across a monitor would be worse — but the *list* is a grid, and a grid
+ * should use the room it is given.
+ *
+ * Only the home list widens. Review, help and settings stay in a column, because those
+ * are reading tasks and a 1400px line of prose is unreadable at any size.
+ */
+@media (min-width: 900px) {
+  #screen-home { max-width: 1100px; }
+
+  #home-body .list-block,
+  #home-body .past-block {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 14px;
+    align-items: start;
+  }
+
+  /* The section label spans the grid rather than taking a cell of its own. */
+  #home-body .section-label,
+  #home-body .past-block > summary { grid-column: 1 / -1; }
+
+  /* A swipe row is a grid item now, so its own margin would double the gap. */
+  #home-body .list-block .swipe,
+  #home-body .past-block .swipe { margin-bottom: 0; }
+
+  /* The next pass keeps its prominence: full width, and larger than the rest. */
+  #home-body .next-block { max-width: 100%; }
+}
+
 @keyframes rise {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: none; }

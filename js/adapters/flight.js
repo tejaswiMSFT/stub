@@ -610,6 +610,11 @@ function findPassengerNames(lines) {
       if (!value || value.length > 40 || /\d/.test(value)) continue;
       if (value.split(/\s+/).length > 5) continue;
 
+      // Nor is a passenger *type* a passenger. "Adult" sits in its own column beside the
+      // name and again in the baggage table, and reads as a person to anything looking
+      // for a short capitalised word.
+      if (/^(?:adults?|child(?:ren)?|infants?|senior|youth)$/i.test(value)) continue;
+
       // Any caption word disqualifies the whole line, wherever it sits. Testing only for
       // a few words allowed "ORIGIN BLR" through as a passenger, because neither word
       // was on the list — and a line that names a field is a header no matter what else
@@ -1019,9 +1024,23 @@ function airportCode(raw) {
 function looksLikeDocumentTitle(value) {
   if (!value) return false;
 
+  /*
+   * Noise is not a brand either.
+   *
+   * `findProvider` takes the most prominent text, which on a photographed ticket is
+   * whatever OCR made of the logo — "Zi", "74] PNR: NKSFFI", "amazon pa Powered by
+   * mates (erp". An airline's name is a word or two of letters; anything carrying
+   * punctuation, digits or a stray bracket came from the image, not from a brand.
+   */
+  const noisy = /[[\]{}|\\/@#*_~`]/.test(value)
+    || /\d/.test(value)
+    || value.split(/\s+/).length > 4
+    || value.replace(/[^A-Za-z]/g, '').length < 3;
+  if (noisy) return true;
+
   return /\b(information|details|summary|itinerary|booking|reference)\b/i.test(value)
     || /^\s*e-?\s*(?:ticket|boarding|receipt)\b/i.test(value)
-    || /\b(?:boarding\s*pass|e-?ticket|itinerary\s*receipt|travel\s*document|reservation\s*slip|electronic\s*ticket|departure\s*flight)\b/i.test(value)
+    || /\b(?:boarding\s*pass|e-?ticket|itinerary\s*receipt|travel\s*document|reservation\s*slip|electronic\s*ticket|departure\s*flight|flight\s*booking)\b/i.test(value)
     || looksLikeSalutation(value);
 }
 
@@ -1086,23 +1105,56 @@ function buildFromTextOnly(draft, lines) {
     }
     if (key === 'seat') value = cleanSeat(value) || value;
 
+    /*
+     * A cabin is a class of travel, not a weight.
+     *
+     * "Cabin" heads the hand-baggage column of a baggage table — "Traveller | Cabin |
+     * Check-in" — so the class came out as "7 Kgs (1 piece only)" on every MakeMyTrip
+     * itinerary. The word is genuinely used both ways on the same page, so the label
+     * cannot settle it; the value can.
+     *
+     * A class is a short word or a fare code: Economy, Business, First, Premium, Saver,
+     * or a single letter. It never carries a weight, a count or a piece.
+     */
+    if (key === 'cabin' && value) {
+      const plausible = value.length <= 24
+        && !/\b(?:kgs?|kilograms?|pieces?|piece|lbs?)\b/i.test(value)
+        && !/^\d/.test(value);
+      if (!plausible) { value = ''; fromPage = false; }
+    }
+
+    /*
+     * A passenger type is not a passenger.
+     *
+     * "Adult", "Child" and "Infant" head their own column beside a traveller's name, and
+     * appear again in the baggage table where there is no name at all. A pass reading
+     * "Adult" where a person should be is worse than a blank: it looks filled in.
+     */
+    if (key === 'passenger' && /^(?:adults?|child(?:ren)?|infants?|senior|youth)$/i.test(value.trim())) {
+      value = '';
+      fromPage = false;
+    }
+
     // A name is not a number. Whatever the label said, a value containing a digit is
     // something else about the passenger — a mobile, a count, an age — and never the
     // person.
     if (key === 'passenger' && /\d/.test(value)) { value = ''; fromPage = false; }
 
     /*
-     * A booking reference has a shape, and a fragment of its own label is not it.
+     * A booking reference has a shape, and neither a fragment of its own label nor an
+     * airport's name is it.
      *
      * "PNR No." cannot be matched to its end — there is no word boundary between a full
      * stop and a space — so the pattern stops at "PNR", leaving " No." as the remainder,
-     * and an agency-issued IndiGo ticket reported its booking reference as the word
-     * "No.". Every reference in use is at least four characters and contains a digit or
-     * is entirely capitals; none is punctuation with two letters attached.
+     * and an agency-issued IndiGo ticket reported its reference as the word "No.".
+     *
+     * And a ticket that prints "PNR" above an airport line gave "Lal Bahadur Shastri
+     * International" as the booking reference. Every reference in use is one token of
+     * four to ten characters, letters and digits with no spaces. Nothing with a space in
+     * it has ever been a PNR.
      */
     if (key === 'pnr' && value) {
-      const plausible = value.length >= 4
-        && /[A-Z0-9]/.test(value)
+      const plausible = /^[A-Z0-9][A-Z0-9-]{3,15}$/i.test(value)
         && !/^[A-Za-z]{1,3}\.?$/.test(value);
       if (!plausible) { value = ''; fromPage = false; }
     }
