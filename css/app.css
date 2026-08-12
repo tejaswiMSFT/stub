@@ -807,10 +807,20 @@ p { margin: 0; }
 .pass-card { position: relative; }
 .pass-card .pass-route { position: relative; z-index: 1; }
 
+/* Links and credit share one row: navigation left, signature right — the arrangement a
+   reader expects at the foot of a page. Stacked and left-aligned they read as one ragged
+   block with the credit looking like a fourth link. Below the breakpoint there is no room
+   for two columns, so they stack and centre, which keeps the credit deliberate rather
+   than orphaned under the links. */
 .landing-footer {
   margin-top: 38px;
   padding-top: 20px;
   border-top: 1px solid var(--separator);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px 24px;
 }
 
 .landing-footer p {
@@ -845,7 +855,13 @@ p { margin: 0; }
   color: rgba(235, 235, 245, 0.38);
 }
 
-.landing-links + .landing-credit { margin-top: 16px; }
+.landing-links + .landing-credit { margin-top: 0; }
+
+@media (max-width: 620px) {
+  .landing-footer { justify-content: center; text-align: center; }
+  .landing-links { justify-content: center; }
+  .landing-footer .landing-credit { flex-basis: 100%; margin-top: 6px; }
+}
 
 .app-mark img { border-radius: 22%; box-shadow: 0 8px 26px rgba(0, 0, 0, 0.16); }
 
@@ -1164,16 +1180,20 @@ p { margin: 0; }
 
 .devices-row {
   display: flex;
-  align-items: flex-start;
-  /* Aligned with the heading above rather than centred on the band. Centred, the pair was
-     geometrically correct and looked wrong: everything else in the section starts at the
-     left margin, so a centred row reads as drifting. */
+  /* Stretch, so both frames take the height of the taller one. They previously sized to
+     their own content — three cards against one pass — and stood side by side at visibly
+     different heights, which read as a drawing mistake rather than as two phones. */
+  align-items: stretch;
   justify-content: flex-start;
   gap: clamp(20px, 5vw, 64px);
   flex-wrap: wrap;
 }
 
-.phone { width: min(228px, 40vw); }
+.phone {
+  width: min(228px, 40vw);
+  display: flex;
+  flex-direction: column;
+}
 
 .phone-frame {
   position: relative;
@@ -1181,6 +1201,10 @@ p { margin: 0; }
   padding: 9px;
   background: linear-gradient(160deg, #3a3a40, #16161a 48%, #2a2a30);
   box-shadow: 0 28px 60px rgba(6, 6, 20, 0.6), 0 2px 0 rgba(255, 255, 255, 0.08) inset;
+  /* Fills the stretched row, so the two frames match regardless of what is on screen. */
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 /* The two are told apart by hardware, not by interface — the app renders identically on
@@ -1191,11 +1215,16 @@ p { margin: 0; }
 .phone-screen {
   border-radius: 26px;
   background: linear-gradient(180deg, #101018, #08080c);
-  /* Top padding is small now: the status bar sits inside the screen and supplies its own
+  /* Top padding is small: the status bar sits inside the screen and supplies its own
      clearance around the notch or the hole-punch. */
   padding: 7px 11px 16px;
   overflow: hidden;
-  min-height: 300px;
+  /* A ratio rather than a minimum height, so both screens are the same shape as well as
+     the same height, and neither depends on how much happens to be drawn on it. */
+  aspect-ratio: 9 / 18.5;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .phone.android .phone-screen { border-radius: 15px; }
@@ -1261,6 +1290,10 @@ p { margin: 0; }
   color: rgba(235, 235, 245, 0.42);
 }
 
+/* The screen is a window, not a page: content that runs past the bottom is cut off by the
+   frame exactly as it would be on a real phone, rather than stretching the drawing. */
+.phone-screen > *:last-child { margin-bottom: 0; }
+
 .phone-bar { display: flex; align-items: center; gap: 7px; margin-bottom: 13px; }
 .phone-bar .device-mark { width: 16px; height: 16px; }
 .phone-bar .device-name { font-size: 14.5px; }
@@ -1323,6 +1356,16 @@ p { margin: 0; }
 }
 
 .phone-detail dd { margin: 0; font-size: 11.5px; font-weight: 600; color: rgba(255, 255, 255, 0.9); }
+
+.phone-foot {
+  /* Pushed to the foot of the screen, where the app puts it, rather than left floating
+     halfway down with empty space beneath. */
+  margin: auto 2px 0;
+  padding-top: 16px;
+  font-size: 8.5px;
+  text-align: center;
+  color: rgba(235, 235, 245, 0.3);
+}
 
 /* ── closing points ── */
 
