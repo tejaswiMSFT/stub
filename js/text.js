@@ -328,8 +328,13 @@ export function findValueForLabel(lines, labelPattern, options = {}) {
        * "Passenger Information" matched as "Passenger" and left "Information", which was
        * duly reported as the passenger's name. These are the words that finish a heading
        * rather than begin a value, and none of them is ever a name, a code or a time.
+       *
+       * A parenthesised remainder is the same thing in another costume: redBus heads its
+       * traveller table "Passenger Details (Age, Gender)", and the pass named the
+       * traveller "(Age, Gender)". A value is never wholly bracketed.
        */
-      const captionTail = /^(?:information|details?|summary|itinerary|name|no\.?|number|s)$/i.test(after);
+      const captionTail = /^(?:information|details?|summary|itinerary|name|no\.?|number|s)$/i.test(after)
+        || /^\([^)]*\)$/.test(after.trim());
 
       if (after && hasContent && !cutMidLabel && !captionTail) {
         return { value: after, line, region: labelColumn, relation: 'beside' };
@@ -422,11 +427,18 @@ function valueBelow(lines, index, labelColumn, labelPattern, maxDistance) {
 
     const columns = splitColumns(candidate);
 
-    // A single-column line beneath a multi-column row is a section heading, not the
-    // table's data. "PNR/Booking Reference | QP4RT9 | Confirmed" followed by the heading
-    // "Passenger Information" would otherwise report the booking reference as
-    // "Passenger Information" — the value was beside it all along.
-    if (labelColumnCount >= 3 && columns.length < 2) continue;
+    /*
+     * A single-column line beneath a multi-column row is usually a section heading rather
+     * than the table's data. "PNR/Booking Reference | QP4RT9 | Confirmed" followed by the
+     * heading "Passenger Information" would otherwise report the booking reference as
+     * "Passenger Information" — the value was beside it all along.
+     *
+     * But only when it reads like a heading. An IRCTC slip prints "Booked From" over
+     * "PRAYAGRAJ JN. - PRYJ" on a line of its own, and skipping it outright walked on to
+     * the row below, whose leftmost cell is "ADP" — OCR debris from the arrow graphic
+     * drawn between the columns. The pass then said the journey began at Adp.
+     */
+    if (labelColumnCount >= 3 && columns.length < 2 && looksLikeCaption(candidate.text)) continue;
 
     let best = null;
     let bestOverlap = 0;

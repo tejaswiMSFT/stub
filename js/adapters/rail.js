@@ -24,7 +24,7 @@ import {
   register, Field, Source, Confidence, TicketDraft,
   parseTime, parseDate, findLabelled, findProvider, toPlainText,
 } from './registry.js';
-import { readTable } from '../text.js';
+import { readTable, splitColumns } from '../text.js';
 import { parseSeats } from './event.js';
 
 // ────────────────────────────── mode detection ──────────────────────────────
@@ -267,10 +267,19 @@ const VOCAB = {
     providerLabel: 'Operator',
     serviceLabel: 'Service',
     servicePatterns: [
-      /\bservice\s*(?:no\.?|number|code)\b/i,
-      /\btrip\s*(?:code|no\.?|number)\b/i,
-      /\bbus\s*(?:no\.?|number)\b/i,
-      /\broute\s*(?:no\.?|number|code)\b/i,
+      /*
+       * "#" cannot carry a trailing word boundary.
+       *
+       * AbhiBus prints "Service # BNG-Mumbai Multi Axle Volvo 4", and `#\b` never matches
+       * there: a boundary needs a word character on one side, and "# " has none on
+       * either. Written as `#\b` the pattern silently failed and Service was blank on
+       * every bus ticket in the corpus. The boundary belongs inside the worded
+       * alternatives, not after the group.
+       */
+      /\bservice\s*(?:(?:no\.?|number|code)\b|#)/i,
+      /\btrip\s*(?:(?:code|no\.?|number)\b|#)/i,
+      /\bbus\s*(?:(?:no\.?|number)\b|#)/i,
+      /\broute\s*(?:(?:no\.?|number|code)\b|#)/i,
       /\bservice\s*type\b/i,
     ],
     /*
@@ -666,6 +675,9 @@ function buildRoute(draft, lines, vocab) {
     note: destination?.name && destination?.code ? destination.name : null,
   }));
 
+  // Kept for the date, which a bus ticket prints on this same line and nowhere else.
+  if (heading?.region) draft.headingLine = heading.region;
+
   // Full names are kept alongside the codes: the face of the pass wants "SBC", the
   // back wants "KSR Bengaluru City Junction".
   if (origin?.name) draft.originName = origin.name;
@@ -692,13 +704,30 @@ function buildRoute(draft, lines, vocab) {
  * and "to" is an ordinary English word that appears in every terms-and-conditions block
  * on the page.
  */
+/**
+ * Words that mark a two-column pair as captions rather than a route.
+ *
+ * "Ticket ID | Order ID", "Bus Operator Name", "Boarding Point" — all two columns of
+ * plain words at heading size, all indistinguishable from a route by shape alone.
+ */
+const CAPTION_ISH = /\b(?:ticket|order|booking|pnr|id|no|number|ref|reference|operator|name|point|details?|status|seat|fare|time|date|passenger|boarding|dropping|address|location|landmark|customer|care|support|help|type|bus|travels?)\b/i;
+
 function routeFromHeading(lines) {
   // Only the top of the page. A heading is a heading by virtue of where it sits, and
   // scanning the whole document finds "Write to us", "Upto 80% Off on Hotel Booking" and
   // every address on the sheet.
   const top = lines.slice(0, 16);
   const tallest = Math.max(...top.map((line) => line.height || 0), 0);
-  const heights = top.map((line) => line.height || 0).sort((a, b) => a - b);
+
+  /*
+   * Body text is measured across the whole document, not the top of it.
+   *
+   * Taken from the top sixteen lines the median is dragged up by the very headings it
+   * exists to distinguish — on a sparse ticket half those lines are large, so the median
+   * lands between heading and body and the threshold rejects both. The body of a full
+   * page is overwhelmingly ordinary text, which is what makes its median stable.
+   */
+  const heights = lines.map((line) => line.height || 0).sort((a, b) => a - b);
   const median = heights[Math.floor(heights.length / 2)] || 0;
 
   /*
@@ -710,7 +739,13 @@ function routeFromHeading(lines) {
    * words around it cannot be anchored to the end of the line, because the date and a
    * stray mark follow on the same line.
    */
-  const ARROW = /\s(?:→|➜|➔|»|-->|—>|->|>)\s/;
+  /*
+   * Spacing around the arrow cannot be relied on either. A goibibo ticket reads
+   * "Jaipur-> Bhim" with no space before it, so requiring one on both sides missed the
+   * route entirely. Requiring a space on *either* side is enough to keep it from
+   * matching a hyphenated place name like "Jaipur-Ajmer".
+   */
+  const ARROW = /(?:\s(?:→|➜|➔|»|-->|—>|->|>)\s?|(?:→|➜|➔|»|-->|—>|->)\s)/;
 
   // Words that end a place name because they begin something else — a date, most often,
   // which is what follows the route on every ticket in the corpus.
@@ -724,6 +759,20 @@ function routeFromHeading(lines) {
       // A place name is letters. Anything with a digit, or a trailing comma, ends it.
       if (!/^[A-Za-z][A-Za-z.'()-]*,?$/.test(word)) break;
       if (STOP.test(word)) break;
+
+      /*
+       * OCR debris from an icon beside the route.
+       *
+       * A goibibo ticket sets a small pictogram before the journey, which Tesseract reads
+       * as "fa)" — a short run of letters with a stray bracket. Read right-to-left from
+       * the arrow it is the *last* thing taken, so the origin came out "fa) Jaipur".
+       *
+       * A fragment carrying a bracket it never opened is not a word. Stopping rather
+       * than skipping is deliberate: everything beyond the debris belongs to whatever
+       * sits left of the icon, not to the route.
+       */
+      if (/[()]/.test(word) && !/^\([A-Za-z]+\)$/.test(word)) break;
+
       taken.push(word.replace(/,$/, ''));
       if (word.endsWith(',')) break;
       if (taken.length === 3) break;
@@ -744,15 +793,46 @@ function routeFromHeading(lines) {
      * 108, so requiring four-fifths of the tallest line refused the very line being
      * looked for. A masthead is not a heading and should not set the bar.
      *
-     * Half the tallest, and above the median, is what separates a heading from body text
-     * without letting the logo dictate. Measured on this corpus: headings run 60–68
-     * against body text at 20–30.
+     * Half the tallest and a quarter again the body text is what separates a heading from
+     * a sentence without letting the logo dictate. Both bounds are needed: the tallest
+     * alone lets body text through on a page with no masthead, and the median alone lets
+     * a large block of prose through on a page that is mostly headings.
      */
     const spelled = !arrow
-      && (line.height || 0) >= Math.max(tallest * 0.5, median * 1.4)
+      && (line.height || 0) >= Math.max(tallest * 0.45, median * 1.25)
       && /\sto\s/i.test(line.text);
 
-    if (!arrow && !spelled) continue;
+    if (!arrow && !spelled) {
+      /*
+       * The third form: two place names side by side, with nothing between them but a
+       * column gap where the arrow was drawn as a graphic.
+       *
+       * Paytm sets "Bengaluru    Proddatur    20-07-2017" and "DUNGARPUR    UDAIPUR" as
+       * separate columns. The arrow between them is an image, so OCR returns no
+       * connecting character at all and both the arrow and the "to" tests miss — which
+       * is why those two tickets had no route whatsoever.
+       *
+       * Only admitted under the heading size test, and only when the first two columns
+       * are both bare place names. Without that this would read any two-column row on
+       * the page — an operator beside a bus type, a landmark beside a counter number.
+       */
+      if ((line.height || 0) < Math.max(tallest * 0.45, median * 1.25)) continue;
+
+      const cells = splitColumns(line);
+      if (cells.length < 2) continue;
+
+      const place = /^[A-Za-z][A-Za-z .'-]{2,24}$/;
+      const first = cells[0].text.trim();
+      const second = cells[1].text.trim();
+      if (!place.test(first) || !place.test(second)) continue;
+      if (first.toUpperCase() === second.toUpperCase()) continue;
+
+      // Not a caption pair. "Ticket ID | Order ID" is two columns of words at a heading
+      // size on a Paytm slip, and reads as a route to anything checking only shape.
+      if (CAPTION_ISH.test(first) || CAPTION_ISH.test(second)) continue;
+
+      return { from: first, to: second, region: line };
+    }
 
     const [left, right] = arrow ? line.text.split(ARROW) : line.text.split(/\s+to\s+/i);
     if (!left || !right) continue;
@@ -775,15 +855,54 @@ function buildTimes(draft, lines, mode) {
     /\b(?:date\s*of\s*(?:journey|travel|departure)|journey\s*date|travel\s*date|departure\s*date|doj)\b/i,
     /\bdate\b/i,
   ]);
-  const parsed = dateFound ? parseDate(dateFound.value) : null;
+  let parsed = dateFound ? parseDate(dateFound.value) : null;
+  let dateRegion = dateFound?.region || null;
+
+  /*
+   * The heading again, which is where a bus ticket puts its date.
+   *
+   * No bus ticket in the corpus labels the day. Every one of them prints it beside the
+   * journey — "Guwahati > Duliajan  Thursday, October 3, 2019", "Bangalore to Pune
+   * 02-01-2014", "Bengaluru  Proddatur  20-07-2017" — and the Date field came out blank
+   * on all four as a result.
+   *
+   * Only from the line the route was read from, or the two beneath it — Paytm sets the
+   * date on its own line directly under the two place names. Scanning the whole page for
+   * any date would find the booking date, the print stamp and the offer expiry, and a
+   * pass dated to when it was bought is worse than one with no date, because nobody
+   * checks a field that looks filled in.
+   */
+  if (draft.headingLine) {
+    const index = lines.indexOf(draft.headingLine);
+    const nearby = index >= 0 ? lines.slice(index, index + 5) : [draft.headingLine];
+
+    for (const line of nearby) {
+      const fromHeading = parseDate(line.text);
+      if (!fromHeading?.date) continue;
+
+      /*
+       * A dated heading beats an undated label.
+       *
+       * A goibibo ticket carries a labelled date with no year, which falls back to the
+       * current year — so a journey in August 2022 was dated August 2026. Its heading
+       * says "Wednesday, August 10th, 2022" in full. A year that was read always beats a
+       * year that was assumed, whatever the labels say.
+       */
+      if (!parsed?.date || (fromHeading.hadYear && !parsed.hadYear)) {
+        parsed = fromHeading;
+        dateRegion = line;
+      }
+      break;
+    }
+  }
 
   const dateField = draft.set('date', new Field({
     key: 'date',
     label: 'Date',
     value: parsed?.date ? parsed.date.toISOString().slice(0, 10) : '',
-    source: dateFound ? Source.PDF_TEXT : Source.INFERRED,
+    source: (dateFound || parsed) ? Source.PDF_TEXT : Source.INFERRED,
     type: 'date',
-    region: dateFound?.region || null,
+    region: dateRegion,
     required: true,
     critical: true,
   }));
@@ -881,10 +1000,25 @@ function buildSeating(draft, lines, vocab, mode) {
   const list = parsed?.seats || [];
   const multiple = list.length > 1;
 
+  /*
+   * An unparsed value is only worth keeping if it could be a seat at all.
+   *
+   * Where parsing fails the raw text was printed regardless, so an AbhiBus header row
+   * "Travellers | Age | Seat | Details" put "Details" on the pass as the seat, and a
+   * goibibo row put "Departure time" there. Both are the caption beside the one that
+   * matched — furniture, not an allocation.
+   *
+   * A seat, berth or screen position always carries a digit somewhere: 35, S3, 18E,
+   * C4-17. A value with none is not one, and a blank the user is asked to fill is far
+   * better than a word that looks filled in.
+   */
+  const fallback = firstColumn(raw, 24);
+  const usableFallback = /\d/.test(fallback) ? fallback : '';
+
   const seatField = draft.set('seat', new Field({
     key: 'seat',
     label: multiple ? vocab.seatLabelPlural : vocab.seatLabel,
-    value: parsed?.summary || parsed?.display || coachBerth?.number || firstColumn(raw, 24),
+    value: parsed?.summary || parsed?.display || coachBerth?.number || usableFallback,
     source: seatFound ? Source.PDF_TEXT : Source.INFERRED,
     region: seatFound?.region || null,
     // A golden-rule field in every mode: seat, berth or screen position is precisely
