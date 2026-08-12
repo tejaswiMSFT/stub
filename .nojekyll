@@ -1,0 +1,10 @@
+Stub is a static app, not a Jekyll site.
+
+Without this file GitHub Pages runs every push through Jekyll before publishing. That
+buys nothing here — there are no layouts, no posts and no Liquid templates — and it adds
+a build step that can fail silently: when it does, Pages keeps serving the previous build
+and reports success, so a deploy appears to have worked while the live site is unchanged.
+Which is exactly what happened to v87, stuck behind v85 for half an hour with every
+commit correct on the branch.
+
+The file's presence is the whole signal; its contents are ignored.
