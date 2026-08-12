@@ -1337,10 +1337,25 @@ async function handleSource(loader, description) {
     if (kept) draft.barcodeImage = kept;
 
     if (!barcodes.primary && kept) {
-      draft.warnings.push(
-        'We could not read the code on this ticket, so it is kept exactly as it was '
-        + 'printed. It should still scan — hold the screen up as you would the original.'
-      );
+      /*
+       * Say why, when we can.
+       *
+       * "We could not read the code" implies a defect in the app, and on a screenshot it
+       * is nothing of the kind. A PDF417 needs roughly 200 pixels of width to survive
+       * being screenshotted — measured, not guessed — and below that the bars merge and
+       * there is genuinely nothing left to decode. Telling someone their file is at
+       * fault when it is, and what to do about it, is more use than an apology.
+       *
+       * The picture is kept either way, so the pass still shows something scannable.
+       */
+      const fromImage = ingested.kind === 'image';
+
+      draft.warnings.push(fromImage
+        ? 'We could not read the code in this picture — a screenshot or photo usually '
+          + 'loses too much detail for that. The code is kept exactly as it appeared and '
+          + 'should still scan, but the original file, if you have it, will read better.'
+        : 'We could not read the code on this ticket, so it is kept exactly as it was '
+          + 'printed. It should still scan — hold the screen up as you would the original.');
     }
 
     if (!lines.length) {
