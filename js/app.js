@@ -141,6 +141,13 @@ async function start() {
   wire();
   haptics.pressable(document);
 
+  // The same mark, small, in the bars of the import flow. Drawn once at start rather
+  // than in a screen's own render: a user who lands on the install page and goes
+  // straight to Add a ticket never passes through renderHome, and the bar was bare.
+  for (const slot of document.querySelectorAll('.bar-mark.small')) {
+    if (!slot.childElementCount) slot.innerHTML = markSvg({ size: 20 });
+  }
+
   state.tickets = await store.all().catch(() => []);
   await applyRetention();
 

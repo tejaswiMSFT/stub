@@ -382,7 +382,10 @@ async function ingestPdf(file, { onProgress } = {}) {
   const embedded = await extractPageImages(primary.page).catch(() => []);
   const barcodeCandidates = [
     ...embedded,
-    { canvas: rendered.canvas, scale: rendered.scale, region: null },
+    // Flagged as the whole page rather than a barcode. It is a decoding fallback only:
+    // something has to be handed to the decoder when nothing smaller was found. It must
+    // never be *kept* as the picture of a barcode, because it is a picture of the ticket.
+    { canvas: rendered.canvas, scale: rendered.scale, region: null, wholePage: true },
     ...tileCandidates(rendered.canvas),
   ];
 

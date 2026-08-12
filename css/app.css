@@ -282,6 +282,13 @@ p { margin: 0; }
 
 /* ───────────────────────── bar ───────────────────────── */
 
+/* A stated height, rather than whatever the tallest control happens to be.
+   The bar was 59px on the home and pass screens and 57.6px everywhere else, because
+   those two hold 38px icon buttons while the rest hold a text button that measures 36.6.
+   Nothing chose either number. A bar that changes height between screens makes the whole
+   page jump on every navigation, which reads as the app shrinking. */
+.bar > * { min-height: 38px; }
+
 .bar {
   position: sticky;
   top: 0;
@@ -359,6 +366,20 @@ p { margin: 0; }
   width: 1.35em;
   height: 1.35em;
 }
+
+/* The mark carried through the import flow.
+   Moving to Add a ticket replaced the brand lockup with a plain 17px title, so the app's
+   own mark vanished at exactly the moment the user is handing it a file — which is when
+   they most want to be sure of what they are handing it to. The pass screen keeps no
+   mark deliberately: there the ticket is the subject, and the brand would compete. */
+.bar-mark.small {
+  width: 20px;
+  height: 20px;
+  margin-right: 7px;
+  flex: none;
+}
+
+.bar-title .bar-mark.small { vertical-align: -4px; display: inline-flex; }
 
 .bar-mark svg { width: 100%; height: 100%; border-radius: 7px; }
 
@@ -1716,6 +1737,13 @@ p { margin: 0; }
 .pass-glyph { flex: none; opacity: 0.72; }
 /* The transit mark inherits the pass's own foreground, or it renders as a grey block. */
 .pass-glyph svg, .card-route .arrow svg { fill: currentColor; }
+
+/* A grid cell will not shrink below the widest unbreakable word inside it unless it is
+   told it may. "SHASTRY/RAVISHANKARA" has no space to break at, so the passenger cell
+   grew past its track and printed straight through the booking reference beside it —
+   two values overlapping, neither legible. `min-width: 0` lets the track hold its share,
+   and the wrap rules give the word somewhere to break. */
+.pass-field { min-width: 0; overflow-wrap: anywhere; word-break: break-word; }
 
 .pass-grid {
   display: grid;

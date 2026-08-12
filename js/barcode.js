@@ -393,6 +393,23 @@ export function toWalletBarcode(barcode, { altText } = {}) {
  */
 export async function keepBarcodeImage(ingested) {
   const candidates = (ingested?.barcodeCandidates || [])
+    /*
+     * Never the whole page.
+     *
+     * The page render is in the candidate list because the decoder needs something to
+     * try when no smaller image was found. It is not a picture of a barcode, and keeping
+     * it produced exactly that: tapping "Show the code" filled the screen with the
+     * entire ixigo itinerary — every field on it, including the passengers' names and
+     * the PNR — where a barcode should have been.
+     *
+     * Shape alone did not catch it. `barcodeShapeScore` calls anything between 0.8 and
+     * 1.25 a square 2D code, and that itinerary's page is 0.81 — so the whole document
+     * scored ~90 and beat the real barcodes on it, which are wide stripes scoring ~60.
+     * The page was not merely accepted; it won.
+     *
+     * Tiles are already excluded by the filter below, having no canvas of their own.
+     */
+    .filter((candidate) => !candidate?.wholePage)
     .filter((candidate) => candidate?.canvas?.width);
 
   if (!candidates.length) return null;
@@ -400,6 +417,8 @@ export async function keepBarcodeImage(ingested) {
   const scored = candidates
     .map((candidate) => ({ candidate, score: barcodeShapeScore(candidate.canvas) }))
     .filter((entry) => entry.score > 0)
+    // Shape gets a candidate considered; ink decides whether it is kept.
+    .filter((entry) => looksLikeInk(entry.candidate.canvas))
     .sort((a, b) => b.score - a.score);
 
   const best = scored[0]?.candidate;
@@ -431,6 +450,102 @@ export async function keepBarcodeImage(ingested) {
   } catch {
     return null;
   }
+}
+
+/**
+ * Whether a candidate is printed like a barcode, judged on its pixels.
+ *
+ * Shape is not enough, and a travel agency's masthead proved it. The Thomsons logo on a
+ * forwarded Gmail itinerary is a wide black rectangle — ratio about 3.5, comfortably
+ * inside the "wide stripe" band — so it scored as a Code 128 and was kept. Tapping
+ * "Show the code" presented the traveller with a company logo to hold up at a gate on a
+ * document that carries no barcode at all.
+ *
+ * Three properties separate ink from artwork, and a barcode has all three:
+ *
+ *   Colourless. Bars are black on white. The logo is cyan on black, and any coloured
+ *     pixel at all is disqualifying — no symbology has ever been printed in two hues.
+ *
+ *   Bimodal. Pixels sit at the ends of the range, not in the middle. Antialiasing puts a
+ *     thin grey fringe on every edge, so a modest share of mid-tones is expected; a
+ *     photograph or a gradient is mostly mid-tone.
+ *
+ *   Busy, and evenly so. A scanline crosses many light-dark boundaries, because that is
+ *     what encodes the payload — and crucially, *every* scanline does, because a barcode
+ *     is uniform down its height. This is what separates a barcode from a page of text,
+ *     which is also black, also colourless, and also full of transitions: measured, a
+ *     Code 128 crosses 406 boundaries on every single row, while a page of text ranges
+ *     from 0 on the gaps between lines to 152 on the text, with a median of 2. A QR sits
+ *     at 11 to 21, low but perfectly even. So the test is the median and the evenness,
+ *     never the total — a mean is dragged up by the text rows and lets a page through.
+ *
+ * Rows are sampled rather than every pixel: a barcode is uniform down its height, so
+ * thirty-two scanlines answer the question as well as a thousand and cost nothing.
+ */
+function looksLikeInk(canvas) {
+  let data;
+  try {
+    const context = canvas.getContext('2d', { willReadFrequently: true });
+    if (!context) return true;
+    data = context.getImageData(0, 0, canvas.width, canvas.height).data;
+  } catch {
+    // A tainted or unreadable canvas tells us nothing either way. Shape already had to
+    // pass, so the candidate is admitted rather than a real barcode being discarded.
+    return true;
+  }
+
+  const { width, height } = canvas;
+  const step = Math.max(1, Math.floor(height / Math.min(32, height)));
+
+  let sampled = 0;
+  let coloured = 0;
+  let midtone = 0;
+  const crossings = [];
+
+  for (let y = 0; y < height; y += step) {
+    let previous = null;
+    let count = 0;
+
+    for (let x = 0; x < width; x++) {
+      const i = (y * width + x) * 4;
+
+      // Transparent pixels are the page showing through, not ink.
+      if (data[i + 3] < 16) continue;
+
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
+
+      sampled++;
+      if (Math.max(r, g, b) - Math.min(r, g, b) > 40) coloured++;
+
+      const luma = (r * 0.299 + g * 0.587 + b * 0.114) / 255;
+      if (luma > 0.25 && luma < 0.75) midtone++;
+
+      const dark = luma < 0.5;
+      if (previous !== null && dark !== previous) count++;
+      previous = dark;
+    }
+
+    crossings.push(count);
+  }
+
+  if (!sampled || !crossings.length) return false;
+
+  if (coloured / sampled > 0.02) return false;
+  if (midtone / sampled > 0.35) return false;
+
+  const sorted = [...crossings].sort((a, b) => a - b);
+  const median = sorted[Math.floor(sorted.length / 2)];
+
+  // The smallest QR measured 11 crossings a row, so the floor sits below that with room
+  // to spare. Anything at or under a handful is a rule, a logo or a line of prose.
+  if (median < 6) return false;
+
+  // And nearly every row must carry them. A page of text manages this on barely half its
+  // rows, the rest being the white space between lines.
+  const busy = crossings.filter((count) => count >= Math.max(4, median * 0.35)).length;
+  return busy / crossings.length >= 0.75;
 }
 
 /**

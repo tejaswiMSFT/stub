@@ -142,3 +142,48 @@ test('refusing to guess a name', async (t) => {
     });
   });
 });
+
+/**
+ * The ixigo traveller table, where the name sits in a column beside the PNR.
+ *
+ * A line's `text` has its column gaps collapsed to single spaces, so by the time the
+ * title pattern reads it there is nothing to say where the name column ends. It reads up
+ * to three more capitalised words after the honorific and walked straight into the next
+ * cell: "Ganesan Natesan NTM" — the PNR NTM54A, clipped at the first digit because
+ * digits are not in the name character class, so it did not even look wrong.
+ *
+ * The add-ons table below repeats the same two names against their sector, giving
+ * "Ganesan Natesan MAA-HYD" — hyphens being legitimate in a surname. A booking for two
+ * was reported as a booking for four, the extra two being the same people wearing a PNR
+ * and a route.
+ */
+test('a name stops at its column', async (t) => {
+  const ixigo = lines([
+    [70, [[16, 'Booking Id:'], [16, 'IF23052734513934']]],
+    [110, [[140, 'Barcode'], [330, 'Travellers'], [615, 'PNR'], [895, 'E-Ticket no.']]],
+    [150, [[330, 'Mr. Ganesan Natesan'], [615, 'NTM54A'], [895, 'NTM54A']]],
+    [190, [[330, 'Mr. R Sivaraman'], [615, 'NTM54A'], [895, 'NTM54A']]],
+    [240, [[140, 'Travellers'], [470, 'Sector'], [620, 'Seat']]],
+    [280, [[140, 'Mr. Ganesan Natesan'], [470, 'MAA-HYD'], [620, '18E']]],
+    [320, [[140, 'Mr. R Sivaraman'], [470, 'MAA-HYD'], [620, '18F']]],
+  ]);
+
+  const draft = await flightAdapter.build({ lines: ixigo, barcode: null });
+  const people = draft.passengers || [draft.value('passenger')];
+
+  await t.test('does not weld the PNR onto the name', () => {
+    for (const name of people) {
+      assert.ok(!/NTM/.test(name), `"${name}" carries the PNR`);
+    }
+  });
+
+  await t.test('does not weld the sector onto the name', () => {
+    for (const name of people) {
+      assert.ok(!/MAA|HYD/.test(name), `"${name}" carries the sector`);
+    }
+  });
+
+  await t.test('counts the travellers, not the rows they appear in', () => {
+    assert.equal(people.length, 2, `expected 2 travellers, got ${people.join(', ')}`);
+  });
+});

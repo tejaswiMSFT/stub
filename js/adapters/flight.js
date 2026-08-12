@@ -591,9 +591,30 @@ function findPassengerNames(lines) {
     found.push({ value, region });
   };
 
+  /*
+   * Searched one column at a time, never across a whole line.
+   *
+   * A line's `text` has had its column gaps collapsed to single spaces, so by the time
+   * it is a string there is nothing left to tell "Ganesan Natesan" in the name column
+   * from "NTM54A" in the PNR column beside it. The title pattern reads up to three more
+   * capitalised words after the honorific and duly walked straight into the next column.
+   *
+   * On an ixigo itinerary this produced passengers called "Ganesan Natesan NTM" — the
+   * PNR, clipped at the first digit because digits are not in the name character class,
+   * so it did not even look obviously wrong. The same row in the add-ons table gave
+   * "Ganesan Natesan MAA-HYD", the sector welded on, hyphens being legitimate in a
+   * surname. A booking for two came out as a booking for four, and the two extra were
+   * the same two people wearing a PNR and a route.
+   *
+   * The column geometry is still intact on the line's items, and `splitColumns` is what
+   * reads it. Matching inside a cell means the pattern cannot reach past the gap however
+   * many capitalised words follow it.
+   */
   for (const line of lines) {
-    for (const match of line.text.matchAll(TITLE)) {
-      add(strip(match[1]), line);
+    for (const column of splitColumns(line)) {
+      for (const match of column.text.matchAll(TITLE)) {
+        add(strip(match[1]), line);
+      }
     }
   }
 
@@ -1133,6 +1154,32 @@ function buildFromTextOnly(draft, lines) {
     if (key === 'passenger' && /^(?:adults?|child(?:ren)?|infants?|senior|youth)$/i.test(value.trim())) {
       value = '';
       fromPage = false;
+    }
+
+    /*
+     * A name ends where the next caption begins.
+     *
+     * Where two labelled pairs share a printed line — "Passenger(s): SHASTRY/RAVISHANKARA
+     * C     Airline Reservation Code: AKSSPZ (EY)" on a Sabre itinerary — the value taken
+     * for the first label runs on into the second, and the pass showed a passenger called
+     * "SHASTRY/RAVISHANKARA C Airline Reservation Code: AKSSPZ (EY)".
+     *
+     * Cutting at the next caption is safe here in a way it would not be for a free-text
+     * field: a person's name never contains a labelling colon. Applied before the digit
+     * check below, which would otherwise discard the whole thing on the strength of a
+     * digit belonging to the neighbouring column.
+     */
+    if (key === 'passenger' && value) {
+      /*
+       * Each word of the caption must be a word, not an initial.
+       *
+       * A looser pattern cut at the space before "C Airline Reservation Code:" and
+       * reported the passenger as "SHASTRY/RAVISHANKARA", losing the middle initial that
+       * appears on the passport. Requiring three letters a word, and at least two words,
+       * means a caption is recognised as a caption while an initial stays with the name.
+       */
+      const nextCaption = value.search(/\s(?:[A-Za-z][A-Za-z()#/.]{2,}\s+){0,3}[A-Za-z][A-Za-z()#/.]{2,}:/);
+      if (nextCaption > 0) value = value.slice(0, nextCaption).trim();
     }
 
     // A name is not a number. Whatever the label said, a value containing a digit is
