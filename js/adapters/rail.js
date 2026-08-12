@@ -273,8 +273,27 @@ const VOCAB = {
       /\broute\s*(?:no\.?|number|code)\b/i,
       /\bservice\s*type\b/i,
     ],
-    originPatterns: [/\bboarding\s*(?:point|place|at|station)\b/i, /\bfrom\b/i, /\borigin\b/i, /\bdeparture\s*(?:point|place)\b/i],
-    destinationPatterns: [/\bdropping\s*(?:point|place|at)\b/i, /\bto\b/i, /\bdestination\b/i, /\barrival\s*(?:point|place)\b/i, /\balighting\s*(?:point|at)\b/i],
+    /*
+     * A boarding point is a place, and a label naming something *about* it is not that
+     * place. "Boarding Point Ph. No.: 8724069239 / 9954781942" heads a redBus e-ticket,
+     * and the pass reported the journey as starting at a telephone number.
+     *
+     * The same trap as "Passenger Mobile No" on the flight side: a bare label followed by
+     * a qualifier belongs to the qualifier, not the label.
+     */
+    originPatterns: [
+      /\bboarding\s*(?:point|place|at|station)\b(?!\s*(?:ph\b|phone|mobile|contact|no\.?\b|number|tel|details?\b))/i,
+      /\bfrom\b/i,
+      /\borigin\b/i,
+      /\bdeparture\s*(?:point|place)\b/i,
+    ],
+    destinationPatterns: [
+      /\bdropping\s*(?:point|place|at)\b(?!\s*(?:ph\b|phone|mobile|contact|no\.?\b|number|tel|details?\b))/i,
+      /\bto\b/i,
+      /\bdestination\b/i,
+      /\barrival\s*(?:point|place)\b/i,
+      /\balighting\s*(?:point|at)\b/i,
+    ],
     seatLabel: 'Seat',
     seatLabelPlural: 'Seats',
     seatPatterns: [/\bseat\s*(?:no\.?|number|s)?\b/i, /\bseat\b/i],
@@ -608,12 +627,29 @@ function buildRoute(draft, lines, vocab) {
   const origin = parseStation(originFound?.value);
   const destination = parseStation(destinationFound?.value);
 
+  /*
+   * The heading, where a bus ticket states its journey plainly.
+   *
+   * Every operator prints it: "Guwahati → Duliajan" on redBus, "Bangalore to Pune" on
+   * AbhiBus — set large, near the top, above everything else. The labelled fields are
+   * about the *stops*, not the journey: a boarding point is "B T M Layout (Pickup
+   * Van/Bus) Near Gangotri hospital", which is where to stand, not where you are going.
+   * Reported as the route it gave passes reading "BT MLayout (Pickup → Rigi".
+   *
+   * So the heading wins where there is one. It is preferred over the labels rather than
+   * used as a fallback, because it is the more reliable of the two — the stop labels are
+   * right about stops and wrong about the journey, which is the field being filled here.
+   */
+  const heading = vocab.typeName === 'bus' ? routeFromHeading(lines) : null;
+  const originValue = heading?.from || origin?.code || origin?.display || '';
+  const destinationValue = heading?.to || destination?.code || destination?.display || '';
+
   const originField = draft.set('origin', new Field({
     key: 'origin',
     label: 'From',
-    value: origin?.code || origin?.display || '',
-    source: originFound ? Source.PDF_TEXT : Source.INFERRED,
-    region: originFound?.region || null,
+    value: originValue,
+    source: (heading || originFound) ? Source.PDF_TEXT : Source.INFERRED,
+    region: heading?.region || originFound?.region || null,
     required: true,
     critical: true,
     note: origin?.name && origin?.code ? origin.name : null,
@@ -622,9 +658,9 @@ function buildRoute(draft, lines, vocab) {
   const destinationField = draft.set('destination', new Field({
     key: 'destination',
     label: 'To',
-    value: destination?.code || destination?.display || '',
-    source: destinationFound ? Source.PDF_TEXT : Source.INFERRED,
-    region: destinationFound?.region || null,
+    value: destinationValue,
+    source: (heading || destinationFound) ? Source.PDF_TEXT : Source.INFERRED,
+    region: heading?.region || destinationFound?.region || null,
     required: true,
     critical: true,
     note: destination?.name && destination?.code ? destination.name : null,
@@ -643,6 +679,95 @@ function buildRoute(draft, lines, vocab) {
   }
 
   return { origin, destination };
+}
+
+/**
+ * The journey as stated in a bus ticket's heading.
+ *
+ * "Guwahati → Duliajan", "Bangalore to Pune" — set large and near the top, which is both
+ * how a person reads the ticket and how it can be told from the many other pairs of
+ * place names further down (boarding landmarks, operator addresses, offer banners).
+ *
+ * Deliberately strict. A wrong route is worse than a blank one the user is asked to fill,
+ * and "to" is an ordinary English word that appears in every terms-and-conditions block
+ * on the page.
+ */
+function routeFromHeading(lines) {
+  // Only the top of the page. A heading is a heading by virtue of where it sits, and
+  // scanning the whole document finds "Write to us", "Upto 80% Off on Hotel Booking" and
+  // every address on the sheet.
+  const top = lines.slice(0, 16);
+  const tallest = Math.max(...top.map((line) => line.height || 0), 0);
+  const heights = top.map((line) => line.height || 0).sort((a, b) => a - b);
+  const median = heights[Math.floor(heights.length / 2)] || 0;
+
+  /*
+   * OCR does not preserve an arrow.
+   *
+   * The glyph a designer set as → comes back as ">" from Tesseract, and on other tickets
+   * as "-" or "»". Measured on a redBus e-ticket, the heading read "Guwahati > Duliajan
+   * Thursday, October 3, 2019 ag" — so the arrow has to be matched loosely, and the
+   * words around it cannot be anchored to the end of the line, because the date and a
+   * stray mark follow on the same line.
+   */
+  const ARROW = /\s(?:→|➜|➔|»|-->|—>|->|>)\s/;
+
+  // Words that end a place name because they begin something else — a date, most often,
+  // which is what follows the route on every ticket in the corpus.
+  const STOP = /^(?:mon|tue|wed|thu|fri|sat|sun|jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)/i;
+
+  const placeWords = (words, fromEnd) => {
+    const taken = [];
+    const ordered = fromEnd ? [...words].reverse() : words;
+
+    for (const word of ordered) {
+      // A place name is letters. Anything with a digit, or a trailing comma, ends it.
+      if (!/^[A-Za-z][A-Za-z.'()-]*,?$/.test(word)) break;
+      if (STOP.test(word)) break;
+      taken.push(word.replace(/,$/, ''));
+      if (word.endsWith(',')) break;
+      if (taken.length === 3) break;
+    }
+
+    return (fromEnd ? taken.reverse() : taken).join(' ').trim();
+  };
+
+  for (const line of top) {
+    const arrow = ARROW.test(line.text);
+
+    /*
+     * A bare "to" needs the size test; an arrow does not, since nothing but a route is
+     * written with one.
+     *
+     * The threshold is measured, not chosen. On an AbhiBus ticket the heading "Bangalore
+     * to Pune" is set at 68 while the masthead above it — the operator's own logo — is
+     * 108, so requiring four-fifths of the tallest line refused the very line being
+     * looked for. A masthead is not a heading and should not set the bar.
+     *
+     * Half the tallest, and above the median, is what separates a heading from body text
+     * without letting the logo dictate. Measured on this corpus: headings run 60–68
+     * against body text at 20–30.
+     */
+    const spelled = !arrow
+      && (line.height || 0) >= Math.max(tallest * 0.5, median * 1.4)
+      && /\sto\s/i.test(line.text);
+
+    if (!arrow && !spelled) continue;
+
+    const [left, right] = arrow ? line.text.split(ARROW) : line.text.split(/\s+to\s+/i);
+    if (!left || !right) continue;
+
+    const from = placeWords(left.trim().split(/\s+/), true);
+    const to = placeWords(right.trim().split(/\s+/), false);
+
+    if (!from || !to) continue;
+    if (from.length < 3 || to.length < 3) continue;
+    if (from.toUpperCase() === to.toUpperCase()) continue;
+
+    return { from, to, region: line };
+  }
+
+  return null;
 }
 
 function buildTimes(draft, lines, mode) {

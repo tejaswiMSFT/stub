@@ -685,6 +685,19 @@ export function readTable(lines, headers, { minMatch = 2, maxRows = 12, maxGap =
         continue;
       }
 
+      /*
+       * A line that introduces something else ends the table.
+       *
+       * "Acronyms: RLWL, REMOTE LOCATION WAITLIST | PQWL, POOLED QUOTA WAITLIST | ..."
+       * is printed directly beneath the passenger rows on an IRCTC slip, at ordinary row
+       * spacing and in as many columns — so every geometric test passed it, and a booking
+       * for one came back with a second passenger named "Acronyms:".
+       *
+       * A caption ending in a colon is not a value in a table's first column. Nothing in
+       * a passenger, seat or fare column is punctuated that way.
+       */
+      if (rows.length && /^[A-Za-z][A-Za-z .'()-]{1,20}:$/.test(cells[0]?.text?.trim() || '')) break;
+
       const row = {};
       let filled = 0;
 
