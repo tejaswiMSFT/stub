@@ -39,13 +39,13 @@ try {
 
   const contact = links.find((l) => /contact/i.test(l.text));
   if (!contact) fail('no contact link');
-  else if (!contact.href.includes('tejaswimsft.github.io/#contact')) fail(`contact points at ${contact.href}`);
+  else if (!contact.href.includes('itstejaswi.github.io/#contact')) fail(`contact points at ${contact.href}`);
   else if (!contact.rel.includes('noopener')) fail('contact link is missing rel=noopener');
   else pass(`contact → ${contact.href}`);
 
   const source = links.find((l) => /source/i.test(l.text));
   if (!source) fail('no source link');
-  else if (!source.href.includes('github.com/tejaswiMSFT/stub')) fail(`source points at ${source.href}`);
+  else if (!source.href.includes('github.com/itstejaswi/stub')) fail(`source points at ${source.href}`);
   else pass(`source → ${source.href}`);
 
   // The install guide has to actually open the help screen, on the first page.

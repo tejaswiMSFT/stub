@@ -17,7 +17,7 @@
  * The subject is prefilled so a message arrives already identified as being about this
  * app rather than anything else on the site.
  */
-const CONTACT_URL = 'https://tejaswimsft.github.io/?subject=Stub%20—%20feedback#contact';
+const CONTACT_URL = 'https://itstejaswi.github.io/?subject=Stub%20—%20feedback#contact';
 
 /**
  * Help pages.
@@ -422,7 +422,7 @@ in a tunnel. <strong>Your saved tickets are never touched by an update.</strong>
 <h3>Open</h3>
     <p>The code is public. Anyone can read exactly what it does with a ticket — which is the
     only way a claim like "nothing leaves your device" can be worth anything.</p>
-    <p><a href="https://github.com/tejaswiMSFT/stub" target="_blank" rel="noopener">github.com/tejaswiMSFT/stub</a></p>
+    <p><a href="https://github.com/itstejaswi/stub" target="_blank" rel="noopener">github.com/itstejaswi/stub</a></p>
 
     <h3>Something wrong? Something missing?</h3>
     <p>Tickets vary enormously between airlines, railways and countries, and the only way

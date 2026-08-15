@@ -14,7 +14,7 @@ import { basename, extname } from 'node:path';
 import { readFile } from 'node:fs/promises';
 
 const file = process.argv[2];
-const url = process.argv[3] || 'https://tejaswimsft.github.io/stub/';
+const url = process.argv[3] || 'https://itstejaswi.github.io/stub/';
 
 if (!file) {
   console.error('usage: node tools/probe-webkit.mjs <file> [url]');

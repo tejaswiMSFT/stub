@@ -5,12 +5,12 @@
  * wrong MIME types, a missing file, a service worker scoped to the wrong path, a
  * manifest that fails to parse. All of those are invisible locally and fatal live.
  *
- *   node tools/probe-live.mjs https://tejaswimsft.github.io/stub/
+ *   node tools/probe-live.mjs https://itstejaswi.github.io/stub/
  */
 
 import { chromium, devices } from 'playwright';
 
-const url = process.argv[2] || 'https://tejaswimsft.github.io/stub/';
+const url = process.argv[2] || 'https://itstejaswi.github.io/stub/';
 
 const browser = await chromium.launch();
 const context = await browser.newContext({

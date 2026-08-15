@@ -2410,7 +2410,7 @@ async function openSettings() {
         natively and never blocks.
       -->
       <div class="feedback-row">
-        <a class="feedback-button" href="https://tejaswimsft.github.io/#contact"
+        <a class="feedback-button" href="https://itstejaswi.github.io/#contact"
            target="_blank" rel="noopener noreferrer">
           <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor"
                stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -2419,7 +2419,7 @@ async function openSettings() {
           </svg>
           <span>Something I liked</span>
         </a>
-        <a class="feedback-button" href="https://tejaswimsft.github.io/#contact"
+        <a class="feedback-button" href="https://itstejaswi.github.io/#contact"
            target="_blank" rel="noopener noreferrer">
           <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor"
                stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
