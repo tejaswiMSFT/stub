@@ -1,4 +1,4 @@
-# Stub
+﻿# Stub
 
 Turn a ticket into a pass on your phone.
 
